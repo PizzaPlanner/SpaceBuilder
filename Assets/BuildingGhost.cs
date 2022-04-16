@@ -37,6 +37,7 @@ public class BuildingPlacementActivationSystem : SystemBase
         builder.MakePrefabs(settings);
 
         RequireSingletonForUpdate<LocalPlayer>();
+
     }
 
     protected override void OnDestroy()
@@ -168,7 +169,6 @@ public class CalculateBuildingSlotSystem : SystemBase
         var collisionWorld = physicsWorld.PhysicsWorld.CollisionWorld;
 
         float3 target = ltw.Position + ltw.Forward * bgp.TargetGrid.CellSize * bgp.Range;
-        Debug.DrawLine(ltw.Position, target);
         for (float f = bgp.TargetGrid.CellSize * bgp.Range; f > 0; f -= bgp.TargetGrid.CellSize * 0.25f)
         {
             var input = new RaycastInput
@@ -185,14 +185,6 @@ public class CalculateBuildingSlotSystem : SystemBase
 
 
         bgp.CurrentSlot = bgp.TargetGrid.CellFromPosition(gridLtw, target);
-
-        // Debug.DrawLine(bgp.TargetGrid.PositionFromCell(gridLtw, int3.zero), bgp.TargetGrid.PositionFromCell(gridLtw, new int3(1,0,0)), Color.red);
-        // Debug.DrawLine(bgp.TargetGrid.PositionFromCell(gridLtw, int3.zero), bgp.TargetGrid.PositionFromCell(gridLtw, new int3(0,1,0)),Color.green);
-        // Debug.DrawLine(bgp.TargetGrid.PositionFromCell(gridLtw, int3.zero), bgp.TargetGrid.PositionFromCell(gridLtw, new int3(0,0,1)), Color.blue);
-        //
-        // Debug.DrawLine(bgp.TargetGrid.PositionFromCell(gridLtw, bgp.CurrentSlot), bgp.TargetGrid.PositionFromCell(gridLtw, bgp.CurrentSlot + new int3(1,0,0)), Color.red);
-        // Debug.DrawLine(bgp.TargetGrid.PositionFromCell(gridLtw, bgp.CurrentSlot), bgp.TargetGrid.PositionFromCell(gridLtw, bgp.CurrentSlot + new int3(0,1,0)),Color.green);
-        // Debug.DrawLine(bgp.TargetGrid.PositionFromCell(gridLtw, bgp.CurrentSlot), bgp.TargetGrid.PositionFromCell(gridLtw, bgp.CurrentSlot + new int3(0,0,1)), Color.blue);
 
         var newPos = new Translation {Value = bgp.TargetGrid.PositionFromCell(new LocalToWorld(), bgp.CurrentSlot)};
         SetComponent(GetSingletonEntity<BuildingGhostPlacement>(), newPos);

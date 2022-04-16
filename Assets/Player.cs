@@ -58,14 +58,11 @@ public class MovePlayerSystem : SystemBase
 public class DockingSystem : SystemBase
 {
     struct OriginAnchor : IComponentData { }
-
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
-    private Entity Origin;
+    public Entity Origin;
     private VisualElement swapRoot;
     protected override void OnCreate()
     {
         RequireSingletonForUpdate<LocalPlayer>();
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
         Origin = EntityManager.CreateEntity(typeof(LocalToWorld), typeof(OriginAnchor));
         SetComponent(Origin, new LocalToWorld{Value = float4x4.identity});
     }
@@ -77,18 +74,6 @@ public class DockingSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var buffer = bufferSystem.CreateCommandBuffer();
-        var origin = Origin;
-        Entities
-            .WithAll<Player>()
-            .WithNone<CloseGrids>()
-            .ForEach((Entity e) =>
-            {
-                buffer.AddBuffer<CloseGrids>(e);
-                buffer.AddComponent<LocalToParent>(e);
-                buffer.AddComponent(e, new Parent{Value = origin});
-            }).Run();
-
         var entity = GetSingletonEntity<LocalPlayer>();
         var grids = GetBuffer<CloseGrids>(entity);
 
@@ -109,7 +94,7 @@ public class DockingSystem : SystemBase
         if (!Input.GetKeyDown(KeyCode.G))
             return;
 
-        var dockedGrid = GetComponent<Parent>(entity).Value == origin && grids.Length > 0 ? grids[0].Grid : origin;
+        var dockedGrid = GetComponent<Parent>(entity).Value == Origin && grids.Length > 0 ? grids[0].Grid : Origin;
         Dock(entity, dockedGrid);
     }
 
