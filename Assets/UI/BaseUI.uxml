@@ -1,0 +1,19 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/default.uss?fileID=7433441132597879392&amp;guid=309dfca128ab79d4595813fdc55991a4&amp;type=3#default" />
+    <ui:VisualElement name="DockInfo" style="position: absolute; left: 0; bottom: 0; align-items: center; justify-content: center;">
+        <ui:VisualElement name="System" class="dockingbutton dockingbutton-on" style="flex-direction: row; align-items: center; background-image: url(&apos;project://database/Assets/UI/bg_default.png?fileID=2800000&amp;guid=c73eb54f62139d64087a3e6d1e440760&amp;type=3#bg_default&apos;); -unity-background-scale-mode: stretch-to-fill; justify-content: flex-start; width: 100%; margin-top: 1px; margin-bottom: 1px;">
+            <ui:VisualElement style="background-image: url(&apos;project://database/Assets/UI/coorsys_system.png?fileID=2800000&amp;guid=c2e97b68c263c2540b96550bf1f92d1a&amp;type=3#coorsys_system&apos;); width: 28px; height: 28px; margin-left: 2px; margin-right: 2px; margin-top: 2px; margin-bottom: 2px;" />
+            <ui:Label text="System" display-tooltip-when-elided="true" style="margin-right: 5px;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="Station" class="dockingbutton" style="flex-direction: row; align-items: center; background-image: url(&apos;project://database/Assets/UI/bg_default.png?fileID=2800000&amp;guid=c73eb54f62139d64087a3e6d1e440760&amp;type=3#bg_default&apos;); justify-content: flex-start; width: 100%; margin-top: 1px; margin-bottom: 1px;">
+            <ui:VisualElement style="background-image: url(&apos;project://database/Assets/UI/coorsys_local.png?fileID=2800000&amp;guid=43fb2bd82828bcb4e99ccc29bbd14ac6&amp;type=3#coorsys_local&apos;); width: 28px; height: 28px; margin-left: 2px; margin-right: 2px; margin-top: 2px; margin-bottom: 2px;" />
+            <ui:Label text="Station" display-tooltip-when-elided="true" style="margin-right: 5px;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="Swap" style="position: absolute; right: 15%;">
+            <ui:VisualElement style="flex-direction: row; align-items: center; background-image: url(&apos;project://database/Assets/UI/bg_slim.png?fileID=2800000&amp;guid=cc32439c45babc04593dca5896662d0a&amp;type=3#bg_slim&apos;); -unity-slice-left: 0; -unity-slice-top: 0; -unity-slice-right: 0; -unity-slice-bottom: 0; -unity-background-scale-mode: stretch-to-fill;">
+                <ui:VisualElement style="background-image: url(&apos;project://database/Assets/UI/swap.png?fileID=2800000&amp;guid=cd4c7e8cf29844f44878fed8eb19b629&amp;type=3#swap&apos;); width: 14px; height: 14px; -unity-background-scale-mode: stretch-to-fill;" />
+                <ui:Label text="G" display-tooltip-when-elided="true" style="font-size: 10px; padding-left: 2px; padding-right: 2px; padding-top: 0; padding-bottom: 0; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; -unity-text-align: middle-left;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

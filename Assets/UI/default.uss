@@ -1,0 +1,7 @@
+.dockingbutton-on {
+    -unity-background-image-tint-color: rgba(81, 251, 255, 255);
+}
+
+* {
+    color: rgba(235, 238, 233, 255);
+}
