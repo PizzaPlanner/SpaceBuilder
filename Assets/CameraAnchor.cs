@@ -42,7 +42,7 @@ public class CameraControllerSystem : SystemBase
         var anchorLtw = GetComponent<LocalToWorld>(GetSingletonEntity<CameraAnchor>());
         var anchor = GetSingleton<CameraAnchor>();
 
-        if (!HasSingleton<BuildingGhostPlacement>() && Input.GetAxis("Mouse ScrollWheel") != 0)
+        if (!HasSingleton<GhostPlacementBuilder>() && Input.GetAxis("Mouse ScrollWheel") != 0)
         {
             anchor.ScrollFactor -= Input.GetAxis("Mouse ScrollWheel");
             anchor.ScrollFactor = math.clamp(anchor.ScrollFactor, 0, 2);

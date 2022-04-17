@@ -6,12 +6,11 @@ using Unity.Transforms;
 [GenerateAuthoringComponent]
 public struct Grid : IComponentData
 {
-    public float CellSize;
-    public int3 Size;
+    public float MaxSize;
 
-    public int3 CellFromPosition(LocalToWorld grid, float3 position) => (int3) math.floor(math.mul(math.inverse(grid.Rotation), position - grid.Position) / CellSize);
+    public static int3 CellFromPosition(LocalToWorld grid, float3 position, float cellSize) => (int3) math.floor(math.mul(math.inverse(grid.Rotation), position - grid.Position) / cellSize);
 
-    public float3 PositionFromCell(LocalToWorld grid, int3 cell) =>  math.mul(grid.Rotation, (float3) cell * CellSize) + grid.Position;
+    public static float3 PositionFromCell(LocalToWorld grid, int3 cell, float cellSize) =>  math.mul(grid.Rotation, (float3) cell * cellSize) + grid.Position;
 }
 
 public struct Initialized : IComponentData { }
