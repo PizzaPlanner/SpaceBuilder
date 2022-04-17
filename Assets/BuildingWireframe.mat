@@ -149,5 +149,5 @@ Material:
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _Tiling: {r: 5, g: 5, b: 0, a: 0}
     - _baseColor: {r: 0, g: 0.7490196, b: 0.7490196, a: 1}
-    - _baseColor_1: {r: 0, g: 0.7490196, b: 0.7490196, a: 0.003921569}
+    - _baseColor_1: {r: 0, g: 0.7490196, b: 0.7490196, a: 0.015686275}
   m_BuildTextureStacks: []

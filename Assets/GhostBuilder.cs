@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class GhostBuilder : MonoBehaviour
 {
-    [SerializeField] BuildingPart[] Prefabs;
+    [SerializeField] public BuildingPart[] Prefabs;
     [SerializeField] WireframeDisplay WireframePrefab;
     public Entity[] EntityPrefabs;
     public static WireframeDisplay WireframeDisplay;

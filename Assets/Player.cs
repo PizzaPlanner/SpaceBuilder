@@ -98,22 +98,20 @@ public class DockingSystem : SystemBase
         Dock(entity, dockedGrid);
     }
 
-    void Dock(Entity docker, Entity grid)
+    void Dock(Entity entity, Entity newParent)
     {
-        var playerLtw = GetComponent<LocalToWorld>(docker);
-        var parentLtw = GetComponent<LocalToWorld>(grid);
+        var playerLtw = GetComponent<LocalToWorld>(entity);
+        var newParentLtw = GetComponent<LocalToWorld>(newParent);
 
-        var newLocalPos = playerLtw.Position;
-        var newLocalRot = playerLtw.Rotation;
         // World --> Parent
-        newLocalPos = math.mul(math.inverse(parentLtw.Rotation), newLocalPos);
-        newLocalRot = math.mul(math.inverse(parentLtw.Rotation), newLocalRot);
+        var newLocalPos = math.mul(math.inverse(newParentLtw.Rotation), playerLtw.Position);
+        var newLocalRot = math.mul(math.inverse(newParentLtw.Rotation), playerLtw.Rotation);
 
-        SetComponent(docker, new Parent{Value = grid});
-        SetComponent(docker, new Translation{Value = newLocalPos});
-        SetComponent(docker, new Rotation{Value = newLocalRot});
+        SetComponent(entity, new Parent{Value = newParent});
+        SetComponent(entity, new Translation{Value = newLocalPos});
+        SetComponent(entity, new Rotation{Value = newLocalRot});
 
-        swapRoot.Q(grid != Origin ? "System" : "Station", "dockingbutton").RemoveFromClassList("dockingbutton-on");
-        swapRoot.Q(grid == Origin ? "System" : "Station", "dockingbutton").AddToClassList("dockingbutton-on");
+        swapRoot.Q(newParent != Origin ? "System" : "Station", "dockingbutton").RemoveFromClassList("dockingbutton-on");
+        swapRoot.Q(newParent == Origin ? "System" : "Station", "dockingbutton").AddToClassList("dockingbutton-on");
     }
 }

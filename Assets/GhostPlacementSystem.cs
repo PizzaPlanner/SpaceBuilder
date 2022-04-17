@@ -3,6 +3,7 @@ using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 [GenerateAuthoringComponent]
 public struct GhostPlacementBuilder : IComponentData
@@ -21,6 +22,7 @@ public class GhostPlacementSystem : SystemBase
     private int ghostId;
     private bool rotating;
     public quaternion currentRotation;
+    private VisualElement uiRoot;
 
     protected override void OnCreate()
     {
@@ -34,6 +36,12 @@ public class GhostPlacementSystem : SystemBase
         RequireSingletonForUpdate<LocalPlayer>();
     }
 
+    protected override void OnStartRunning()
+    {
+        uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BuildMenu");
+        uiRoot.style.display = DisplayStyle.None;
+    }
+
     protected override void OnDestroy()
     {
         blobStore.Dispose();
@@ -42,7 +50,9 @@ public class GhostPlacementSystem : SystemBase
     protected override void OnUpdate()
     {
         var currentGrid = GetComponent<Parent>(GetSingletonEntity<LocalPlayer>()).Value;
-        if (HasSingleton<GhostPlacementBuilder>())
+        var hasbuilder = HasSingleton<GhostPlacementBuilder>();
+        uiRoot.style.display = hasbuilder ? DisplayStyle.Flex : DisplayStyle.None;
+        if (hasbuilder)
         {
             if (!HasComponent<Grid>(currentGrid) || Input.GetKeyDown(KeyCode.B))
             {
@@ -76,7 +86,7 @@ public class GhostPlacementSystem : SystemBase
                 if (!rotating)
                 {
                     ghostId += sign;
-                    ghostId = (ghostId + builder.EntityPrefabs.Length) % builder.EntityPrefabs.Length;
+                    ghostId = ghostId.mod(builder.EntityPrefabs.Length);
                     EntityManager.DestroyEntity(GetSingletonEntity<GhostPlacementBuilder>());
                     Build(currentGrid, true);
                     SetSingleton(bgp);
@@ -111,6 +121,11 @@ public class GhostPlacementSystem : SystemBase
                 CurrentSlot = new int3(int.MaxValue, int.MaxValue, int.MaxValue),
                 Range = 3
             });
+
+            uiRoot.Q<Icon3D>("ObjectToBuild").SetObject(builder.Prefabs[ghostId].gameObject);
+            uiRoot.Q<Icon3D>("Next").SetObject(builder.Prefabs[(ghostId + 1).mod(builder.Prefabs.Length)].gameObject);
+            uiRoot.Q<Icon3D>("Previous").SetObject(builder.Prefabs[(ghostId - 1).mod(builder.Prefabs.Length)].gameObject);
+            uiRoot.Q<Label>("ItemName").text = builder.Prefabs[ghostId].gameObject.name;
 
             // TODO: children are added later by transform systems. Need to do this properly!
             var children = GetBufferFromEntity<Child>(true);

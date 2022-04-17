@@ -16,9 +16,8 @@ public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
 
     [SerializeField] [ReadOnly] private long ItemID;
     [SerializeField] private float Size;
-    [SerializeField] public Texture2D Icon;
 
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
     private void OnValidate()
     {
         if (!UnityEditor.PrefabUtility.IsPartOfPrefabAsset(this))

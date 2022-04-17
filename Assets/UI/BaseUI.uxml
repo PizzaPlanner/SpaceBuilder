@@ -17,9 +17,13 @@
         </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement name="BuildMenu" style="position: absolute; bottom: 0; right: 50%; left: 50%; align-items: center; justify-content: flex-end;">
-        <ui:VisualElement style="background-image: url(&apos;project://database/Assets/UI/bg_default.png?fileID=2800000&amp;guid=c73eb54f62139d64087a3e6d1e440760&amp;type=3#bg_default&apos;); width: 250px; height: 86px; -unity-slice-left: 20; -unity-slice-top: 20; -unity-slice-right: 20; -unity-slice-bottom: 20; align-items: center;">
-            <ui:Label text="Label" display-tooltip-when-elided="true" name="ItemName" style="-unity-text-align: middle-center;" />
-            <ui:VisualElement style="width: 64px; height: 64px; background-image: url(&apos;project://database/Assets/3rdParty/PolygonSciFiSpace/Textures/FX_Textures/PolygonSciFiSpace_Skybox_01_Down.png?fileID=2800000&amp;guid=1475799ef5f179444a847970ce7e4b35&amp;type=3#PolygonSciFiSpace_Skybox_01_Down&apos;);" />
+        <ui:VisualElement name="Box" style="background-image: url(&apos;project://database/Assets/UI/bg_default.png?fileID=2800000&amp;guid=c73eb54f62139d64087a3e6d1e440760&amp;type=3#bg_default&apos;); width: 250px; height: 86px; -unity-slice-left: 20; -unity-slice-top: 20; -unity-slice-right: 20; -unity-slice-bottom: 20; align-items: center; flex-direction: row; justify-content: center;">
+            <Icon3D name="Previous" style="width: 48px; height: 48px; top: 10px;" />
+            <ui:VisualElement name="Current" style="align-items: center; justify-content: flex-start;">
+                <ui:Label text="Label" display-tooltip-when-elided="true" name="ItemName" style="-unity-text-align: middle-center;" />
+                <Icon3D name="ObjectToBuild" style="width: 64px; height: 64px;" />
+            </ui:VisualElement>
+            <Icon3D name="Next" style="width: 48px; height: 48px; top: 10px;" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
