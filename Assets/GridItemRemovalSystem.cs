@@ -44,6 +44,7 @@ public class GridItemRemovalSystem : SystemBase
         foreach(var renderer in GhostBuilder.WireframeDisplay.gameObject.GetComponentsInChildren<MeshRenderer>())
             if (renderer.gameObject.layer == LayerMask.NameToLayer("Grid"))
                 renderer.sharedMaterial = settings.GridDestroyMaterial;
+        GhostBuilder.WireframeDisplay.gameObject.SetActive(true);
     }
 
     protected override void OnStopRunning()
@@ -64,6 +65,14 @@ public class GridItemRemovalSystem : SystemBase
 
     protected override void OnUpdate()
     {
+        var parent = GetComponent<Parent>(GetSingletonEntity<LocalPlayer>()).Value;
+        var grid = GetComponent<Grid>(parent);
+        var gridLtw = GetComponent<LocalToWorld>(parent);
+        var wireframe = GhostBuilder.WireframeDisplay.transform;
+        wireframe.localScale = new float3(Grid.CellSize(grid));
+        wireframe.rotation = gridLtw.Rotation;
+        wireframe.transform.position = GetComponent<LocalToWorld>(GetSingletonEntity<LocalPlayer>()).Position;
+
         var buffer = bufferSystem.CreateCommandBuffer();
         var childBuffer = GetBufferFromEntity<Child>();
         var cpt = GetComponentDataFromEntity<CurrentPlayerTarget>();
@@ -85,6 +94,7 @@ public class GridItemRemovalSystem : SystemBase
 
         Entities.ForEach((Entity e, in LocalToWorld gridLtw, in GridItem gridItem, in CurrentPlayerTarget target) =>
         {
+            GhostBuilder.WireframeDisplay.transform.position = gridLtw.Position;
             if (modifiedEntities.Contains(e))
                 return;
 
@@ -102,11 +112,6 @@ public class GridItemRemovalSystem : SystemBase
             if (hasChildrenWithRM)
             {
                 modifiedEntities.Add(e);
-                Transform wireframe = GhostBuilder.WireframeDisplay.transform;
-                wireframe.position = gridLtw.Position;
-                wireframe.rotation = gridLtw.Rotation;
-                wireframe.localScale = new float3(gridItem.Size);
-                GhostBuilder.WireframeDisplay.gameObject.SetActive(true);
             }
 
         }).WithoutBurst().Run();
@@ -114,6 +119,7 @@ public class GridItemRemovalSystem : SystemBase
         if (Input.GetMouseButtonDown(0))
         {
             EntityManager.DestroyEntity(modifiedEntities);
+            EntityManager.CreateEntity(typeof(GridsNeedUpdate));
         }
     }
 }

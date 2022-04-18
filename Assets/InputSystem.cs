@@ -4,6 +4,7 @@ using UnityEngine.UIElements;
 
 public struct BuilderMode_Build : ISystemStateComponentData { }
 public struct BuilderMode_Destroy : ISystemStateComponentData { }
+public struct CanMove : IComponentData { }
 public class InputSystem : SystemBase
 {
     public struct InputData : ISystemStateComponentData
@@ -51,7 +52,7 @@ public class InputSystem : SystemBase
 
         if (Input.GetKeyDown(KeyCode.B))
         {
-            if (HasSingleton<BuilderMode_Build>())
+            if (input.CurrentAction == ActionState.Construct)
             {
                 input.CurrentAction = ActionState.None;
             }
@@ -67,7 +68,7 @@ public class InputSystem : SystemBase
         {
             if (input.CurrentAction == ActionState.Deconstruct)
             {
-                EntityManager.RemoveComponent<BuilderMode_Destroy>(entity);
+                input.CurrentAction = ActionState.None;
             }
             else if(input.CurrentAction == ActionState.None)
             {
@@ -76,6 +77,17 @@ public class InputSystem : SystemBase
                 uiRoot.Q<Label>("MainActionName").text = "Deconstruct";
             }
         }
+
+        if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            var player = GetSingletonEntity<LocalPlayer>();
+            if (HasComponent<CanMove>(player))
+                EntityManager.RemoveComponent<CanMove>(player);
+            else
+                EntityManager.AddComponent<CanMove>(player);
+        }
+
+
 
         SetSingleton(input);
     }

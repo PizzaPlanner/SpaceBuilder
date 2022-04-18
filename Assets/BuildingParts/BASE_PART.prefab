@@ -45,4 +45,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ItemID: -1638245548689819564
-  Size: 1
+  Type: 1
+  SizeInGrid:
+    x: 1
+    y: 1
+    z: 1
+  Occupied: 0
+  Airtight: 0

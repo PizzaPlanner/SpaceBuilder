@@ -34,6 +34,7 @@ public class PlayerSpawnSystem : SystemBase
             var player = buffer.Instantiate(sp.Prefab);
             buffer.AddBuffer<CloseGrids>(player);
             buffer.AddComponent<LocalToParent>(player);
+            buffer.AddComponent<CanMove>(player);
             buffer.AddComponent(player, new Parent {Value = origin});
         }).Schedule();
         bufferSystem.AddJobHandleForProducer(Dependency);

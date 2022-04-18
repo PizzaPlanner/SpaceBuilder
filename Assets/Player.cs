@@ -21,7 +21,7 @@ public class MovePlayerSystem : SystemBase
     {
         RequireSingletonForUpdate<LocalPlayer>();
         RequireSingletonForUpdate<CameraAnchor>();
-        RequireForUpdate(GetEntityQuery(typeof(LocalPlayer), typeof(Parent), typeof(LocalToWorld)));
+        RequireForUpdate(GetEntityQuery(typeof(LocalPlayer), typeof(Parent), typeof(LocalToWorld), typeof(CanMove)));
         RequireForUpdate(GetEntityQuery(typeof(CameraAnchor), typeof(LocalToWorld)));
     }
 
@@ -45,9 +45,17 @@ public class MovePlayerSystem : SystemBase
 
         Entities
             .WithAll<Player>()
+            .WithNone<Docked>()
             .ForEach((ref Rotation r, ref PhysicsVelocity velocity) =>
             {
                 r.Value = math.mul(r.Value, quaternion.EulerXYZ(rotation));
+                velocity.Linear = movement;
+            }).Schedule();
+        Entities
+            .WithAll<Player, Docked>()
+            .ForEach((ref Rotation r, ref PhysicsVelocity velocity, in LocalToParent ltp) =>
+            {
+                r.Value = math.mul(r.Value, quaternion.EulerXYZ(new float3(rotation.x, rotation.y, 0)));
                 velocity.Linear = movement;
             }).Schedule();
     }
