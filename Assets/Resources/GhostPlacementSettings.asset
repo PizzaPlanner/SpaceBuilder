@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: GhostPlacementSettings
+  m_EditorClassIdentifier: Assembly-CSharp::GhostPlacementSettings
+  GhostPlacementMaterial: {fileID: 2100000, guid: b79c1604180e4124ebf820cd4c4441e8,
+    type: 2}
+  GhostRemovalMaterial: {fileID: 2100000, guid: 55d7c742aa7972d4f9e3614e07908c19,
+    type: 2}
+  GridBuildMaterial: {fileID: 2100000, guid: 5f30a45282d9924419e1ce2d071401dd, type: 2}
+  GridDestroyMaterial: {fileID: 2100000, guid: 9594d973283210e43afd10efe6a92398, type: 2}

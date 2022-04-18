@@ -159,7 +159,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4958183229184151269}
   - component: {fileID: 2115757601233503931}
-  m_Layer: 9
+  m_Layer: 0
   m_Name: BuildingWireframeDisplay
   m_TagString: Untagged
   m_Icon: {fileID: 0}

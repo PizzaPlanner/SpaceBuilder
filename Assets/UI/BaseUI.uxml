@@ -16,14 +16,28 @@
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
-    <ui:VisualElement name="BuildMenu" style="position: absolute; bottom: 0; right: 50%; left: 50%; align-items: center; justify-content: flex-end;">
-        <ui:VisualElement name="Box" style="background-image: url(&apos;project://database/Assets/UI/bg_default.png?fileID=2800000&amp;guid=c73eb54f62139d64087a3e6d1e440760&amp;type=3#bg_default&apos;); width: 250px; height: 86px; -unity-slice-left: 20; -unity-slice-top: 20; -unity-slice-right: 20; -unity-slice-bottom: 20; align-items: center; flex-direction: row; justify-content: center;">
-            <Icon3D name="Previous" style="width: 48px; height: 48px; top: 10px;" />
-            <ui:VisualElement name="Current" style="align-items: center; justify-content: flex-start;">
-                <ui:Label text="Label" display-tooltip-when-elided="true" name="ItemName" style="-unity-text-align: middle-center;" />
-                <Icon3D name="ObjectToBuild" style="width: 64px; height: 64px;" />
+    <ui:VisualElement name="Crosshair" style="background-image: url(&apos;project://database/Assets/UI%20Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss?fileID=8300712400058098730&amp;guid=e8a9ae140fc16b24e89f697089c11e9d&amp;type=3#arrow-up&apos;); width: 12px; height: 12px; position: absolute; left: 50%; top: 50%; right: 50%; bottom: 50%;" />
+    <ui:VisualElement name="ContextMenu" style="left: 60%; top: 50%; display: none; max-width: 30%; align-items: flex-start;">
+        <ui:VisualElement name="MainAction" style="flex-direction: row; align-items: center;">
+            <ui:VisualElement style="background-image: url(&apos;project://database/Assets/UI%20Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss?fileID=7433338533053954386&amp;guid=e8a9ae140fc16b24e89f697089c11e9d&amp;type=3#check@2x&apos;); width: 24px; height: 24px;" />
+            <ui:Label text="Build" display-tooltip-when-elided="true" name="MainActionName" />
+        </ui:VisualElement>
+        <ui:VisualElement name="BuildMenu" style="display: flex;">
+            <ui:VisualElement name="Box" style="background-image: url(&apos;project://database/Assets/UI/bg_default.png?fileID=2800000&amp;guid=c73eb54f62139d64087a3e6d1e440760&amp;type=3#bg_default&apos;); -unity-slice-left: 20; -unity-slice-top: 20; -unity-slice-right: 20; -unity-slice-bottom: 20; align-items: center; flex-direction: column; justify-content: center; padding-left: 5px; padding-right: 10px; padding-top: 5px; padding-bottom: 5px;">
+                <ui:VisualElement name="Previous" style="flex-direction: row;">
+                    <Icon3D name="Icon" style="width: 32px; height: 32px;" />
+                    <ui:Label text="Label" display-tooltip-when-elided="true" name="Name" style="-unity-text-align: middle-center; left: 3px;" />
+                </ui:VisualElement>
+                <ui:VisualElement name="Current" style="flex-direction: row;">
+                    <Icon3D name="Icon" style="width: 32px; height: 32px;" />
+                    <ui:Label text="Label" display-tooltip-when-elided="true" name="Name" style="-unity-text-align: middle-center; left: 3px;" />
+                    <ui:VisualElement style="position: absolute; top: 25%; left: -13px; background-image: url(&apos;project://database/Assets/UI%20Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss?fileID=-1087164816274819069&amp;guid=e8a9ae140fc16b24e89f697089c11e9d&amp;type=3#arrow-right@2x&apos;); width: 16px; height: 16px; bottom: 25%;" />
+                </ui:VisualElement>
+                <ui:VisualElement name="Next" style="flex-direction: row;">
+                    <Icon3D name="Icon" style="width: 32px; height: 32px;" />
+                    <ui:Label text="Label" display-tooltip-when-elided="true" name="Name" style="-unity-text-align: middle-center; left: 3px;" />
+                </ui:VisualElement>
             </ui:VisualElement>
-            <Icon3D name="Next" style="width: 48px; height: 48px; top: 10px;" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

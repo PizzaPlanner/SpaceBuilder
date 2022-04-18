@@ -9,16 +9,25 @@ using UnityEngine;
 public class CalculateBuildingSlotSystem : SystemBase
 {
     BuildPhysicsWorld physicsWorld;
+    private GhostPlacementSettings settings;
+    private CollisionFilter filter;
 
     protected override void OnCreate()
     {
         RequireSingletonForUpdate<GhostPlacementBuilder>();
         RequireSingletonForUpdate<CameraAnchor>();
         physicsWorld = World.GetExistingSystem<BuildPhysicsWorld>();
+        settings = Resources.Load<GhostPlacementSettings>("GhostPlacementSettings");
+        filter = CollisionFilter.Default;
+        filter.CollidesWith = ~(1u << 3);
+        filter.BelongsTo = ~0u;
     }
 
     protected override void OnStartRunning()
     {
+        foreach(var renderer in GhostBuilder.WireframeDisplay.gameObject.GetComponentsInChildren<MeshRenderer>())
+            if (renderer.gameObject.layer == LayerMask.NameToLayer("Grid"))
+                renderer.sharedMaterial = settings.GridBuildMaterial;
         GhostBuilder.WireframeDisplay.gameObject.SetActive(true);
     }
 
@@ -45,7 +54,8 @@ public class CalculateBuildingSlotSystem : SystemBase
             var input = new RaycastInput
             {
                 Start = ltw.Position + ltw.Forward * f,
-                End = ltw.Position
+                End = ltw.Position,
+                Filter = filter
             };
             if (collisionWorld.CastRay(input, out var hit))
             {

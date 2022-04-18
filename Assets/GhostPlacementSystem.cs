@@ -1,9 +1,11 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
+using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Material = UnityEngine.Material;
 
 [GenerateAuthoringComponent]
 public struct GhostPlacementBuilder : IComponentData
@@ -23,23 +25,38 @@ public class GhostPlacementSystem : SystemBase
     private bool rotating;
     public quaternion currentRotation;
     private VisualElement uiRoot;
+    private Entity currentGrid;
 
     protected override void OnCreate()
     {
         blobStore = new BlobAssetStore();
         settings = GameObjectConversionSettings.FromWorld(World, blobStore);
-        builder = GameObject.FindObjectOfType<GhostBuilder>();
-        builder.MakePrefabs(settings);
-
         currentRotation = quaternion.identity;
 
+        RequireSingletonForUpdate<BuilderMode_Build>();
         RequireSingletonForUpdate<LocalPlayer>();
     }
 
     protected override void OnStartRunning()
     {
-        uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BuildMenu");
+        if (builder == null)
+        {
+            builder = GameObject.FindObjectOfType<GhostBuilder>();
+            builder.MakePrefabs(settings);
+        }
+
+        if (uiRoot == null)
+            uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BuildMenu");
+
+        uiRoot.style.display = DisplayStyle.Flex;
+        currentGrid = GetComponent<Parent>(GetSingletonEntity<LocalPlayer>()).Value;
+    }
+
+    protected override void OnStopRunning()
+    {
         uiRoot.style.display = DisplayStyle.None;
+        if(HasSingleton<GhostPlacementBuilder>())
+            EntityManager.DestroyEntity(GetSingletonEntity<GhostPlacementBuilder>());
     }
 
     protected override void OnDestroy()
@@ -49,57 +66,48 @@ public class GhostPlacementSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var currentGrid = GetComponent<Parent>(GetSingletonEntity<LocalPlayer>()).Value;
-        var hasbuilder = HasSingleton<GhostPlacementBuilder>();
-        uiRoot.style.display = hasbuilder ? DisplayStyle.Flex : DisplayStyle.None;
-        if (hasbuilder)
-        {
-            if (!HasComponent<Grid>(currentGrid) || Input.GetKeyDown(KeyCode.B))
-            {
-                EntityManager.DestroyEntity(GetSingletonEntity<GhostPlacementBuilder>());
-                return;
-            }
-            GhostBuilder.WireframeDisplay.ShowAxes(new bool3(Input.GetKey(KeyCode.Alpha1), Input.GetKey(KeyCode.Alpha2), Input.GetKey(KeyCode.Alpha3)), currentRotation);
-            if (Input.GetAxis("Mouse ScrollWheel") != 0)
-            {
-                var sign = (int) math.sign(Input.GetAxis("Mouse ScrollWheel"));
-                var bgp = GetSingleton<GhostPlacementBuilder>();
-                if (Input.GetKey(KeyCode.Alpha1))
-                {
-                    currentRotation = math.mul(currentRotation, quaternion.RotateX(math.PI * sign * 0.5f));
-                    rotating = true;
-                }
-
-                if (Input.GetKey(KeyCode.Alpha2))
-                {
-                    currentRotation = math.mul(currentRotation, quaternion.RotateY(math.PI * sign * 0.5f));
-                    SetSingleton(bgp);
-                    rotating = true;
-                }
-
-                if (Input.GetKey(KeyCode.Alpha3))
-                {
-                    currentRotation = math.mul(currentRotation, quaternion.RotateZ(math.PI * sign * 0.5f));
-                    rotating = true;
-                }
-
-                if (!rotating)
-                {
-                    ghostId += sign;
-                    ghostId = ghostId.mod(builder.EntityPrefabs.Length);
-                    EntityManager.DestroyEntity(GetSingletonEntity<GhostPlacementBuilder>());
-                    Build(currentGrid, true);
-                    SetSingleton(bgp);
-                }
-
-                SetComponent(GetSingletonEntity<GhostPlacementBuilder>(), new UpdateRotation{Rotation = currentRotation});
-            }
-            else rotating = false;
-        }
-        else if(Input.GetKeyDown(KeyCode.B))
+        if (!HasSingleton<GhostPlacementBuilder>())
         {
             Build(currentGrid, true);
+            return;
         }
+
+        GhostBuilder.WireframeDisplay.ShowAxes(new bool3(Input.GetKey(KeyCode.Alpha1), Input.GetKey(KeyCode.Alpha2), Input.GetKey(KeyCode.Alpha3)), currentRotation);
+        if (Input.GetAxis("Mouse ScrollWheel") != 0)
+        {
+            var sign = (int) math.sign(Input.GetAxis("Mouse ScrollWheel"));
+            var bgp = GetSingleton<GhostPlacementBuilder>();
+            if (Input.GetKey(KeyCode.Alpha1))
+            {
+                currentRotation = math.mul(currentRotation, quaternion.RotateX(math.PI * sign * 0.5f));
+                rotating = true;
+            }
+
+            if (Input.GetKey(KeyCode.Alpha2))
+            {
+                currentRotation = math.mul(currentRotation, quaternion.RotateY(math.PI * sign * 0.5f));
+                SetSingleton(bgp);
+                rotating = true;
+            }
+
+            if (Input.GetKey(KeyCode.Alpha3))
+            {
+                currentRotation = math.mul(currentRotation, quaternion.RotateZ(math.PI * sign * 0.5f));
+                rotating = true;
+            }
+
+            if (!rotating)
+            {
+                ghostId += sign;
+                ghostId = ghostId.mod(builder.EntityPrefabs.Length);
+                EntityManager.DestroyEntity(GetSingletonEntity<GhostPlacementBuilder>());
+                Build(currentGrid, true);
+                SetSingleton(bgp);
+            }
+
+            SetComponent(GetSingletonEntity<GhostPlacementBuilder>(), new UpdateRotation{Rotation = currentRotation});
+        }
+        else rotating = false;
     }
 
     public Entity Build(Entity gridEntity, bool asGhost)
@@ -122,25 +130,58 @@ public class GhostPlacementSystem : SystemBase
                 Range = 3
             });
 
-            uiRoot.Q<Icon3D>("ObjectToBuild").SetObject(builder.Prefabs[ghostId].gameObject);
-            uiRoot.Q<Icon3D>("Next").SetObject(builder.Prefabs[(ghostId + 1).mod(builder.Prefabs.Length)].gameObject);
-            uiRoot.Q<Icon3D>("Previous").SetObject(builder.Prefabs[(ghostId - 1).mod(builder.Prefabs.Length)].gameObject);
-            uiRoot.Q<Label>("ItemName").text = builder.Prefabs[ghostId].gameObject.name;
+            uiRoot.Q("Current") .Q<Icon3D>().SetObject(builder.Prefabs[ghostId].gameObject);
+            uiRoot.Q("Next")    .Q<Icon3D>().SetObject(builder.Prefabs[(ghostId + 1).mod(builder.Prefabs.Length)].gameObject);
+            uiRoot.Q("Previous").Q<Icon3D>().SetObject(builder.Prefabs[(ghostId - 1).mod(builder.Prefabs.Length)].gameObject);
 
-            // TODO: children are added later by transform systems. Need to do this properly!
-            var children = GetBufferFromEntity<Child>(true);
-            RemoveColliders(entity, children);
+            uiRoot.Q("Current") .Q<Label>().text = builder.Prefabs[ghostId].gameObject.name;
+            uiRoot.Q("Next")    .Q<Label>().text = builder.Prefabs[(ghostId + 1).mod(builder.Prefabs.Length)].gameObject.name;
+            uiRoot.Q("Previous").Q<Label>().text = builder.Prefabs[(ghostId - 1).mod(builder.Prefabs.Length)].gameObject.name;
         }
 
         return entity;
     }
+}
 
-    void RemoveColliders(Entity root, BufferFromEntity<Child> childBuffer)
+[UpdateAfter(typeof(TransformSystemGroup))]
+public class GhostPlacementUpdateChildrenSystem : SystemBase
+{
+    private EndSimulationEntityCommandBufferSystem bufferSystem;
+    private GhostPlacementSettings settings;
+    protected override void OnCreate()
     {
-        if (HasComponent<PhysicsCollider>(root))
-            EntityManager.RemoveComponent<PhysicsCollider>(root);
-        if (!childBuffer.HasComponent(root)) return;
-        foreach(var child in childBuffer[root])
-            RemoveColliders(child.Value, childBuffer);
+        RequireSingletonForUpdate<GhostPlacementBuilder>();
+        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
+        settings = Resources.Load<GhostPlacementSettings>("GhostPlacementSettings");
     }
+
+    protected override void OnUpdate()
+    {
+        var bfe = GetBufferFromEntity<Child>(true);
+        var buffer = bufferSystem.CreateCommandBuffer();
+        foreach (var child in bfe.GetAllChildren(GetSingletonEntity<GhostPlacementBuilder>()))
+        {
+            if (EntityManager.HasComponent<RenderMesh>(child))
+            {
+                var rm = EntityManager.GetSharedComponentData<RenderMesh>(child);
+                rm.material = settings.GhostPlacementMaterial;
+                buffer.SetSharedComponent(child, rm);
+            }
+
+            if (EntityManager.HasComponent<PhysicsCollider>(child))
+            {
+                buffer.RemoveComponent<PhysicsCollider>(child);
+            }
+        }
+    }
+}
+
+[CreateAssetMenu(menuName = "GhostPlacementSettings")]
+public class GhostPlacementSettings : ScriptableObject
+{
+    public Material GhostPlacementMaterial;
+    public Material GhostRemovalMaterial;
+
+    public Material GridBuildMaterial;
+    public Material GridDestroyMaterial;
 }
