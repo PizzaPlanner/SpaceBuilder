@@ -77,11 +77,11 @@ public static class EntityHelpers
             rmax.z > rmax.y && rmax.z > rmax.x? r.z : 0
         ));
         var u = math.mul(rotation, math.up());
-        var umax = math.abs(r);
+        var umax = math.abs(u);
         var up = (int3)math.sign(new float3(
-            umax.x > umax.y && umax.x > umax.z? r.x : 0,
-            umax.y > umax.x && umax.y > umax.z? r.y : 0,
-            umax.z > umax.y && umax.z > umax.x? r.z : 0
+            umax.x > umax.y && umax.x > umax.z? u.x : 0,
+            umax.y > umax.x && umax.y > umax.z? u.y : 0,
+            umax.z > umax.y && umax.z > umax.x? u.z : 0
         ));
 
         var sFront = (GridItem.Side.Front & side) != 0;

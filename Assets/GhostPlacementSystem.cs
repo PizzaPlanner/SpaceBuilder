@@ -104,7 +104,6 @@ public class GhostPlacementSystem : SystemBase
                 ghostId = ghostId.mod(builder.EntityPrefabs.Length);
                 EntityManager.DestroyEntity(entity);
                 Build(currentGrid, new float3(float.PositiveInfinity), true);
-                SetSingleton(bgp);
             }
             else
             {
@@ -157,6 +156,7 @@ public class GhostPlacementSystem : SystemBase
 
     public static GridItem RotateItem(GridItem original, quaternion rotation)
     {
+        var oc1 = original.Occupied;
         original.Airtight = original.Airtight.Rotate(rotation);
         original.Occupied = original.Occupied.Rotate(rotation);
         original.Area.RotatedExtents = (int3)math.round(math.mul(rotation, original.Area.Extents));
