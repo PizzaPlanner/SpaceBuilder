@@ -154,12 +154,12 @@ public class GridItemTargetAssignmentSystem : SystemBase
                 target.ToRemove = true;
             }).Run();
 
-        var ltw = GetComponent<LocalToWorld>(GetSingletonEntity<CameraAnchor>());
+        var camera = Camera.main.transform;
         var collisionWorld = physicsWorld.PhysicsWorld.CollisionWorld;
         var input = new RaycastInput
         {
-            Start = ltw.Position,
-            End = ltw.Position + ltw.Forward * TARGET_MAX_RANGE,
+            Start = camera.position,
+            End = camera.position + camera.forward * TARGET_MAX_RANGE,
             Filter = filter
 
         };

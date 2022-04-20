@@ -67,7 +67,7 @@ public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
     {
         Gizmos.DrawWireCube((float3)SizeInGrid * 0.5f * Grid.CellSize(Type), (float3)SizeInGrid * Grid.CellSize(Type));
     }
-    #endif
+#endif
 
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {

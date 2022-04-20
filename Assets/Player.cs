@@ -28,7 +28,8 @@ public class MovePlayerSystem : SystemBase
     protected override void OnUpdate()
     {
         var player = GetSingletonEntity<LocalPlayer>();
-        var ltw = GetComponent<LocalToWorld>(GetSingletonEntity<CameraAnchor>());
+        var camera = GetSingletonEntity<CameraAnchor>();
+        var cameraLtw = GetComponent<LocalToWorld>(camera);
         var parentLtw = GetComponent<LocalToWorld>(GetComponent<Parent>(player).Value);
 
         // --- Movement ---
@@ -36,12 +37,22 @@ public class MovePlayerSystem : SystemBase
         // Normalized * Speed
         movement = math.normalizesafe(movement) * (Input.GetKey(KeyCode.LeftShift) ? MOVEMENT_SPEED_RUNNING : MOVEMENT_SPEED_DEFAULT);
         // Local -> World
-        movement = math.mul(ltw.Rotation, movement);
+        movement = math.mul(cameraLtw.Rotation, movement);
         // World -> Parent
         movement = math.mul(math.inverse(parentLtw.Rotation), movement);
 
         // --- Rotation ---
-        var rotation =  new float3(-Input.GetAxis("Mouse Y"), Input.GetAxis("Mouse X"), Input.GetAxis("RotateZAxis"))* ROTATION_SENSIVITY;
+        var rotation =  new float3(-Input.GetAxis("Mouse Y"), Input.GetAxis("Mouse X"), Input.GetAxis("RotateZAxis")) * ROTATION_SENSIVITY;
+
+        var camAnchor = GetSingleton<CameraAnchor>();
+        if (HasComponent<Docked>(player))
+        {
+            camAnchor.XRotation += math.degrees(rotation.x);
+            camAnchor.XRotation = math.clamp(camAnchor.XRotation, -90, 55);
+        }
+        else
+            camAnchor.XRotation = 0;
+        SetSingleton(camAnchor);
 
         Entities
             .WithAll<Player>()
@@ -55,7 +66,7 @@ public class MovePlayerSystem : SystemBase
             .WithAll<Player, Docked>()
             .ForEach((ref Rotation r, ref PhysicsVelocity velocity, in LocalToParent ltp) =>
             {
-                r.Value = math.mul(r.Value, quaternion.EulerXYZ(new float3(rotation.x, rotation.y, 0)));
+                r.Value = math.mul(r.Value, quaternion.EulerXYZ(new float3(0, rotation.y, 0)));
                 velocity.Linear = movement;
             }).Schedule();
     }

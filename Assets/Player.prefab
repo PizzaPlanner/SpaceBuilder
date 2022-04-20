@@ -91,7 +91,7 @@ MonoBehaviour:
   m_Smoothing: 0
   m_Mass: 80
   m_LinearDamping: 1
-  m_AngularDamping: 1
+  m_AngularDamping: 0
   m_InitialLinearVelocity:
     x: 0
     y: 0
@@ -140,12 +140,12 @@ MonoBehaviour:
   m_ShapeType: 1
   m_PrimitiveCenter:
     x: 0
-    y: 0.86
+    y: 0.83
     z: -0.0077402294
   m_PrimitiveSize:
-    x: 0.7509381
-    y: 0.7509381
-    z: 1.9
+    x: 0.7
+    y: 0.7
+    z: 1.65
   m_PrimitiveOrientation:
     Value:
       x: 90
@@ -153,15 +153,15 @@ MonoBehaviour:
       z: 0
     RotationOrder: 4
   m_Capsule:
-    Height: 1.9
-    Radius: 0.37546906
+    Height: 1.65
+    Radius: 0.35
     Axis: 2
   m_Cylinder:
-    Height: 1.9
-    Radius: 0.37546906
+    Height: 1.65
+    Radius: 0.35
     Axis: 2
   m_CylinderSideCount: 20
-  m_SphereRadius: 0.95
+  m_SphereRadius: 0.825
   m_MinimumSkinnedVertexWeight: 0.1
   m_ConvexHullGenerationParameters:
     m_SimplificationTolerance: 0.030780137
@@ -317,6 +317,7 @@ MonoBehaviour:
     x: 0.6
     y: 0
     z: -3
+  XRotation: 0
 --- !u!1001 &7780807753724697141
 PrefabInstance:
   m_ObjectHideFlags: 0

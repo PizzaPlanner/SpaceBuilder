@@ -52,7 +52,8 @@ public class DockingSystem : SystemBase
         if (!Input.GetKeyDown(KeyCode.G))
             return;
 
-        var dockedGrid = GetComponent<Parent>(entity).Value == Origin && grids.Length > 0 ? grids[0].Grid : Origin;
+        var previousParent = GetComponent<Parent>(entity).Value;
+        var dockedGrid = previousParent == Origin && grids.Length > 0 ? grids[0].Grid : Origin;
         Dock(entity, dockedGrid);
     }
 
@@ -62,7 +63,7 @@ public class DockingSystem : SystemBase
         var newParentLtw = GetComponent<LocalToWorld>(newParent);
 
         // World --> Parent
-        var newLocalPos = math.mul(math.inverse(newParentLtw.Rotation), playerLtw.Position);
+        var newLocalPos = math.mul(math.inverse(newParentLtw.Rotation), playerLtw.Position - newParentLtw.Position);
         var newLocalRot = math.mul(math.inverse(newParentLtw.Rotation), playerLtw.Rotation);
 
         SetComponent(entity, new Parent{Value = newParent});
@@ -109,7 +110,9 @@ public class RotateTowardsDockedLtwSystem : SystemBase
             {
                 if (up.Progress < 1)
                 {
-                    var step = math.lerp(r.Value.value, quaternion.LookRotation(ltp.Forward, math.up()).value, up.Progress);
+                    var localForwardNoY = ltp.Forward;
+                    localForwardNoY.y = 0;
+                    var step = math.lerp(r.Value.value, quaternion.LookRotation(localForwardNoY, math.up()).value, up.Progress);
                     r.Value = new quaternion {value = step};
                     up.Progress += deltaTime;
                 }

@@ -10,16 +10,13 @@ public struct CameraAnchor : IComponentData
 {
     public float ScrollFactor;
     public float3 Offset;
+    public float XRotation;
 }
 
 
 [UpdateInGroup(typeof(PresentationSystemGroup))]
 public class CameraControllerSystem : SystemBase
 {
-    public float PreferredCameraDistance;
-    const float MAX_PITCH_ANGLE = 90;
-    const float MIN_PITCH_ANGLE = 270; // 90° up
-
     float3 camDirection;
 
     BuildPhysicsWorld physicsWorld;
@@ -27,7 +24,6 @@ public class CameraControllerSystem : SystemBase
 
     protected override void OnCreate()
     {
-        PreferredCameraDistance = 3.5f;
         RequireSingletonForUpdate<CameraAnchor>();
         RequireSingletonForUpdate<LocalPlayer>();
         physicsWorld = World.GetExistingSystem<BuildPhysicsWorld>();
@@ -38,7 +34,6 @@ public class CameraControllerSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var playerLtw = GetComponent<LocalToWorld>(GetSingletonEntity<LocalPlayer>());
         var anchorLtw = GetComponent<LocalToWorld>(GetSingletonEntity<CameraAnchor>());
         var anchor = GetSingleton<CameraAnchor>();
 
@@ -53,8 +48,8 @@ public class CameraControllerSystem : SystemBase
         var rotatedOffset = math.mul(anchorLtw.Rotation, anchor.Offset);
         RaycastInput raycastInput = new RaycastInput
         {
-            Start = playerLtw.Position,
-            End = playerLtw.Position + rotatedOffset,
+            Start = anchorLtw.Position,
+            End = anchorLtw.Position + rotatedOffset,
             Filter = filter
         };
         if (physicsWorld.PhysicsWorld.CollisionWorld.CastRay(raycastInput, out var raycastHit))
@@ -66,5 +61,6 @@ public class CameraControllerSystem : SystemBase
 
         Camera.main.transform.position = anchorLtw.Position + rotatedOffset * camDistance;
         Camera.main.transform.rotation = anchorLtw.Rotation;
+        Camera.main.transform.RotateAround(anchorLtw.Position, anchorLtw.Right, anchor.XRotation );
     }
 }

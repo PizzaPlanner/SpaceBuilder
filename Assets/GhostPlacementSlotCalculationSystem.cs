@@ -43,18 +43,17 @@ public class CalculateBuildingSlotSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var ltw = GetComponent<LocalToWorld>(GetSingletonEntity<CameraAnchor>());
         var ghost = GetSingletonEntity<GhostPlacementBuilder>();
         var gridEntity = GetComponent<Parent>(ghost).Value;
         var gridLtw = GetComponent<LocalToWorld>(gridEntity);
         var grid = GetComponent<Grid>(gridEntity);
         var gridItem = GetComponent<GridItem>(ghost);
-        var gridItemLtp = GetComponent<LocalToParent>(ghost);
         var bgp = EntityManager.GetComponentData<GhostPlacementBuilder>(ghost);
 
         var collisionWorld = physicsWorld.PhysicsWorld.CollisionWorld;
 
-        float3 target = ltw.Position + ltw.Forward * Grid.CellSize(grid) * bgp.Range;
+        var camera = Camera.main.transform;
+        float3 target = camera.position + camera.forward * Grid.CellSize(grid) * bgp.Range;
         // var input = new RaycastInput
         // {
         //     Start = ltw.Position,
