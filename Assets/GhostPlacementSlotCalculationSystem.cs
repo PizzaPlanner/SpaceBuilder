@@ -7,7 +7,7 @@ using Unity.Transforms;
 using UnityEngine;
 
 [UpdateBefore(typeof(TransformSystemGroup))]
-public class CalculateBuildingSlotSystem : SystemBase
+public partial class CalculateBuildingSlotSystem : SystemBase
 {
     BuildPhysicsWorld physicsWorld;
     private GhostPlacementSettings settings;
@@ -53,7 +53,7 @@ public class CalculateBuildingSlotSystem : SystemBase
         var collisionWorld = physicsWorld.PhysicsWorld.CollisionWorld;
 
         var camera = Camera.main.transform;
-        float3 target = camera.position + camera.forward * Grid.CellSize(grid) * bgp.Range;
+        float3 target = camera.position + camera.forward * Grid.CellSize(gridItem.Type) * bgp.Range;
         // var input = new RaycastInput
         // {
         //     Start = ltw.Position,
@@ -76,10 +76,10 @@ public class CalculateBuildingSlotSystem : SystemBase
         // }
         // else
         {
-            gridItem.Area.Origin = Grid.CellFromPosition(grid, gridLtw, target);
+            gridItem.Area.Origin = Grid.CellFromPosition(gridItem.Type, gridLtw, target);
         }
 
-        var newPos = new Translation { Value = Grid.PositionFromCell(grid, new LocalToWorld(), gridItem.Area.Origin) };
+        var newPos = new Translation { Value = Grid.PositionFromCell(gridItem.Type, new LocalToWorld(), gridItem.Area.Origin) };
 
         SetComponent(ghost, newPos);
         SetComponent(ghost, gridItem);
@@ -91,9 +91,9 @@ public class CalculateBuildingSlotSystem : SystemBase
         SetSingleton(bgp);
 
         Transform wireframe = GhostBuilder.WireframeDisplay.transform;
-        wireframe.position = Grid.PositionFromCell(grid, gridLtw, gridItem.Area.Origin);
+        wireframe.position = Grid.PositionFromCell(gridItem.Type, gridLtw, gridItem.Area.Origin);
         wireframe.rotation = gridLtw.Rotation;
-        wireframe.localScale = new float3(Grid.CellSize(grid));
+        wireframe.localScale = new float3(Grid.CellSize(gridItem.Type));
         foreach(var renderer in gridRenderers)
             renderer.sharedMaterial = canBuild ? settings.GridBuildMaterial : settings.GridDestroyMaterial;
 

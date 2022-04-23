@@ -13,7 +13,7 @@ public class VisualCompanion : IComponentData
     public GameObject Target;
 }
 
-public class VisualCompanionSystem : SystemBase
+public partial class VisualCompanionSystem : SystemBase
 {
     protected override void OnUpdate()
     {

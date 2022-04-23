@@ -1,3 +1,4 @@
+using Rival;
 using Unity.Entities;
 using UnityEngine;
 
@@ -8,9 +9,10 @@ public class GridAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {
-        dstManager.AddComponentData(entity, new Grid{Type = Size});
+        dstManager.AddComponentData(entity, new Grid{MaxSize = Size});
         if(HasAirflow)
             dstManager.AddBuffer<AirtightBuffer>(entity);
         dstManager.AddBuffer<OccupationBuffer>(entity);
+        dstManager.AddComponent<TrackedTransform>(entity);
     }
 }

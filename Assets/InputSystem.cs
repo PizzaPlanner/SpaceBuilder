@@ -2,10 +2,17 @@ using Unity.Entities;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public struct BuilderMode_Build : ISystemStateComponentData { }
-public struct BuilderMode_Destroy : ISystemStateComponentData { }
+public struct BuilderMode_Build : ISystemStateComponentData
+{
+    public Entity Grid;
+}
+
+public struct BuilderMode_Destroy : ISystemStateComponentData
+{
+    public Entity Grid;
+}
 public struct CanMove : IComponentData { }
-public class InputSystem : SystemBase
+public partial class InputSystem : SystemBase
 {
     public struct InputData : ISystemStateComponentData
     {
@@ -18,7 +25,7 @@ public class InputSystem : SystemBase
         Deconstruct
     }
 
-    private VisualElement uiRoot;
+    // private VisualElement uiRoot;
     protected override void OnCreate()
     {
         RequireSingletonForUpdate<LocalPlayer>();
@@ -28,11 +35,11 @@ public class InputSystem : SystemBase
 
     protected override void OnStartRunning()
     {
-        if (uiRoot == null)
-        {
-            uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("ContextMenu");
-            uiRoot.style.display = DisplayStyle.None;
-        }
+        // if (uiRoot == null)
+        // {
+        //     uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("ContextMenu");
+        //     uiRoot.style.display = DisplayStyle.None;
+        // }
     }
 
     protected override void OnUpdate()
@@ -45,7 +52,7 @@ public class InputSystem : SystemBase
         if (HasSingleton<BuilderMode_Destroy>() && input.CurrentAction != ActionState.Deconstruct)
             EntityManager.RemoveComponent<BuilderMode_Destroy>(entity);
 
-        uiRoot.style.display = input.CurrentAction != ActionState.None ? DisplayStyle.Flex : DisplayStyle.None;
+        // uiRoot.style.display = input.CurrentAction != ActionState.None ? DisplayStyle.Flex : DisplayStyle.None;
 
         if (Input.GetMouseButtonDown(1))
             input.CurrentAction = ActionState.None;
@@ -56,11 +63,11 @@ public class InputSystem : SystemBase
             {
                 input.CurrentAction = ActionState.None;
             }
-            else if(input.CurrentAction == ActionState.None)
+            else if(input.CurrentAction == ActionState.None && HasComponent<Docked>(GetSingletonEntity<LocalPlayer>()))
             {
-                EntityManager.AddComponent<BuilderMode_Build>(entity);
+                EntityManager.AddComponentData(entity, new BuilderMode_Build{Grid = GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target});
                 input.CurrentAction = ActionState.Construct;
-                uiRoot.Q<Label>("MainActionName").text = "Construct";
+                // uiRoot.Q<Label>("MainActionName").text = "Construct";
             }
         }
 
@@ -70,11 +77,11 @@ public class InputSystem : SystemBase
             {
                 input.CurrentAction = ActionState.None;
             }
-            else if(input.CurrentAction == ActionState.None)
+            else if(input.CurrentAction == ActionState.None && HasComponent<Docked>(GetSingletonEntity<LocalPlayer>()))
             {
-                EntityManager.AddComponent<BuilderMode_Destroy>(entity);
+                EntityManager.AddComponentData(entity, new BuilderMode_Destroy{Grid = GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target});
                 input.CurrentAction = ActionState.Deconstruct;
-                uiRoot.Q<Label>("MainActionName").text = "Deconstruct";
+                // uiRoot.Q<Label>("MainActionName").text = "Deconstruct";
             }
         }
 
@@ -87,7 +94,10 @@ public class InputSystem : SystemBase
                 EntityManager.AddComponent<CanMove>(player);
         }
 
-
+        if (Input.GetKeyDown(KeyCode.F1) && HasComponent<Docked>(GetSingletonEntity<LocalPlayer>()))
+        {
+            Debug.Log(BlueprintUtils.Save(GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target, EntityManager));
+        }
 
         SetSingleton(input);
     }

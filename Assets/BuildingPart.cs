@@ -25,6 +25,7 @@ public struct GridItem : IComponentData
     public Side Occupied;
     public Side Airtight;
     public BoundingBox Area;
+    public Grid.Size Type;
 }
 
 public struct BoundingBox
@@ -60,7 +61,7 @@ public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
             return;
 
         var guid = UnityEditor.AssetDatabase.AssetPathToGUID(UnityEditor.AssetDatabase.GetAssetPath(gameObject));
-        ItemID = long.Parse(guid[..16],System.Globalization.NumberStyles.HexNumber);
+        // ItemID = long.Parse(guid[..16],System.Globalization.NumberStyles.HexNumber);
     }
 
     private void OnDrawGizmos()
@@ -71,7 +72,14 @@ public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
 
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {
-        dstManager.AddComponentData(entity, new GridItem { Area = new BoundingBox{Origin = int3.zero, Extents = SizeInGrid - new int3(1)}, ItemId = ItemID, Occupied = Occupied, Airtight = Airtight });
+        dstManager.AddComponentData(entity, new GridItem
+        {
+            Area = new BoundingBox{Origin = int3.zero, Extents = SizeInGrid - new int3(1)},
+            ItemId = ItemID,
+            Occupied = Occupied,
+            Airtight = Airtight,
+            Type = Type
+        });
         dstManager.AddComponentData(entity, new RotationPivot {Value = Grid.CellSize(Type) * 0.5f});
         dstManager.AddComponent<CompositeRotation>(entity);
     }

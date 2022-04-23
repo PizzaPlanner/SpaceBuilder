@@ -15,7 +15,7 @@ public struct CameraAnchor : IComponentData
 
 
 [UpdateInGroup(typeof(PresentationSystemGroup))]
-public class CameraControllerSystem : SystemBase
+public partial class CameraControllerSystem : SystemBase
 {
     float3 camDirection;
 

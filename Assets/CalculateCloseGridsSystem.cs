@@ -11,7 +11,7 @@ public struct CloseGrids : IBufferElementData
     public float Distance;
 }
 
-public class CalculateCloseGridsSystem : SystemBase
+public partial class CalculateCloseGridsSystem : SystemBase
 {
     private const float MAX_DISTANCE_SQ = 500f * 500f;
 

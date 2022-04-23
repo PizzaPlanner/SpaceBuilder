@@ -10,7 +10,7 @@ public struct SpawnPoint : IComponentData
     public Entity Prefab;
 }
 
-public class PlayerSpawnSystem : SystemBase
+public partial class PlayerSpawnSystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem bufferSystem;
 
@@ -29,13 +29,12 @@ public class PlayerSpawnSystem : SystemBase
         var buffer = bufferSystem.CreateCommandBuffer();
         var origin = World.GetExistingSystem<DockingSystem>().Origin;
 
-        Entities.ForEach((in SpawnPoint sp) =>
+        Entities.ForEach((in SpawnPoint sp, in LocalToWorld ltw) =>
         {
             var player = buffer.Instantiate(sp.Prefab);
             buffer.AddBuffer<CloseGrids>(player);
-            buffer.AddComponent<LocalToParent>(player);
             buffer.AddComponent<CanMove>(player);
-            buffer.AddComponent(player, new Parent {Value = origin});
+            buffer.SetComponent(player, new Translation{Value = ltw.Position});
         }).Schedule();
         bufferSystem.AddJobHandleForProducer(Dependency);
     }

@@ -16,8 +16,10 @@ public struct GhostPlacementBuilder : IComponentData
     public GridItem Original;
 }
 
+public struct Ghost : IComponentData { }
+
 [UpdateBefore(typeof(TransformSystemGroup))]
-public class GhostPlacementSystem : SystemBase
+public partial class GhostPlacementSystem : SystemBase
 {
     private GhostBuilder builder;
     private BlobAssetStore blobStore;
@@ -25,7 +27,7 @@ public class GhostPlacementSystem : SystemBase
     private int ghostId;
     private bool rotating;
     public quaternion currentRotation;
-    private VisualElement uiRoot;
+    // private VisualElement uiRoot;
     private Entity currentGrid;
 
     protected override void OnCreate()
@@ -46,16 +48,16 @@ public class GhostPlacementSystem : SystemBase
             builder.MakePrefabs(settings);
         }
 
-        if (uiRoot == null)
-            uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BuildMenu");
-
-        uiRoot.style.display = DisplayStyle.Flex;
-        currentGrid = GetComponent<Parent>(GetSingletonEntity<LocalPlayer>()).Value;
+        // if (uiRoot == null)
+        //     uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BuildMenu");
+        //
+        // uiRoot.style.display = DisplayStyle.Flex;
+        currentGrid = GetSingleton<BuilderMode_Build>().Grid;
     }
 
     protected override void OnStopRunning()
     {
-        uiRoot.style.display = DisplayStyle.None;
+        // uiRoot.style.display = DisplayStyle.None;
         if(HasSingleton<GhostPlacementBuilder>())
             EntityManager.DestroyEntity(GetSingletonEntity<GhostPlacementBuilder>());
     }
@@ -129,7 +131,7 @@ public class GhostPlacementSystem : SystemBase
 
         var originalGridItem = GetComponent<GridItem>(entity);
         var newGridItem = RotateItem(originalGridItem, currentRotation);
-        newGridItem.Area.Origin = Grid.CellFromPosition(grid, new LocalToWorld(), position);
+        newGridItem.Area.Origin = Grid.CellFromPosition(newGridItem.Type, new LocalToWorld(), position);
         EntityManager.SetComponentData(entity, newGridItem);
 
         if (asGhost)
@@ -139,14 +141,15 @@ public class GhostPlacementSystem : SystemBase
                 Range = 3,
                 Original = originalGridItem
             });
+            EntityManager.AddComponent<Ghost>(entity);
 
-            uiRoot.Q("Current") .Q<Icon3D>().SetObject(builder.Prefabs[ghostId].gameObject);
-            uiRoot.Q("Next")    .Q<Icon3D>().SetObject(builder.Prefabs[(ghostId + 1).mod(builder.Prefabs.Length)].gameObject);
-            uiRoot.Q("Previous").Q<Icon3D>().SetObject(builder.Prefabs[(ghostId - 1).mod(builder.Prefabs.Length)].gameObject);
-
-            uiRoot.Q("Current") .Q<Label>().text = builder.Prefabs[ghostId].gameObject.name;
-            uiRoot.Q("Next")    .Q<Label>().text = builder.Prefabs[(ghostId + 1).mod(builder.Prefabs.Length)].gameObject.name;
-            uiRoot.Q("Previous").Q<Label>().text = builder.Prefabs[(ghostId - 1).mod(builder.Prefabs.Length)].gameObject.name;
+            // uiRoot.Q("Current") .Q<Icon3D>().SetObject(builder.Prefabs[ghostId].gameObject);
+            // uiRoot.Q("Next")    .Q<Icon3D>().SetObject(builder.Prefabs[(ghostId + 1).mod(builder.Prefabs.Length)].gameObject);
+            // uiRoot.Q("Previous").Q<Icon3D>().SetObject(builder.Prefabs[(ghostId - 1).mod(builder.Prefabs.Length)].gameObject);
+            //
+            // uiRoot.Q("Current") .Q<Label>().text = builder.Prefabs[ghostId].gameObject.name;
+            // uiRoot.Q("Next")    .Q<Label>().text = builder.Prefabs[(ghostId + 1).mod(builder.Prefabs.Length)].gameObject.name;
+            // uiRoot.Q("Previous").Q<Label>().text = builder.Prefabs[(ghostId - 1).mod(builder.Prefabs.Length)].gameObject.name;
             #if UNITY_EDITOR
             EntityManager.SetName(entity, "[GHOST]Placement");
             #endif
@@ -167,7 +170,7 @@ public class GhostPlacementSystem : SystemBase
 public struct GhostRenderer : IComponentData { }
 
 [UpdateAfter(typeof(TransformSystemGroup))]
-public class GhostPlacementUpdateChildrenSystem : SystemBase
+public partial class GhostPlacementUpdateChildrenSystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem bufferSystem;
     private GhostPlacementSettings settings;

@@ -3,10 +3,10 @@ using Unity.Entities;
 
 public struct Name : IComponentData
 {
-    public FixedString32 Value;
+    public FixedString32Bytes Value;
 }
 
-public class NameGridSystem : SystemBase
+public partial class NameGridSystem : SystemBase
 {
     protected override void OnUpdate()
     {

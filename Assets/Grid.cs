@@ -15,13 +15,14 @@ public struct Grid : IComponentData
         Big
     }
 
-    public Size Type;
+    public Size MaxSize;
+    public int3 BoundsMin;
+    public int3 BoundsMax;
 
-    public static int3 CellFromPosition(Grid grid, LocalToWorld ltw, float3 position) => (int3) math.floor(math.mul(math.inverse(ltw.Rotation), position - ltw.Position) / CellSize(grid));
-
-    public static float3 PositionFromCell(Grid grid, LocalToWorld ltw, int3 cell) =>  math.mul(ltw.Rotation, (float3)cell * CellSize(grid)) + ltw.Position;
-
-    public static float CellSize(Grid grid) => CellSize(grid.Type);
+    public static int3 CellFromPosition(Size size, LocalToWorld ltw, float3 worldPosition) => (int3) math.floor(math.mul(math.inverse(ltw.Rotation), worldPosition - ltw.Position) / CellSize(size));
+    public static int3 CellFromPosition(Size size, float3 localPosition) => (int3) math.floor(localPosition / CellSize(size));
+    public static float3 PositionFromCell(Size size, LocalToWorld ltw, int3 cell) =>  math.mul(ltw.Rotation, (float3)cell * CellSize(size)) + ltw.Position;
+    public static float3 PositionFromCell(Size size, int3 cell) =>  (float3)cell * CellSize(size);
 
     public static float CellSize(Grid.Size size) => size switch
     {
@@ -47,7 +48,7 @@ public struct AirtightBuffer : IBufferElementData
 
 public struct GridsNeedUpdate : IComponentData { }
 
-public class GridSystem : SystemBase
+public partial class GridSystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem bufferSystem;
 
@@ -64,6 +65,7 @@ public class GridSystem : SystemBase
         Debug.Log("Updating Grids...");
         var occupationBuffers = GetBufferFromEntity<OccupationBuffer>();
         var airtightBuffers = GetBufferFromEntity<AirtightBuffer>();
+        var grids = GetComponentDataFromEntity<Grid>(false);
         Entities.WithAll<Grid>().ForEach((DynamicBuffer<OccupationBuffer> obuff) =>
         {
             obuff.Clear();
@@ -74,7 +76,21 @@ public class GridSystem : SystemBase
             abuff.Clear();
         }).Run();
 
-        Entities.ForEach((in Parent parent, in GridItem item) =>
+        Entities
+            .WithName("CalculateGridBounds")
+            .WithAll<GridItem>().ForEach((in Parent parent, in Translation position) =>
+            {
+                if (!grids.HasComponent(parent.Value))
+                    return;
+                var grid = grids[parent.Value];
+                grid.BoundsMin = math.min(grid.BoundsMin, Grid.CellFromPosition(grid.MaxSize, position.Value));
+                grid.BoundsMax = math.max(grid.BoundsMax, Grid.CellFromPosition(grid.MaxSize, position.Value));
+                grids[parent.Value] = grid;
+            }).Run();
+
+        Entities
+            .WithName("CalculateOccupation")
+            .ForEach((in Parent parent, in GridItem item) =>
         {
             if (occupationBuffers.HasComponent(parent.Value))
             {

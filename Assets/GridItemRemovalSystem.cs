@@ -18,7 +18,7 @@ public struct CurrentPlayerTarget : IComponentData
 
 [UpdateAfter(typeof(GridItemTargetAssignmentSystem))]
 [UpdateBefore(typeof(GridItemTargetCleanupSystem))]
-public class GridItemRemovalSystem : SystemBase
+public partial class GridItemRemovalSystem : SystemBase
 {
     public class ModifiedRenderMesh : IComponentData
     {
@@ -65,11 +65,11 @@ public class GridItemRemovalSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var parent = GetComponent<Parent>(GetSingletonEntity<LocalPlayer>()).Value;
+        var parent = GetSingleton<BuilderMode_Destroy>().Grid;
         var grid = GetComponent<Grid>(parent);
         var gridLtw = GetComponent<LocalToWorld>(parent);
         var wireframe = GhostBuilder.WireframeDisplay.transform;
-        wireframe.localScale = new float3(Grid.CellSize(grid));
+        wireframe.localScale = new float3(Grid.CellSize(grid.MaxSize));
         wireframe.rotation = gridLtw.Rotation;
         wireframe.transform.position = GetComponent<LocalToWorld>(GetSingletonEntity<LocalPlayer>()).Position;
 
@@ -125,7 +125,7 @@ public class GridItemRemovalSystem : SystemBase
 }
 
 [UpdateBefore(typeof(GridItemTargetCleanupSystem))]
-public class GridItemTargetAssignmentSystem : SystemBase
+public partial class GridItemTargetAssignmentSystem : SystemBase
 {
     BuildPhysicsWorld physicsWorld;
     private const float TARGET_MAX_RANGE = 8;
@@ -178,7 +178,7 @@ public class GridItemTargetAssignmentSystem : SystemBase
     }
 }
 
-public class GridItemTargetCleanupSystem : SystemBase
+public partial class GridItemTargetCleanupSystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem bufferSystem;
 

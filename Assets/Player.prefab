@@ -12,8 +12,8 @@ GameObject:
   - component: {fileID: 7780807752270266391}
   - component: {fileID: 7780807752270266388}
   - component: {fileID: 7780807752270266390}
-  - component: {fileID: 7780807752270266376}
   - component: {fileID: 7780807752270266377}
+  - component: {fileID: 5377213409938586074}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -31,7 +31,6 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7780807753546966491}
   - {fileID: 7776521775516851503}
@@ -75,56 +74,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ConversionMode: 0
---- !u!114 &7780807752270266376
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7780807752270266386}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ccea9ea98e38942e0b0938c27ed1903e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_MotionType: 0
-  m_Smoothing: 0
-  m_Mass: 80
-  m_LinearDamping: 1
-  m_AngularDamping: 0
-  m_InitialLinearVelocity:
-    x: 0
-    y: 0
-    z: 0
-  m_InitialAngularVelocity:
-    x: 0
-    y: 0
-    z: 0
-  m_GravityFactor: 0
-  m_OverrideDefaultMassDistribution: 1
-  m_CenterOfMass:
-    x: 0
-    y: 1
-    z: 0
-  m_Orientation:
-    Value:
-      x: 0
-      y: 0
-      z: 0
-    RotationOrder: 4
-  m_InertiaTensor:
-    x: Infinity
-    y: Infinity
-    z: Infinity
-  m_CustomTags:
-    Tag00: 0
-    Tag01: 0
-    Tag02: 0
-    Tag03: 0
-    Tag04: 0
-    Tag05: 0
-    Tag06: 0
-    Tag07: 0
 --- !u!114 &7780807752270266377
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -140,12 +89,12 @@ MonoBehaviour:
   m_ShapeType: 1
   m_PrimitiveCenter:
     x: 0
-    y: 0.83
+    y: 0.75
     z: -0.0077402294
   m_PrimitiveSize:
     x: 0.7
     y: 0.7
-    z: 1.65
+    z: 1.5
   m_PrimitiveOrientation:
     Value:
       x: 90
@@ -153,15 +102,15 @@ MonoBehaviour:
       z: 0
     RotationOrder: 4
   m_Capsule:
-    Height: 1.65
+    Height: 1.5
     Radius: 0.35
     Axis: 2
   m_Cylinder:
-    Height: 1.65
+    Height: 1.5
     Radius: 0.35
     Axis: 2
   m_CylinderSideCount: 20
-  m_SphereRadius: 0.825
+  m_SphereRadius: 0.75
   m_MinimumSkinnedVertexWeight: 0.1
   m_ConvexHullGenerationParameters:
     m_SimplificationTolerance: 0.030780137
@@ -174,7 +123,7 @@ MonoBehaviour:
     m_Template: {fileID: 0}
     m_CollisionResponse:
       m_Override: 0
-      m_Value: 0
+      m_Value: 3
     m_Friction:
       m_Override: 0
       m_Value:
@@ -268,6 +217,67 @@ MonoBehaviour:
         Tag07: 0
     m_SerializedVersion: 1
   m_SerializedVersion: 1
+--- !u!114 &5377213409938586074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7780807752270266386}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a08537e9881c6a42ae913eec7a3ab33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CharacterBody:
+    CustomPhysicsBodyTags:
+      Tag00: 0
+      Tag01: 0
+      Tag02: 0
+      Tag03: 0
+      Tag04: 0
+      Tag05: 0
+      Tag06: 0
+      Tag07: 0
+    InterpolateTranslation: 1
+    InterpolateRotation: 1
+    EvaluateGrounding: 1
+    SnapToGround: 1
+    GroundSnappingDistance: 1
+    MaxGroundedSlopeAngle: 60
+    DetectMovementCollisions: 1
+    DecollideFromOverlaps: 1
+    AddCloseHitsForVelocityProjection: 0
+    MaxContinuousCollisionsIterations: 8
+    MaxOverlapDecollisionIterations: 2
+    DiscardMovementWhenExceedMaxIterations: 1
+    KillVelocityWhenExceedMaxIterations: 1
+    DetectObstructionsForParentBodyMovement: 0
+    SimulateDynamicBody: 1
+    Mass: 80
+  ThirdPersonCharacter:
+    RotationSharpness: 25
+    GroundMaxSpeed: 10
+    GroundedMovementSharpness: 15
+    AirAcceleration: 50
+    AirMaxSpeed: 10
+    AirDrag: 0
+    JumpSpeed: 10
+    Gravity:
+      x: -0
+      y: 0
+      z: -0
+    StepHandling: 0
+    MaxStepHeight: 0.5
+    ExtraStepChecksDistance: 0.1
+    PreventGroundingWhenMovingTowardsNoGrounding: 1
+    HasMaxDownwardSlopeChangeAngle: 0
+    MaxDownwardSlopeChangeAngle: 90
+    ConstrainVelocityToGroundPlane: 1
+    GroundingUp:
+      x: 0
+      y: 1
+      z: 0
 --- !u!1 &7780807753546966488
 GameObject:
   m_ObjectHideFlags: 0
@@ -293,9 +303,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7780807753546966488}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.6, z: 0.16}
+  m_LocalPosition: {x: 0, y: 1.3, z: 0.16}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7780807752270266389}
   m_RootOrder: 0
@@ -332,6 +341,18 @@ PrefabInstance:
     - target: {fileID: 4849082830423834, guid: f784e1949da3ada41a6d04f0fcc6e70c, type: 3}
       propertyPath: m_RootOrder
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4849082830423834, guid: f784e1949da3ada41a6d04f0fcc6e70c, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 4849082830423834, guid: f784e1949da3ada41a6d04f0fcc6e70c, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 4849082830423834, guid: f784e1949da3ada41a6d04f0fcc6e70c, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: 4849082830423834, guid: f784e1949da3ada41a6d04f0fcc6e70c, type: 3}
       propertyPath: m_LocalPosition.x
