@@ -30,19 +30,20 @@ public partial class CalculateBuildingSlotSystem : SystemBase
     protected override void OnStartRunning()
     {
         gridRenderers.Clear();
-        foreach(var renderer in GhostBuilder.WireframeDisplay.gameObject.GetComponentsInChildren<MeshRenderer>())
+        foreach(var renderer in BuildingPartManagementSystem.WireframeDisplay.gameObject.GetComponentsInChildren<MeshRenderer>())
             if (renderer.gameObject.layer == LayerMask.NameToLayer("Grid"))
                 gridRenderers.Add(renderer);
     }
 
     protected override void OnStopRunning()
     {
-        if(GhostBuilder.WireframeDisplay)
-            GhostBuilder.WireframeDisplay.gameObject.SetActive(false);
+        if(BuildingPartManagementSystem.WireframeDisplay)
+            BuildingPartManagementSystem.WireframeDisplay.gameObject.SetActive(false);
     }
 
     protected override void OnUpdate()
     {
+        var anchorLtw = GetComponent<LocalToWorld>(GetSingletonEntity<CameraAnchor>());
         var ghost = GetSingletonEntity<GhostPlacementBuilder>();
         var gridEntity = GetComponent<Parent>(ghost).Value;
         var gridLtw = GetComponent<LocalToWorld>(gridEntity);
@@ -53,7 +54,7 @@ public partial class CalculateBuildingSlotSystem : SystemBase
         var collisionWorld = physicsWorld.PhysicsWorld.CollisionWorld;
 
         var camera = Camera.main.transform;
-        float3 target = camera.position + camera.forward * Grid.CellSize(gridItem.Type) * bgp.Range;
+        float3 target = anchorLtw.Position + (float3)camera.forward * Grid.CellSize(gridItem.Type) * bgp.Range;
         // var input = new RaycastInput
         // {
         //     Start = ltw.Position,
@@ -90,14 +91,14 @@ public partial class CalculateBuildingSlotSystem : SystemBase
         bgp.Buildable = canBuild;
         SetSingleton(bgp);
 
-        Transform wireframe = GhostBuilder.WireframeDisplay.transform;
+        Transform wireframe = BuildingPartManagementSystem.WireframeDisplay.transform;
         wireframe.position = Grid.PositionFromCell(gridItem.Type, gridLtw, gridItem.Area.Origin);
         wireframe.rotation = gridLtw.Rotation;
         wireframe.localScale = new float3(Grid.CellSize(gridItem.Type));
         foreach(var renderer in gridRenderers)
             renderer.sharedMaterial = canBuild ? settings.GridBuildMaterial : settings.GridDestroyMaterial;
 
-        GhostBuilder.WireframeDisplay.gameObject.SetActive(true);
+        BuildingPartManagementSystem.WireframeDisplay.gameObject.SetActive(true);
 
         if (canBuild && Input.GetMouseButtonDown(0))
         {
@@ -105,7 +106,6 @@ public partial class CalculateBuildingSlotSystem : SystemBase
             var e = World.GetExistingSystem<GhostPlacementSystem>().Build(gridEntity, newPos.Value, false);
             if(e != Entity.Null)
             {
-                // SetComponent(e, gridItem);
                 SetComponent(e, newPos);
                 EntityManager.CreateEntity(typeof(GridsNeedUpdate));
 #if UNITY_EDITOR

@@ -48,11 +48,12 @@ public static class BlueprintUtils
             if (!em.HasComponent<GridItem>(child.Value) || em.HasComponent<Ghost>(child.Value))
                 continue;
             var gridItem = em.GetComponentData<GridItem>(child.Value);
+            var identifieable = em.GetComponentData<Identifieable>(child.Value);
             var rotation = em.GetComponentData<Rotation>(child.Value);
             var translation = em.GetComponentData<Translation>(child.Value);
             parts.Add(new BuildingPartInfo
             {
-                Id = gridItem.ItemId,
+                Id = identifieable.ItemId,
                 Orientation = rotation.Value,
                 Position = Grid.CellFromPosition(gridItem.Type, gridLtw, translation.Value)
             });

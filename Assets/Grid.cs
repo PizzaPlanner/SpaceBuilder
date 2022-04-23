@@ -46,12 +46,17 @@ public struct AirtightBuffer : IBufferElementData
     public int3 Location;
 }
 
+public struct NeighbourBuffer : IBufferElementData
+{
+    public Entity Value;
+}
+
 public struct GridsNeedUpdate : IComponentData { }
 
-public partial class GridSystem : SystemBase
+[UpdateInGroup(typeof(InitializationSystemGroup))]
+public partial class GridRecalculationSystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem bufferSystem;
-
 
     protected override void OnCreate()
     {
@@ -63,9 +68,6 @@ public partial class GridSystem : SystemBase
     {
         var buffer = bufferSystem.CreateCommandBuffer();
         Debug.Log("Updating Grids...");
-        var occupationBuffers = GetBufferFromEntity<OccupationBuffer>();
-        var airtightBuffers = GetBufferFromEntity<AirtightBuffer>();
-        var grids = GetComponentDataFromEntity<Grid>(false);
         Entities.WithAll<Grid>().ForEach((DynamicBuffer<OccupationBuffer> obuff) =>
         {
             obuff.Clear();
@@ -76,6 +78,37 @@ public partial class GridSystem : SystemBase
             abuff.Clear();
         }).Run();
 
+        Entities.WithNone<NeighbourBuffer>().WithAll<GridItem>().ForEach((Entity e) =>
+        {
+            EntityManager.AddBuffer<NeighbourBuffer>(e);
+        }).WithStructuralChanges().WithoutBurst().Run();
+
+        var gridItemEntities = GetEntityQuery(
+            ComponentType.ReadOnly<GridItem>(),
+            ComponentType.ReadOnly<Parent>(),
+            ComponentType.ReadOnly<Translation>(),
+            ComponentType.ReadWrite<NeighbourBuffer>());
+
+        var entities = gridItemEntities.ToEntityArray(Allocator.Temp);
+        var parents = gridItemEntities.ToComponentDataArray<Parent>(Allocator.Temp);
+        var gridItems = gridItemEntities.ToComponentDataArray<GridItem>(Allocator.Temp);
+        var translations = gridItemEntities.ToComponentDataArray<Translation>(Allocator.Temp);
+        for (int e1 = 0; e1 < entities.Length; e1++)
+        {
+            var nbbuffer = GetBuffer<NeighbourBuffer>(entities[e1], false);
+            nbbuffer.Clear();
+            for (int e2 = 0; e2 < entities.Length; e2++)
+            {
+                if (e1 == e2) continue;
+                if (parents[e1].Value != parents[e2].Value) continue;
+                if (gridItems[e1].Type != gridItems[e2].Type) continue;
+                if (math.distancesq(translations[e1].Value, translations[e2].Value) >
+                    Grid.CellSize(gridItems[e1].Type) * Grid.CellSize(gridItems[e1].Type)) continue;
+                GetBuffer<NeighbourBuffer>(entities[e1], false).Add(new NeighbourBuffer {Value = entities[e2]});
+            }
+        }
+
+        var grids = GetComponentDataFromEntity<Grid>(false);
         Entities
             .WithName("CalculateGridBounds")
             .WithAll<GridItem>().ForEach((in Parent parent, in Translation position) =>
@@ -88,6 +121,8 @@ public partial class GridSystem : SystemBase
                 grids[parent.Value] = grid;
             }).Run();
 
+        var occupationBuffers = GetBufferFromEntity<OccupationBuffer>();
+        var airtightBuffers = GetBufferFromEntity<AirtightBuffer>();
         Entities
             .WithName("CalculateOccupation")
             .ForEach((in Parent parent, in GridItem item) =>
