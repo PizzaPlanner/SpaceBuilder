@@ -26,7 +26,7 @@ public partial class ElectricitySystem : SystemBase
                 var hadPower = network.Power > 0;
                 network.Power = 0;
                 for (int i = 0; i < connections.Length; i++)
-                    network.Power += GetComponent<ElectricityPort>(connections[i].Value).value;
+                    network.Power += GetComponent<ElectricityPort>(connections[i].Value).Value;
                 var hasPower = network.Power > 0;
                 if(hadPower != hasPower)
                     buffer.AddComponent<NetworkPowerStatusChanged>(e);

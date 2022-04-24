@@ -2,11 +2,10 @@ using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
 
-public struct ElectricityPort : IExchangeNetworkPort<float, ElectricityNetwork>
+public struct ElectricityPort : IExchangeNetworkPort<ElectricityNetwork>
 {
-    public float value;
+    public float Value;
     public bool NetworkOperational;
-    public float Value => value;
 }
 
 public struct ElectricityNetwork : IExchangeNetwork
@@ -19,9 +18,4 @@ public struct ElectricityNetworkConnection : IExchangeNetworkConnector<Electrici
 {
     public GridItem.Side ConnectsAt;
     public uint Id;
-    public GridItem.Side Sides
-    {
-        get => ConnectsAt;
-        set => ConnectsAt = value;
-    }
 }

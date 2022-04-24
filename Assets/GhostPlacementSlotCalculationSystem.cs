@@ -99,19 +99,5 @@ public partial class CalculateBuildingSlotSystem : SystemBase
             renderer.sharedMaterial = canBuild ? settings.GridBuildMaterial : settings.GridDestroyMaterial;
 
         BuildingPartManagementSystem.WireframeDisplay.gameObject.SetActive(true);
-
-        if (canBuild && Input.GetMouseButtonDown(0))
-        {
-            EntityManager.DestroyEntity(GetSingletonEntity<GhostPlacementBuilder>());
-            var e = World.GetExistingSystem<GhostPlacementSystem>().Build(gridEntity, newPos.Value, false);
-            if(e != Entity.Null)
-            {
-                SetComponent(e, newPos);
-                EntityManager.CreateEntity(typeof(GridsNeedUpdate));
-#if UNITY_EDITOR
-                EntityManager.SetName(e, $"[{gridItem.Area.Origin}]");
-#endif
-            }
-        }
     }
 }

@@ -11,7 +11,7 @@ public class GhostBuilder : MonoBehaviour
 
 public struct BuildableBuffer : IBufferElementData
 {
-    public Entity Prefab;
+    public long Id;
 }
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]

@@ -5,8 +5,6 @@ using Unity.Physics;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
-using UnityEngine.UIElements;
-using Quaternion = System.Numerics.Quaternion;
 
 [GenerateAuthoringComponent]
 public struct GhostPlacementBuilder : IComponentData
@@ -49,8 +47,8 @@ public partial class GhostPlacementSystem : SystemBase
             buildables = EntityManager.CreateEntity(typeof(BuildableBuffer));
             var buildBuffer = EntityManager.GetBuffer<BuildableBuffer>(buildables);
             foreach (var prefab in BuildingPartManagementSystem.BuildingPartById.GetValueArray(Allocator.Temp))
-                if(HasComponent<GridItem>(prefab))
-                    buildBuffer.Add(new BuildableBuffer{Prefab = prefab});
+                if(HasComponent<GridItem>(prefab) && HasComponent<Identifieable>(prefab))
+                    buildBuffer.Add(new BuildableBuffer{Id = GetComponent<Identifieable>(prefab).ItemId});
         }
     }
 
@@ -65,15 +63,46 @@ public partial class GhostPlacementSystem : SystemBase
     {
         if (!HasSingleton<GhostPlacementBuilder>())
         {
-            Build(currentGrid, new float3(float.PositiveInfinity), true);
+            var buffer = GetBuffer<BuildableBuffer>(buildables);
+            World.GetExistingSystem<BuildingSystem>().Build(buffer[ghostId].Id, currentGrid, int3.zero, currentRotation, true);
+
+            // uiRoot.Q("Current") .Q<Icon3D>().SetObject(builder.Prefabs[ghostId].gameObject);
+            // uiRoot.Q("Next")    .Q<Icon3D>().SetObject(builder.Prefabs[(ghostId + 1).mod(builder.Prefabs.Length)].gameObject);
+            // uiRoot.Q("Previous").Q<Icon3D>().SetObject(builder.Prefabs[(ghostId - 1).mod(builder.Prefabs.Length)].gameObject);
+            //
+            // uiRoot.Q("Current") .Q<Label>().text = builder.Prefabs[ghostId].gameObject.name;
+            // uiRoot.Q("Next")    .Q<Label>().text = builder.Prefabs[(ghostId + 1).mod(builder.Prefabs.Length)].gameObject.name;
+            // uiRoot.Q("Previous").Q<Label>().text = builder.Prefabs[(ghostId - 1).mod(builder.Prefabs.Length)].gameObject.name;
+
             return;
+        }
+
+        var bgp = GetSingleton<GhostPlacementBuilder>();
+        if (bgp.Buildable && Input.GetMouseButtonDown(0))
+        {
+            var ghostEntity = GetSingletonEntity<GhostPlacementBuilder>();
+            var position = GetComponent<GridItem>(ghostEntity).Area.Origin;
+            var rotation = GetComponent<Rotation>(ghostEntity);
+            var buffer = GetBuffer<BuildableBuffer>(buildables);
+            var pendingBuild = new PendingPart
+            {
+                Data = new BuildingPartInfo
+                {
+                    Id = buffer[ghostId].Id,
+                    Position = position,
+                    Orientation = rotation.Value
+                },
+                Grid = currentGrid
+            };
+            var e = EntityManager.CreateEntity(typeof(PendingPart));
+            EntityManager.SetComponentData(e, pendingBuild);
+            EntityManager.DestroyEntity(ghostEntity);
         }
 
         BuildingPartManagementSystem.WireframeDisplay.ShowAxes(new bool3(Input.GetKey(KeyCode.Alpha1), Input.GetKey(KeyCode.Alpha2), Input.GetKey(KeyCode.Alpha3)), currentRotation);
         if (Input.GetAxis("Mouse ScrollWheel") != 0)
         {
             var sign = (int) math.sign(Input.GetAxis("Mouse ScrollWheel"));
-            var bgp = GetSingleton<GhostPlacementBuilder>();
             if (Input.GetKey(KeyCode.Alpha1))
             {
                 currentRotation = math.mul(currentRotation, quaternion.RotateX(math.PI * sign * 0.5f));
@@ -99,70 +128,17 @@ public partial class GhostPlacementSystem : SystemBase
                 ghostId += sign;
                 ghostId = ghostId.mod(GetBuffer<BuildableBuffer>(buildables).Length);
                 EntityManager.DestroyEntity(entity);
-                Build(currentGrid, new float3(float.PositiveInfinity), true);
+                return;
             }
             else
             {
-                SetComponent(entity, RotateItem(bgp.Original, currentRotation));
+                SetComponent(entity, BuildingSystem.RotateItem(bgp.Original, currentRotation));
             }
 
             EntityManager.SetComponentData(GetSingletonEntity<GhostPlacementBuilder>(), new Rotation{Value = currentRotation});
         }
         else rotating = false;
     }
-
-    public Entity Build(Entity gridEntity, float3 position, bool asGhost)
-    {
-        if (!HasComponent<Grid>(gridEntity))
-            return Entity.Null;
-
-        var grid = GetComponent<Grid>(gridEntity);
-        var prefab = GetBuffer<BuildableBuffer>(buildables)[ghostId].Prefab;
-
-        var entity = EntityManager.Instantiate(prefab);
-        EntityManager.AddComponentData(entity, new Parent { Value = gridEntity});
-        EntityManager.AddComponentData(entity, new Rotation{ Value = currentRotation});
-        EntityManager.AddComponentData(entity, new Translation{ Value = position });
-        EntityManager.AddComponentData(entity, new UpdateRotation {Value = currentRotation});
-        EntityManager.AddComponent<LocalToParent>(entity);
-
-        var originalGridItem = GetComponent<GridItem>(entity);
-        var newGridItem = RotateItem(originalGridItem, currentRotation);
-        newGridItem.Area.Origin = Grid.CellFromPosition(newGridItem.Type, position);
-        EntityManager.SetComponentData(entity, newGridItem);
-
-        if (asGhost)
-        {
-            EntityManager.AddComponentData(entity, new GhostPlacementBuilder{
-                TargetGrid = grid,
-                Range = 3,
-                Original = originalGridItem
-            });
-            EntityManager.AddComponent<Ghost>(entity);
-
-            // uiRoot.Q("Current") .Q<Icon3D>().SetObject(builder.Prefabs[ghostId].gameObject);
-            // uiRoot.Q("Next")    .Q<Icon3D>().SetObject(builder.Prefabs[(ghostId + 1).mod(builder.Prefabs.Length)].gameObject);
-            // uiRoot.Q("Previous").Q<Icon3D>().SetObject(builder.Prefabs[(ghostId - 1).mod(builder.Prefabs.Length)].gameObject);
-            //
-            // uiRoot.Q("Current") .Q<Label>().text = builder.Prefabs[ghostId].gameObject.name;
-            // uiRoot.Q("Next")    .Q<Label>().text = builder.Prefabs[(ghostId + 1).mod(builder.Prefabs.Length)].gameObject.name;
-            // uiRoot.Q("Previous").Q<Label>().text = builder.Prefabs[(ghostId - 1).mod(builder.Prefabs.Length)].gameObject.name;
-            #if UNITY_EDITOR
-            EntityManager.SetName(entity, "[GHOST]Placement");
-            #endif
-        }
-        return entity;
-    }
-
-    public static GridItem RotateItem(GridItem original, quaternion rotation)
-    {
-        original.Airtight = original.Airtight.Rotate(rotation);
-        original.Occupied = original.Occupied.Rotate(rotation);
-        original.Area.RotatedExtents = (int3)math.round(math.mul(rotation, original.Area.Extents));
-        return original;
-    }
-
-
 }
 
 public struct GhostRenderer : IComponentData { }
