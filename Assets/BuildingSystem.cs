@@ -53,6 +53,10 @@ public partial class BuildingSystem : SystemBase
         EntityManager.AddComponentData(entity, new Rotation{ Value = rotation });
         EntityManager.AddComponentData(entity, new Translation{ Value = Grid.PositionFromCell(originalGridItem.Type, position) });
 
+#if UNITY_EDITOR
+        if(HasComponent<Name>(entity))
+            EntityManager.SetName(entity, GetComponent<Name>(entity).Value);
+#endif
         if (asGhost)
         {
             EntityManager.AddComponentData(entity, new GhostPlacementBuilder{
@@ -63,7 +67,7 @@ public partial class BuildingSystem : SystemBase
             EntityManager.AddComponent<Ghost>(entity);
 
 #if UNITY_EDITOR
-            EntityManager.SetName(entity, "[GHOST]Placement");
+            EntityManager.SetName(entity, "[GHOST]");
 #endif
         }
 

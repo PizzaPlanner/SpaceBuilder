@@ -1,5 +1,6 @@
 using Unity.Entities;
 using Unity.Transforms;
+using UnityEngine;
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]
 [UpdateAfter(typeof(GridRecalculationSystemGroup))]
@@ -22,12 +23,11 @@ public partial class ElectricitySystem : SystemBase
             .WithNone<NetworkPowerStatusChanged>()
             .ForEach((Entity e, DynamicBuffer<ConnectionBuffer> connections, ref ElectricityNetwork network) =>
             {
-                var hadPower = network.Power > 0;
+                var prevPower = network.Power;
                 network.Power = 0;
                 for (int i = 0; i < connections.Length; i++)
                     network.Power += GetComponent<ElectricityPort>(connections[i].Value).Value;
-                var hasPower = network.Power > 0;
-                if(hadPower != hasPower)
+                if(network.Power != prevPower)
                     buffer.AddComponent<NetworkPowerStatusChanged>(e);
             }).Schedule();
 
@@ -46,6 +46,7 @@ public partial class ElectricitySystem : SystemBase
                     var component = ports[entity];
                     component.NetworkOperational = network.Power > 0;
                     ports[entity] = component;
+                    Debug.Log($"Set operational {component.NetworkOperational} for {entity}. Network Power is {network.Power}");
                 }
                 buffer.RemoveComponent<NetworkPowerStatusChanged>(e);
             }).Schedule();

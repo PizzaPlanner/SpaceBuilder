@@ -48,6 +48,8 @@ public partial class RecalculateElectricityNetworksSystem : SystemBase
             for (int i = 0; i < connections.Length; i++)
             {
                 var neighbour = connections[i];
+                if (!HasComponent<ElectricityNetworkConnection>(neighbour.Value))
+                    continue;
                 var theirNetwork = GetComponent<ElectricityNetworkConnection>(neighbour.Value);
                 if (ConnectionBuffer.Connects(neighbour, myNetwork.ConnectsAt, theirNetwork.ConnectsAt))
                     neighbour.Type |= ConnectionType.Power;
@@ -91,7 +93,7 @@ public partial class RecalculateElectricityNetworksSystem : SystemBase
                 theirNetwork.Id = newNetwork;
 
                 SetComponent(e, myNetwork);
-                SetComponent(neighbour.Value, myNetwork);
+                SetComponent(neighbour.Value, theirNetwork);
                 if(!HasComponent<NeedsUpdate>(neighbour.Value))
                     buffer.AddComponent<NeedsUpdate>(neighbour.Value);
             }
