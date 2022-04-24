@@ -56,6 +56,7 @@ public partial class GridSubItemInitializationSystem : SystemBase
 
             buffer.SetComponent(e, new Parent{Value = parentGrid});
             buffer.AddComponent(e, new UpdateRotation{Value = math.mul(parentRotation, subItemRotation)});
+            buffer.AddComponent(e, new NeedsUpdate());
             buffer.AddComponent(e, new GridItem
             {
                 Area = new BoundingBox{Origin = position},

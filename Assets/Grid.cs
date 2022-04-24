@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public struct Grid : IComponentData
 {
@@ -46,9 +47,37 @@ public struct AirtightBuffer : IBufferElementData
     public int3 Location;
 }
 
-public struct NeighbourBuffer : IBufferElementData
+public struct ConnectionBuffer : IBufferElementData
 {
     public Entity Value;
+    public ConnectionType Type;
+    public GridItem.Side Side;
+
+    public static bool Connects(ConnectionBuffer connection, GridItem.Side mySide, GridItem.Side theirSide)
+    {
+        int positive = (int)(GridItem.Side.Front | GridItem.Side.Up | GridItem.Side.Right);
+        int negative = (int)(GridItem.Side.Back | GridItem.Side.Down | GridItem.Side.Left);
+        int shared = (int)connection.Side & (int)mySide & (positive | negative);
+        int theirs = (int)theirSide & (positive | negative);
+        return (
+            ((shared & positive) << 1) & theirs & negative) +
+            (shared & negative & ((theirs & positive) << 1)) != 0;
+    }
+}
+
+[System.Flags]
+public enum ConnectionType
+{
+    Related = 1<<0,
+    Logic = 1<<1,
+    Power = 1<<2,
+    Gas = 1<<3
+}
+
+public struct ConnectionBufferSided : IBufferElementData
+{
+    public Entity Value;
+    public GridItem.Side Side;
 }
 
 public struct GridsNeedUpdate : IComponentData { }
@@ -78,33 +107,41 @@ public partial class GridRecalculationSystem : SystemBase
             abuff.Clear();
         }).Run();
 
-        Entities.WithNone<NeighbourBuffer>().WithAll<GridItem>().ForEach((Entity e) =>
+        Entities.WithNone<ConnectionBuffer>().WithAll<GridItem>().ForEach((Entity e) =>
         {
-            EntityManager.AddBuffer<NeighbourBuffer>(e);
+            EntityManager.AddBuffer<ConnectionBuffer>(e);
         }).WithStructuralChanges().WithoutBurst().Run();
 
         var gridItemEntities = GetEntityQuery(
             ComponentType.ReadOnly<GridItem>(),
             ComponentType.ReadOnly<Parent>(),
             ComponentType.ReadOnly<Translation>(),
-            ComponentType.ReadWrite<NeighbourBuffer>());
+            ComponentType.ReadWrite<ConnectionBuffer>());
 
         var entities = gridItemEntities.ToEntityArray(Allocator.Temp);
         var parents = gridItemEntities.ToComponentDataArray<Parent>(Allocator.Temp);
         var gridItems = gridItemEntities.ToComponentDataArray<GridItem>(Allocator.Temp);
-        var translations = gridItemEntities.ToComponentDataArray<Translation>(Allocator.Temp);
         for (int e1 = 0; e1 < entities.Length; e1++)
         {
-            var nbbuffer = GetBuffer<NeighbourBuffer>(entities[e1], false);
+            var nbbuffer = GetBuffer<ConnectionBuffer>(entities[e1], false);
             nbbuffer.Clear();
             for (int e2 = 0; e2 < entities.Length; e2++)
             {
                 if (e1 == e2) continue;
                 if (parents[e1].Value != parents[e2].Value) continue;
                 if (gridItems[e1].Type != gridItems[e2].Type) continue;
-                if (math.distancesq(translations[e1].Value, translations[e2].Value) >
-                    Grid.CellSize(gridItems[e1].Type) * Grid.CellSize(gridItems[e1].Type)) continue;
-                GetBuffer<NeighbourBuffer>(entities[e1], false).Add(new NeighbourBuffer {Value = entities[e2]});
+                var distance = gridItems[e2].Area.Origin - gridItems[e1].Area.Origin;
+                if (math.dot(distance, distance) != 1) continue;
+                GridItem.Side side = 0;
+                if (distance.x == 1) side |= GridItem.Side.Right;
+                else if (distance.x == -1) side |= GridItem.Side.Left;
+                else if (distance.y == 1) side |= GridItem.Side.Up;
+                else if (distance.y == -1) side |= GridItem.Side.Down;
+                else if (distance.z == 1) side |= GridItem.Side.Front;
+                else if (distance.z == -1) side |= GridItem.Side.Back;
+
+                if(side != 0)
+                    GetBuffer<ConnectionBuffer>(entities[e1], false).Add(new ConnectionBuffer {Value = entities[e2], Side = side});
             }
         }
 

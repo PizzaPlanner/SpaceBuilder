@@ -12,43 +12,45 @@ public partial class ElectricitySystem : SystemBase
         bufferSystem = World.GetExistingSystem<EndInitializationEntityCommandBufferSystem>();
     }
 
+    public struct NetworkPowerStatusChanged : IComponentData { }
+
     protected override void OnUpdate()
     {
         var buffer = bufferSystem.CreateCommandBuffer();
-        var prefabHashMap = BuildingPartManagementSystem.BuildingPartById;
-        Entities
-            .WithReadOnly(prefabHashMap)
-            .WithName("ApplyElectricityConnectionRotation")
-            .WithAll<ElectricityNetworkConnection>()
-            .ForEach((Entity e, ref Rotation r, in Identifieable item, in UpdateRotation ur) =>
-            {
-                var prefab = prefabHashMap[item.ItemId];
-                var prefabConnection = GetComponent<ElectricityNetworkConnection>(prefab);
-                var myConnection = GetComponent<ElectricityNetworkConnection>(e);
-                myConnection.ConnectsAt = prefabConnection.ConnectsAt.Rotate(ur.Value);
-                SetComponent(e, myConnection);
-                r.Value = ur.Value;
-                buffer.RemoveComponent<UpdateRotation>(e);
-            }).Run();
-        bufferSystem.AddJobHandleForProducer(Dependency);
 
         Entities
-            .WithName("ResetElectricityNetworks")
-            .ForEach((ref ElectricityNetwork network) =>
+            .WithName("CalculateNetworkPower")
+            .WithNone<NetworkPowerStatusChanged>()
+            .ForEach((Entity e, DynamicBuffer<ConnectionBuffer> connections, ref ElectricityNetwork network) =>
             {
+                var hadPower = network.Power > 0;
                 network.Power = 0;
-            }).Run();
+                for (int i = 0; i < connections.Length; i++)
+                    network.Power += GetComponent<ElectricityPort>(connections[i].Value).value;
+                var hasPower = network.Power > 0;
+                if(hadPower != hasPower)
+                    buffer.AddComponent<NetworkPowerStatusChanged>(e);
+            }).Schedule();
 
-        var networks = GetComponentDataFromEntity<ElectricityNetwork>(false);
+        var ports = GetComponentDataFromEntity<ElectricityPort>(false);
         Entities
-            .WithDisposeOnCompletion(networks)
-            .ForEach((in ElectricityPort port, in ElectricityNetworkConnection connection) =>
+            .WithName("AssignOperationalValues")
+            .WithAll<NetworkPowerStatusChanged>()
+            .ForEach((Entity e, DynamicBuffer<ConnectionBuffer> connections, in ElectricityNetwork network) =>
             {
-                if (connection.Network == Entity.Null)
-                    return;
-                networks[connection.Network] = new ElectricityNetwork
-                    {Power = networks[connection.Network].Power + port.Value};
-            }).Run();
+                for (int i = 0; i < connections.Length; i++)
+                {
+                    var entity = connections[i].Value;
+                    if (!ports.HasComponent(entity))
+                        continue;
 
+                    var component = ports[entity];
+                    component.NetworkOperational = network.Power > 0;
+                    ports[entity] = component;
+                }
+                buffer.RemoveComponent<NetworkPowerStatusChanged>(e);
+            }).Schedule();
+
+        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

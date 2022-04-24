@@ -5,7 +5,6 @@ using Unity.Mathematics;
 public interface IExchangeNetworkConnector<T> : IComponentData
     where T : IExchangeNetwork
 {
-    public Entity Network { get; }
     public GridItem.Side Sides { get; set; }
 }
 

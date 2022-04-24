@@ -12,8 +12,8 @@ public struct GridItem : IComponentData
     {
         Up = 1<<0,
         Down = 1<<1,
-        Left = 1<<2,
-        Right = 1<<3,
+        Right = 1<<2,
+        Left = 1<<3,
         Front = 1<<4,
         Back = 1<<5,
         Center = 1<<6
