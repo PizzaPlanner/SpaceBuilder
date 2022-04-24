@@ -2,8 +2,7 @@ using Unity.Entities;
 using Unity.Transforms;
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]
-[UpdateAfter(typeof(GridRecalculationSystem))]
-[UpdateAfter(typeof(RecalculateElectricityNetworksSystem))]
+[UpdateAfter(typeof(GridRecalculationSystemGroup))]
 public partial class ElectricitySystem : SystemBase
 {
     private EndInitializationEntityCommandBufferSystem bufferSystem;
@@ -50,7 +49,6 @@ public partial class ElectricitySystem : SystemBase
                 }
                 buffer.RemoveComponent<NetworkPowerStatusChanged>(e);
             }).Schedule();
-
         bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

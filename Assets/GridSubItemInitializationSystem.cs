@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -6,33 +7,39 @@ using UnityEngine;
 public struct UpdateRotation : IComponentData
 {
     public quaternion Value;
+    public Entity ReferencePrefab;
 }
 
-[UpdateInGroup(typeof(InitializationSystemGroup))]
+[UpdateInGroup(typeof(LateSimulationSystemGroup))]
 public partial class GridSubItemInitializationSystem : SystemBase
 {
-    private EndInitializationEntityCommandBufferSystem bufferSystem;
+    private EndSimulationEntityCommandBufferSystem bufferSystem;
 
     protected override void OnCreate()
     {
-        bufferSystem = World.GetExistingSystem<EndInitializationEntityCommandBufferSystem>();
+        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
     }
 
     protected override void OnUpdate()
     {
         var buffer = bufferSystem.CreateCommandBuffer();
-        Entities.WithNone<GridItem>().ForEach((Entity e, in GridSubItem subItem) =>
+        var identifiablies = GetEntityQuery(typeof(Identifieable));
+        var idEntities = identifiablies.ToEntityArray(Allocator.Temp);
+        var idIds = identifiablies.ToComponentDataArray<Identifieable>(Allocator.Temp);
+
+        Entities
+            .WithReadOnly(idEntities)
+            .WithReadOnly(idIds)
+            .WithNone<GridItem, Ghost>()
+            .ForEach((Entity e, in GridSubItem subItem, in Identifieable id) =>
         {
-            var parentGrid = e;
             var parentGridItem = e;
-            while (HasComponent<Parent>(parentGrid) && !HasComponent<Grid>(parentGrid))
+            while (HasComponent<Parent>(parentGridItem) && !HasComponent<GridItem>(parentGridItem))
             {
-                parentGrid = GetComponent<Parent>(parentGrid).Value;
-                if (HasComponent<GridItem>(parentGrid))
-                    parentGridItem = parentGrid;
+                parentGridItem = GetComponent<Parent>(parentGridItem).Value;
             }
 
-            if (!HasComponent<Grid>(parentGrid) || !HasComponent<GridItem>(parentGridItem))
+            if (!HasComponent<GridItem>(parentGridItem))
             {
                 buffer.DestroyEntity(e);
                 return;
@@ -53,18 +60,26 @@ public partial class GridSubItemInitializationSystem : SystemBase
             var offset = Grid.CellFromPosition(subItem.Size, Grid.PositionFromCell(gridItem.Type, gridItem.Area.Origin));
             var position = offset + relativeCell;
 
+            var prefab = Entity.Null;
+            for(int i = 0; i < idIds.Length; i++)
+                if (idIds[i].ItemId == id.ItemId)
+                    prefab = idEntities[i];
 
-            buffer.SetComponent(e, new Parent{Value = parentGrid});
-            buffer.AddComponent(e, new UpdateRotation{Value = math.mul(parentRotation, subItemRotation)});
+            buffer.AddComponent(e, new UpdateRotation{Value = math.mul(parentRotation, subItemRotation), ReferencePrefab = prefab});
             buffer.AddComponent(e, new NeedsUpdate());
             buffer.AddComponent(e, new GridItem
             {
                 Area = new BoundingBox{Origin = position},
                 Type = subItem.Size,
-                Occupied = (GridItem.Side)byte.MaxValue
+                Occupied = (GridItem.Side)byte.MaxValue,
+                Grid = gridItem.Grid
             });
+
+            // This only gets into effect at the end of next frame!
+            buffer.SetComponent(e, new Parent{Value = gridItem.Grid});
             buffer.SetComponent(e, new Translation{Value = Grid.PositionFromCell(subItem.Size, position)});
         }).Run();
+
         bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

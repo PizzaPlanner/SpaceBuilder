@@ -2,43 +2,35 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEditor.MemoryProfiler;
-
-public struct ElectricityNeedsRecalculation : IComponentData { }
-public struct NeedsUpdate : IComponentData { }
+using UnityEngine;
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]
-[UpdateAfter(typeof(GridRecalculationSystem))]
+public partial class GridRecalculationSystemGroup : ComponentSystemGroup { }
+
+public struct NeedsUpdate : IComponentData { }
+
+[UpdateInGroup(typeof(GridRecalculationSystemGroup))]
 public partial class RecalculateElectricityNetworksSystem : SystemBase
 {
     private EndInitializationEntityCommandBufferSystem bufferSystem;
 
     public static uint NextId;
-    private NativeHashMap<uint, Entity> networkIdToEntity;
 
     protected override void OnCreate()
     {
         bufferSystem = World.GetExistingSystem<EndInitializationEntityCommandBufferSystem>();
-        networkIdToEntity = new NativeHashMap<uint, Entity>(0, Allocator.Persistent);
-    }
-
-    protected override void OnDestroy()
-    {
-        networkIdToEntity.Dispose();
     }
 
     protected override void OnUpdate()
     {
         var buffer = bufferSystem.CreateCommandBuffer();
 
-        var prefabHashMap = BuildingPartManagementSystem.BuildingPartById;
         Entities
-            .WithReadOnly(prefabHashMap)
             .WithName("ApplyElectricityConnectionRotation")
             .WithAll<ElectricityNetworkConnection>()
             .ForEach((Entity e, ref Rotation r, in Identifieable item, in UpdateRotation ur) =>
             {
-                var prefab = prefabHashMap[item.ItemId];
-                var prefabConnection = GetComponent<ElectricityNetworkConnection>(prefab);
+                var prefabConnection = GetComponent<ElectricityNetworkConnection>(ur.ReferencePrefab);
                 var myConnection = GetComponent<ElectricityNetworkConnection>(e);
                 myConnection.ConnectsAt = prefabConnection.ConnectsAt.Rotate(ur.Value);
                 SetComponent(e, myConnection);
@@ -112,7 +104,6 @@ public partial class RecalculateElectricityNetworksSystem : SystemBase
                 typeof(ElectricitySystem.NetworkPowerStatusChanged));
             EntityManager.AddBuffer<ConnectionBuffer>(e);
             EntityManager.SetComponentData(e, new ElectricityNetwork{Id = newItem, Power = 0});
-            networkIdToEntity.Add(newItem, e);
         }
 
         var portQuery = GetEntityQuery(ComponentType.ReadOnly<ElectricityPort>(),

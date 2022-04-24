@@ -1,6 +1,9 @@
+using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics;
+using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -24,7 +27,6 @@ public partial class BuildingSystem : SystemBase
 
     public Entity Build(long id, Entity gridEntity, int3 position, quaternion rotation, bool asGhost)
     {
-        Debug.Log($"Building {id}@{position} on {gridEntity}");
         if (!HasComponent<Grid>(gridEntity))
             return Entity.Null;
 
@@ -40,21 +42,22 @@ public partial class BuildingSystem : SystemBase
 
         var entity = EntityManager.Instantiate(prefab);
         var originalGridItem = GetComponent<GridItem>(prefab);
-        EntityManager.AddComponentData(entity, new Parent { Value = gridEntity});
-        EntityManager.AddComponentData(entity, new Rotation{ Value = rotation});
-        EntityManager.AddComponentData(entity, new Translation{ Value = Grid.PositionFromCell(originalGridItem.Type, position) });
-        EntityManager.AddComponentData(entity, new UpdateRotation {Value = rotation});
-        EntityManager.AddComponent<LocalToParent>(entity);
-
+        EntityManager.AddComponentData(entity, new UpdateRotation {Value = rotation, ReferencePrefab = prefab});
         var newGridItem = RotateItem(originalGridItem, rotation);
+        newGridItem.Grid = gridEntity;
         newGridItem.Area.Origin = position;
         EntityManager.SetComponentData(entity, newGridItem);
+
+        EntityManager.AddComponentData(entity, new LocalToParent());
+        EntityManager.AddComponentData(entity, new Parent { Value = gridEntity });
+        EntityManager.AddComponentData(entity, new Rotation{ Value = rotation });
+        EntityManager.AddComponentData(entity, new Translation{ Value = Grid.PositionFromCell(originalGridItem.Type, position) });
 
         if (asGhost)
         {
             EntityManager.AddComponentData(entity, new GhostPlacementBuilder{
                 TargetGrid = GetComponent<Grid>(gridEntity),
-                Range = 3,
+                Range = 10,
                 Original = originalGridItem
             });
             EntityManager.AddComponent<Ghost>(entity);
@@ -73,5 +76,55 @@ public partial class BuildingSystem : SystemBase
         original.Occupied = original.Occupied.Rotate(rotation);
         original.Area.RotatedExtents = (int3)math.round(math.mul(rotation, original.Area.Extents));
         return original;
+    }
+}
+
+[UpdateAfter(typeof(TransformSystemGroup))]
+[UpdateBefore(typeof(LateSimulationSystemGroup))]
+public partial class GhostChildrenUpdateSystem : SystemBase
+{
+    private EntityQuery query;
+    protected override void OnCreate()
+    {
+        query = GetEntityQuery(typeof(Ghost), typeof(GridItem));
+        RequireForUpdate(query);
+    }
+
+    protected override void OnUpdate()
+    {
+        var childBuffer = GetBufferFromEntity<Child>(true);
+        var entities = query.ToEntityArray(Allocator.Temp);
+        foreach (var ghost in entities)
+        {
+            foreach (var child in childBuffer.GetAllChildren(ghost).ToArray())
+            {
+                if (!HasComponent<Ghost>(child))
+                    EntityManager.AddComponent<Ghost>(child);
+
+                if (EntityManager.HasComponent<PhysicsCollider>(child))
+                    EntityManager.RemoveComponent<PhysicsCollider>(child);
+            }
+        }
+    }
+}
+
+public partial class GhostVisualsUpdateSystem : SystemBase
+{
+    private GhostPlacementSettings settings;
+
+    protected override void OnCreate()
+    {
+        settings = Resources.Load<GhostPlacementSettings>("GhostPlacementSettings");
+        RequireSingletonForUpdate<GhostPlacementBuilder>();
+    }
+    protected override void OnUpdate()
+    {
+        var buildable = GetSingleton<GhostPlacementBuilder>().Buildable;
+        Entities.WithAll<Ghost, RenderMesh>().ForEach((Entity e) =>
+        {
+            var renderMesh = EntityManager.GetSharedComponentData<RenderMesh>(e);
+            renderMesh.material = buildable ? settings.GhostPlacementMaterial : settings.GhostRemovalMaterial;
+            EntityManager.SetSharedComponentData(e, renderMesh);
+        }).WithoutBurst().WithStructuralChanges().Run();
     }
 }

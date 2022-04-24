@@ -54,28 +54,23 @@ public partial class CalculateBuildingSlotSystem : SystemBase
         var collisionWorld = physicsWorld.PhysicsWorld.CollisionWorld;
 
         var camera = Camera.main.transform;
-        float3 target = anchorLtw.Position + (float3)camera.forward * Grid.CellSize(gridItem.Type) * bgp.Range;
-        // var input = new RaycastInput
-        // {
-        //     Start = ltw.Position,
-        //     End = ltw.Position + ltw.Forward * Grid.CellSize(grid) * bgp.Range,
-        //     Filter = filter
-        // };
-        // if (collisionWorld.CastRay(input, out var hit))
-        // {
-        //     var occupied = Grid.CellFromPosition(gridLtw, hit.Position, gridItem.Size);
-        //     var me = Grid.CellFromPosition(gridLtw, ltw.Position, gridItem.Size);
-        //     var diff = occupied - me;
-        //     var diffAbs = math.abs(diff);
-        //
-        //     bgp.CurrentSlot = occupied += new int3(
-        //         diffAbs.x >= diffAbs.y && diffAbs.x >= diffAbs.z ? (int)math.sign(diff.x) : 0,
-        //         diffAbs.y >= diffAbs.x && diffAbs.y >= diffAbs.z ? (int)math.sign(diff.y) : 0,
-        //         diffAbs.z >= diffAbs.x && diffAbs.z >= diffAbs.y ? (int)math.sign(diff.z) : 0
-        //     );
-        //     Debug.Log("Diff> "+diff);
-        // }
-        // else
+        float3 target = camera.position + camera.forward * bgp.Range;
+        var input = new RaycastInput
+        {
+            Start = camera.position,
+            End = target,
+            Filter = filter
+        };
+        if (collisionWorld.CastRay(input, out var hit))
+        {
+            var occupied = Grid.CellFromPosition(gridItem.Type, gridLtw, hit.Position);
+            var me = Grid.CellFromPosition(gridItem.Type, gridLtw, input.Start);
+            var diff = me - occupied;
+            var diffAbs = math.abs(diff);
+
+            gridItem.Area.Origin = occupied;// + new int3((int)math.sign(diff.x), (int)math.sign(diff.y),(int)math.sign(diff.z));
+        }
+        else
         {
             gridItem.Area.Origin = Grid.CellFromPosition(gridItem.Type, gridLtw, target);
         }
@@ -87,7 +82,7 @@ public partial class CalculateBuildingSlotSystem : SystemBase
 
         var canBuild = true;
         foreach (var item in GetBuffer<OccupationBuffer>(gridEntity))
-            canBuild &= !(gridItem.Area.Contains(item.Location) && (item.Value & gridItem.Occupied) > 0);
+            canBuild &= !(item.Size == gridItem.Type && gridItem.Area.Contains(item.Location) && (item.Value & gridItem.Occupied) > 0);
         bgp.Buildable = canBuild;
         SetSingleton(bgp);
 

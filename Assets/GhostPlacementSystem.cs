@@ -140,39 +140,3 @@ public partial class GhostPlacementSystem : SystemBase
         else rotating = false;
     }
 }
-
-public struct GhostRenderer : IComponentData { }
-
-[UpdateAfter(typeof(TransformSystemGroup))]
-public partial class GhostPlacementUpdateChildrenSystem : SystemBase
-{
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
-    private GhostPlacementSettings settings;
-    protected override void OnCreate()
-    {
-        RequireSingletonForUpdate<GhostPlacementBuilder>();
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-        settings = Resources.Load<GhostPlacementSettings>("GhostPlacementSettings");
-    }
-
-    protected override void OnUpdate()
-    {
-        var bfe = GetBufferFromEntity<Child>(true);
-        var buffer = bufferSystem.CreateCommandBuffer();
-        var buildable = GetSingleton<GhostPlacementBuilder>().Buildable;
-        foreach (var child in bfe.GetAllChildren(GetSingletonEntity<GhostPlacementBuilder>()))
-        {
-            if (EntityManager.HasComponent<RenderMesh>(child))
-            {
-                var rm = EntityManager.GetSharedComponentData<RenderMesh>(child);
-                rm.material = buildable ? settings.GhostPlacementMaterial : settings.GhostRemovalMaterial;
-                buffer.SetSharedComponent(child, rm);
-            }
-
-            if (EntityManager.HasComponent<PhysicsCollider>(child))
-            {
-                buffer.RemoveComponent<PhysicsCollider>(child);
-            }
-        }
-    }
-}

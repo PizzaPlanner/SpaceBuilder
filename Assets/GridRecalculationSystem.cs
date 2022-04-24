@@ -39,6 +39,7 @@ public struct OccupationBuffer : IBufferElementData
 {
     public GridItem.Side Value;
     public int3 Location;
+    public Grid.Size Size;
 }
 
 public struct AirtightBuffer : IBufferElementData
@@ -82,21 +83,17 @@ public struct ConnectionBufferSided : IBufferElementData
 
 public struct GridsNeedUpdate : IComponentData { }
 
-[UpdateInGroup(typeof(InitializationSystemGroup))]
+[UpdateInGroup(typeof(GridRecalculationSystemGroup), OrderFirst = true)]
 public partial class GridRecalculationSystem : SystemBase
 {
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
-
     protected override void OnCreate()
     {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
         RequireForUpdate(GetEntityQuery(typeof(GridsNeedUpdate)));
     }
 
     protected override void OnUpdate()
     {
-        var buffer = bufferSystem.CreateCommandBuffer();
-        Debug.Log("Updating Grids...");
+        Debug.Log("Recalculating Grids!");
         Entities.WithAll<Grid>().ForEach((DynamicBuffer<OccupationBuffer> obuff) =>
         {
             obuff.Clear();
@@ -107,19 +104,12 @@ public partial class GridRecalculationSystem : SystemBase
             abuff.Clear();
         }).Run();
 
-        Entities.WithNone<ConnectionBuffer>().WithAll<GridItem>().ForEach((Entity e) =>
-        {
-            EntityManager.AddBuffer<ConnectionBuffer>(e);
-        }).WithStructuralChanges().WithoutBurst().Run();
-
         var gridItemEntities = GetEntityQuery(
+            ComponentType.Exclude<Ghost>(),
             ComponentType.ReadOnly<GridItem>(),
-            ComponentType.ReadOnly<Parent>(),
-            ComponentType.ReadOnly<Translation>(),
             ComponentType.ReadWrite<ConnectionBuffer>());
 
         var entities = gridItemEntities.ToEntityArray(Allocator.Temp);
-        var parents = gridItemEntities.ToComponentDataArray<Parent>(Allocator.Temp);
         var gridItems = gridItemEntities.ToComponentDataArray<GridItem>(Allocator.Temp);
         for (int e1 = 0; e1 < entities.Length; e1++)
         {
@@ -128,7 +118,7 @@ public partial class GridRecalculationSystem : SystemBase
             for (int e2 = 0; e2 < entities.Length; e2++)
             {
                 if (e1 == e2) continue;
-                if (parents[e1].Value != parents[e2].Value) continue;
+                if (gridItems[e1].Grid != gridItems[e2].Grid) continue;
                 if (gridItems[e1].Type != gridItems[e2].Type) continue;
                 var distance = gridItems[e2].Area.Origin - gridItems[e1].Area.Origin;
                 if (math.dot(distance, distance) != 1) continue;
@@ -139,36 +129,35 @@ public partial class GridRecalculationSystem : SystemBase
                 else if (distance.y == -1) side |= GridItem.Side.Down;
                 else if (distance.z == 1) side |= GridItem.Side.Front;
                 else if (distance.z == -1) side |= GridItem.Side.Back;
-
                 if(side != 0)
-                    GetBuffer<ConnectionBuffer>(entities[e1], false).Add(new ConnectionBuffer {Value = entities[e2], Side = side});
+                    nbbuffer.Add(new ConnectionBuffer {Value = entities[e2], Side = side});
             }
         }
 
         var grids = GetComponentDataFromEntity<Grid>(false);
         Entities
             .WithName("CalculateGridBounds")
-            .WithAll<GridItem>().ForEach((in Parent parent, in Translation position) =>
+            .ForEach((in GridItem item) =>
             {
-                if (!grids.HasComponent(parent.Value))
+                if (!grids.HasComponent(item.Grid))
                     return;
-                var grid = grids[parent.Value];
-                grid.BoundsMin = math.min(grid.BoundsMin, Grid.CellFromPosition(grid.MaxSize, position.Value));
-                grid.BoundsMax = math.max(grid.BoundsMax, Grid.CellFromPosition(grid.MaxSize, position.Value));
-                grids[parent.Value] = grid;
+                var grid = grids[item.Grid];
+                grid.BoundsMin = math.min(grid.BoundsMin, item.Area.Origin);
+                grid.BoundsMax = math.max(grid.BoundsMax, item.Area.Origin);
+                grids[item.Grid] = grid;
             }).Run();
 
         var occupationBuffers = GetBufferFromEntity<OccupationBuffer>();
         var airtightBuffers = GetBufferFromEntity<AirtightBuffer>();
         Entities
             .WithName("CalculateOccupation")
-            .ForEach((in Parent parent, in GridItem item) =>
+            .ForEach((in GridItem item) =>
         {
-            if (occupationBuffers.HasComponent(parent.Value))
+            if (occupationBuffers.HasComponent(item.Grid))
             {
                 var min = item.Area.Min;
                 var max = item.Area.Max;
-                var b = occupationBuffers[parent.Value];
+                var b = occupationBuffers[item.Grid];
                 for (int x = min.x; x <= max.x; x++)
                 for (int y = min.y; y <= max.y; y++)
                 for (int z = min.z; z <= max.z; z++)
@@ -179,20 +168,20 @@ public partial class GridRecalculationSystem : SystemBase
                     {
                         if (math.all(b[i].Location == pos))
                         {
-                            b[i] = new OccupationBuffer { Location = pos, Value = b[i].Value | item.Occupied };
+                            b[i] = new OccupationBuffer { Location = pos, Value = b[i].Value | item.Occupied, Size = item.Type};
                             found = true;
                         }
                     }
                     if (!found)
-                        b.Add(new OccupationBuffer { Location = pos, Value = item.Occupied });
+                        b.Add(new OccupationBuffer { Location = pos, Value = item.Occupied, Size = item.Type });
                 }
             }
 
-            if (airtightBuffers.HasComponent(parent.Value))
+            if (airtightBuffers.HasComponent(item.Grid))
             {
                 var min = item.Area.Min;
                 var max = item.Area.Max;
-                var b = airtightBuffers[parent.Value];
+                var b = airtightBuffers[item.Grid];
                 for (int x = min.x; x <= max.x; x++)
                 for (int y = min.y; y <= max.y; y++)
                 for (int z = min.z; z <= max.z; z++)
@@ -213,7 +202,6 @@ public partial class GridRecalculationSystem : SystemBase
                 }
             }
         }).Run();
-        bufferSystem.AddJobHandleForProducer(Dependency);
 
         EntityManager.DestroyEntity(GetEntityQuery(typeof(GridsNeedUpdate)));
     }

@@ -23,6 +23,7 @@ public struct GridItem : IComponentData
     public Side Airtight;
     public BoundingBox Area;
     public Grid.Size Type;
+    public Entity Grid;
 }
 
 public struct BoundingBox
@@ -66,5 +67,6 @@ public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
         });
         dstManager.AddComponentData(entity, new RotationPivot {Value = Grid.CellSize(Type) * 0.5f});
         dstManager.AddComponent<CompositeRotation>(entity);
+        dstManager.AddBuffer<ConnectionBuffer>(entity);
     }
 }
