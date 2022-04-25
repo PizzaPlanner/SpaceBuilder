@@ -21,7 +21,7 @@ public partial class DockingSystem : SystemBase
 {
     struct OriginAnchor : IComponentData { }
     public Entity Origin;
-    // private VisualElement swapRoot;
+    private VisualElement swapRoot;
     protected override void OnCreate()
     {
         RequireSingletonForUpdate<LocalPlayer>();
@@ -31,7 +31,7 @@ public partial class DockingSystem : SystemBase
 
     protected override void OnStartRunning()
     {
-        // swapRoot = UIDocument.FindObjectOfType<UIDocument>().rootVisualElement.Q("DockInfo");
+        swapRoot = UIDocument.FindObjectOfType<UIDocument>().rootVisualElement.Q("DockInfo");
     }
 
     protected override void OnUpdate()
@@ -39,19 +39,19 @@ public partial class DockingSystem : SystemBase
         var entity = GetSingletonEntity<LocalPlayer>();
         var grids = GetBuffer<CloseGrids>(entity);
 
-        // if (grids.Length == 0)
-        // {
-        //     Dock(entity, Origin);
-        //     swapRoot.Q("Station", "dockingbutton").Q<Label>().text = "<None>";
-        //     swapRoot.Q("Station", "dockingbutton").SetEnabled(false);
-        //     swapRoot.Q("Swap").SetEnabled(false);
-        // }
-        // else
-        // {
-        //     swapRoot.Q("Station", "dockingbutton").Q<Label>().text = GetComponent<Name>(grids[0].Grid).Value.ToString();
-        //     swapRoot.Q("Station", "dockingbutton").SetEnabled(true);
-        //     swapRoot.Q("Swap").SetEnabled(true);
-        // }
+        if (grids.Length == 0)
+        {
+            Dock(entity, Origin);
+            swapRoot.Q("Station", "dockingbutton").Q<Label>().text = "<None>";
+            swapRoot.Q("Station", "dockingbutton").SetEnabled(false);
+            swapRoot.Q("Swap").SetEnabled(false);
+        }
+        else
+        {
+            swapRoot.Q("Station", "dockingbutton").Q<Label>().text = GetComponent<Name>(grids[0].Grid).Value.ToString();
+            swapRoot.Q("Station", "dockingbutton").SetEnabled(true);
+            swapRoot.Q("Swap").SetEnabled(true);
+        }
 
         if (!Input.GetKeyDown(KeyCode.G))
             return;

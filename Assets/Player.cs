@@ -12,18 +12,13 @@ public struct Player : IComponentData
 
 }
 
-public struct Target : IComponentData
-{
-    public Entity Value;
-}
-
 [UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
 [UpdateBefore(typeof(TransformSystemGroup))]
 public partial class MovePlayerSystem : SystemBase
 {
     public const float MOVEMENT_SPEED_DEFAULT = 5;
     public const float MOVEMENT_SPEED_RUNNING = 15;
-    private const float ROTATION_SENSIVITY = 0.4f;
+    private const float ROTATION_SENSIVITY = 0.2f;
 
     FixedStepSimulationSystemGroup fixedStepGroup;
 

@@ -10,7 +10,7 @@ using Unity.Transforms;
 using UnityEngine;
 using Material = UnityEngine.Material;
 
-public struct CurrentPlayerTarget : IComponentData
+public struct TargetForRemoval : IComponentData
 {
     public bool ToRemove;
 }
@@ -57,7 +57,7 @@ public partial class GridItemRemovalSystem : SystemBase
             buffer.SetSharedComponent(e, m2);
             buffer.RemoveComponent<ModifiedRenderMesh>(e);
         }).WithoutBurst().Run();
-
+        bufferSystem.AddJobHandleForProducer(Dependency);
         modifiedEntities.Clear();
         if(BuildingPartManagementSystem.WireframeDisplay)
             BuildingPartManagementSystem.WireframeDisplay.gameObject.SetActive(false);
@@ -75,7 +75,7 @@ public partial class GridItemRemovalSystem : SystemBase
 
         var buffer = bufferSystem.CreateCommandBuffer();
         var childBuffer = GetBufferFromEntity<Child>();
-        var cpt = GetComponentDataFromEntity<CurrentPlayerTarget>();
+        var cpt = GetComponentDataFromEntity<TargetForRemoval>();
         Entities.ForEach((Entity e, RenderMesh mesh, in ModifiedRenderMesh mrm) =>
         {
             if (cpt.HasComponent(mrm.ParentGridItem))
@@ -92,7 +92,7 @@ public partial class GridItemRemovalSystem : SystemBase
             BuildingPartManagementSystem.WireframeDisplay.gameObject.SetActive(false);
         }).WithoutBurst().Run();
 
-        Entities.ForEach((Entity e, in LocalToWorld gridLtw, in GridItem gridItem, in CurrentPlayerTarget target) =>
+        Entities.ForEach((Entity e, in LocalToWorld gridLtw, in GridItem gridItem, in TargetForRemoval target) =>
         {
             BuildingPartManagementSystem.WireframeDisplay.transform.position = gridLtw.Position;
             if (modifiedEntities.Contains(e))
@@ -115,6 +115,7 @@ public partial class GridItemRemovalSystem : SystemBase
             }
 
         }).WithoutBurst().Run();
+        bufferSystem.AddJobHandleForProducer(Dependency);
 
         if (Input.GetMouseButtonDown(0))
         {
@@ -127,54 +128,33 @@ public partial class GridItemRemovalSystem : SystemBase
 [UpdateBefore(typeof(GridItemTargetCleanupSystem))]
 public partial class GridItemTargetAssignmentSystem : SystemBase
 {
-    BuildPhysicsWorld physicsWorld;
-    private const float TARGET_MAX_RANGE = 8;
-    private CollisionFilter filter;
-
     protected override void OnCreate()
     {
         RequireSingletonForUpdate<LocalPlayer>();
         RequireSingletonForUpdate<CameraAnchor>();
-        physicsWorld = World.GetExistingSystem<BuildPhysicsWorld>();
-        filter = CollisionFilter.Default;
-        filter.CollidesWith = ~(1u << 3);
-        filter.BelongsTo = ~0u;
     }
 
     protected override void OnStopRunning()
     {
-        EntityManager.RemoveComponent<CurrentPlayerTarget>(GetEntityQuery(typeof(CurrentPlayerTarget)));
+        EntityManager.RemoveComponent<TargetForRemoval>(GetEntityQuery(typeof(TargetForRemoval)));
     }
 
     protected override void OnUpdate()
     {
         if(!Input.GetKey(KeyCode.LeftShift))
-            Entities.ForEach((ref CurrentPlayerTarget target) =>
+            Entities.ForEach((ref TargetForRemoval target) =>
             {
                 target.ToRemove = true;
             }).Run();
 
-        var camera = Camera.main.transform;
-        var collisionWorld = physicsWorld.PhysicsWorld.CollisionWorld;
-        var input = new RaycastInput
-        {
-            Start = camera.position,
-            End = camera.position + camera.forward * TARGET_MAX_RANGE,
-            Filter = filter
-
-        };
-
-        var target = Entity.Null;
-        if (collisionWorld.CastRay(input, out var hit))
-            target = this.FindParentWith<GridItem>(hit.Entity);
-
+        var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>()).Value;
         if (target == Entity.Null)
             return;
 
-        if (HasComponent<CurrentPlayerTarget>(target))
-            SetComponent(target, new CurrentPlayerTarget{ToRemove = false});
+        if (HasComponent<TargetForRemoval>(target))
+            SetComponent(target, new TargetForRemoval{ToRemove = false});
         else
-            EntityManager.AddComponentData(target, new CurrentPlayerTarget{ToRemove = false});
+            EntityManager.AddComponentData(target, new TargetForRemoval{ToRemove = false});
     }
 }
 
@@ -190,10 +170,10 @@ public partial class GridItemTargetCleanupSystem : SystemBase
     protected override void OnUpdate()
     {
         var buffer = bufferSystem.CreateCommandBuffer();
-        Entities.ForEach((Entity e, in CurrentPlayerTarget cpt) =>
+        Entities.ForEach((Entity e, in TargetForRemoval cpt) =>
         {
             if(cpt.ToRemove)
-                buffer.RemoveComponent<CurrentPlayerTarget>(e);
+                buffer.RemoveComponent<TargetForRemoval>(e);
         }).Schedule();
         bufferSystem.AddJobHandleForProducer(Dependency);
     }

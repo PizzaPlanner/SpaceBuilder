@@ -5,6 +5,7 @@ using Unity.Physics;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 [GenerateAuthoringComponent]
 public struct GhostPlacementBuilder : IComponentData
@@ -23,7 +24,7 @@ public partial class GhostPlacementSystem : SystemBase
     private int ghostId;
     private bool rotating;
     public quaternion currentRotation;
-    // private VisualElement uiRoot;
+    private VisualElement uiRoot;
     private Entity currentGrid;
     private Entity buildables;
 
@@ -37,10 +38,10 @@ public partial class GhostPlacementSystem : SystemBase
 
     protected override void OnStartRunning()
     {
-        // if (uiRoot == null)
-        //     uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BuildMenu");
-        //
-        // uiRoot.style.display = DisplayStyle.Flex;
+        if (uiRoot == null)
+            uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BuildMenu");
+        uiRoot.style.display = DisplayStyle.Flex;
+
         currentGrid = GetSingleton<BuilderMode_Build>().Grid;
         if (buildables == Entity.Null)
         {
@@ -54,7 +55,7 @@ public partial class GhostPlacementSystem : SystemBase
 
     protected override void OnStopRunning()
     {
-        // uiRoot.style.display = DisplayStyle.None;
+        uiRoot.style.display = DisplayStyle.None;
         if(HasSingleton<GhostPlacementBuilder>())
             EntityManager.DestroyEntity(GetSingletonEntity<GhostPlacementBuilder>());
     }
@@ -64,15 +65,20 @@ public partial class GhostPlacementSystem : SystemBase
         if (!HasSingleton<GhostPlacementBuilder>())
         {
             var buffer = GetBuffer<BuildableBuffer>(buildables);
+            var prefabs = BuildingPartManagementSystem.BuildingPartById;
+            var prefab0 = prefabs[buffer[(ghostId - 1).mod(buffer.Length)].Id];
+            var prefab1 = prefabs[buffer[ghostId].Id];
+            var prefab2 = prefabs[buffer[(ghostId + 1).mod(buffer.Length)].Id];
             World.GetExistingSystem<BuildingSystem>().Build(buffer[ghostId].Id, currentGrid, int3.zero, currentRotation, true);
 
-            // uiRoot.Q("Current") .Q<Icon3D>().SetObject(builder.Prefabs[ghostId].gameObject);
-            // uiRoot.Q("Next")    .Q<Icon3D>().SetObject(builder.Prefabs[(ghostId + 1).mod(builder.Prefabs.Length)].gameObject);
-            // uiRoot.Q("Previous").Q<Icon3D>().SetObject(builder.Prefabs[(ghostId - 1).mod(builder.Prefabs.Length)].gameObject);
-            //
-            // uiRoot.Q("Current") .Q<Label>().text = builder.Prefabs[ghostId].gameObject.name;
-            // uiRoot.Q("Next")    .Q<Label>().text = builder.Prefabs[(ghostId + 1).mod(builder.Prefabs.Length)].gameObject.name;
-            // uiRoot.Q("Previous").Q<Label>().text = builder.Prefabs[(ghostId - 1).mod(builder.Prefabs.Length)].gameObject.name;
+            uiRoot.Q("Current") .Q<Icon3D>().SetObject(prefab1, World);
+            uiRoot.Q("Next")    .Q<Icon3D>().SetObject(prefab2, World);
+            uiRoot.Q("Previous").Q<Icon3D>().SetObject(prefab0, World);
+
+            uiRoot.Q("Current").Q<Label>().text = GetComponent<Name>(prefab1).Value.Value;
+            uiRoot.Q("Next")    .Q<Label>().text = GetComponent<Name>(prefab2).Value.Value;
+            uiRoot.Q("Previous").Q<Label>().text = GetComponent<Name>(prefab0).Value.Value;
+
 
             return;
         }

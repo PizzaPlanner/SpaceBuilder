@@ -3,16 +3,10 @@ using Unity.Entities;
 using Unity.Transforms;
 using UnityEditor.MemoryProfiler;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]
-public partial class GridRecalculationSystemGroup : ComponentSystemGroup
-{
-    protected override void OnCreate()
-    {
-        RequireForUpdate(GetEntityQuery(typeof(GridsNeedUpdate)));
-        base.OnCreate();
-    }
-}
+public partial class GridRecalculationSystemGroup : ComponentSystemGroup { }
 
 public struct NeedsUpdate : IComponentData { }
 
@@ -26,6 +20,11 @@ public partial class RecalculateElectricityNetworksSystem : SystemBase
     protected override void OnCreate()
     {
         bufferSystem = World.GetExistingSystem<EndInitializationEntityCommandBufferSystem>();
+        RequireForUpdate(GetEntityQuery(new EntityQueryDesc
+        {
+            Any = new[]{ComponentType.ReadOnly<UpdateRotation>(), ComponentType.ReadOnly<NeedsUpdate>()},
+            All = new[]{ComponentType.ReadWrite<ElectricityNetworkConnection>()}
+        }));
     }
 
     protected override void OnUpdate()

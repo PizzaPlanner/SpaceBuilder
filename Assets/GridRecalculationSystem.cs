@@ -86,6 +86,13 @@ public struct GridsNeedUpdate : IComponentData { }
 [UpdateInGroup(typeof(GridRecalculationSystemGroup), OrderFirst = true)]
 public partial class GridRecalculationSystem : SystemBase
 {
+    private EndInitializationEntityCommandBufferSystem bufferSystem;
+    protected override void OnCreate()
+    {
+        bufferSystem = World.GetExistingSystem<EndInitializationEntityCommandBufferSystem>();
+        RequireForUpdate(GetEntityQuery(typeof(GridsNeedUpdate)));
+    }
+
     protected override void OnUpdate()
     {
         Debug.Log("Recalculating Grids!");
@@ -197,7 +204,8 @@ public partial class GridRecalculationSystem : SystemBase
                 }
             }
         }).Run();
-
-        EntityManager.DestroyEntity(GetEntityQuery(typeof(GridsNeedUpdate)));
+        var buffer = bufferSystem.CreateCommandBuffer();
+        buffer.DestroyEntitiesForEntityQuery(GetEntityQuery(typeof(GridsNeedUpdate)));
+        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

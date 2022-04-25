@@ -27,7 +27,7 @@ public partial class InputSystem : SystemBase
         Deconstruct
     }
 
-    // private VisualElement uiRoot;
+    private VisualElement uiRoot;
     protected override void OnCreate()
     {
         RequireSingletonForUpdate<LocalPlayer>();
@@ -37,11 +37,11 @@ public partial class InputSystem : SystemBase
 
     protected override void OnStartRunning()
     {
-        // if (uiRoot == null)
-        // {
-        //     uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("ContextMenu");
-        //     uiRoot.style.display = DisplayStyle.None;
-        // }
+        if (uiRoot == null)
+        {
+            uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("ContextMenu");
+            uiRoot.style.display = DisplayStyle.None;
+        }
     }
 
     protected override void OnUpdate()
@@ -55,10 +55,19 @@ public partial class InputSystem : SystemBase
             EntityManager.RemoveComponent<BuilderMode_Destroy>(entity);
 
         Cursor.lockState = HasSingleton<CanMove>() ? CursorLockMode.Locked : CursorLockMode.None;
-        // uiRoot.style.display = input.CurrentAction != ActionState.None ? DisplayStyle.Flex : DisplayStyle.None;
 
         if (Input.GetMouseButtonDown(1))
             input.CurrentAction = ActionState.None;
+
+        var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
+        if (target.CanInteract && target.Value != Entity.Null && input.CurrentAction == ActionState.None)
+        {
+            uiRoot.style.display = DisplayStyle.Flex;
+            uiRoot.Q<Label>("MainActionName").text = "Interact";
+        }
+        else
+            uiRoot.style.display = input.CurrentAction != ActionState.None ? DisplayStyle.Flex : DisplayStyle.None;
+
 
         if (Input.GetKeyDown(KeyCode.B))
         {
@@ -70,7 +79,7 @@ public partial class InputSystem : SystemBase
             {
                 EntityManager.AddComponentData(entity, new BuilderMode_Build{Grid = GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target});
                 input.CurrentAction = ActionState.Construct;
-                // uiRoot.Q<Label>("MainActionName").text = "Construct";
+                uiRoot.Q<Label>("MainActionName").text = "Construct";
             }
         }
 
@@ -84,7 +93,7 @@ public partial class InputSystem : SystemBase
             {
                 EntityManager.AddComponentData(entity, new BuilderMode_Destroy{Grid = GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target});
                 input.CurrentAction = ActionState.Deconstruct;
-                // uiRoot.Q<Label>("MainActionName").text = "Deconstruct";
+                uiRoot.Q<Label>("MainActionName").text = "Deconstruct";
             }
         }
 

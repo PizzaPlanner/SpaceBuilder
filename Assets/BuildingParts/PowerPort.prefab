@@ -98,6 +98,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: PowerPort
       objectReference: {fileID: 0}
+    - target: {fileID: 7874629416545601207, guid: 285394f2bcb7b034ca59a908c0ae379e,
+        type: 3}
+      propertyPath: Name
+      value: Power Port
+      objectReference: {fileID: 0}
     - target: {fileID: 9137719799036808154, guid: 285394f2bcb7b034ca59a908c0ae379e,
         type: 3}
       propertyPath: m_RootOrder

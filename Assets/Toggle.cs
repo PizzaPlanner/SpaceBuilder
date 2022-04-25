@@ -11,8 +11,6 @@ public struct Toggle : IComponentData
     public Entity Target;
 }
 
-public struct RequestToggleChange : IComponentData { }
-
 public partial class ToggleSystem : SystemBase
 {
     private GhostPlacementSettings settings;
@@ -25,7 +23,7 @@ public partial class ToggleSystem : SystemBase
     protected override void OnUpdate()
     {
         Entities
-            .WithAll<RequestToggleChange>()
+            .WithAll<Interacted>()
             .ForEach((ref Toggle toggle) =>
             {
                 toggle.On = !toggle.On;
@@ -35,12 +33,10 @@ public partial class ToggleSystem : SystemBase
             }).Run();
         
         Entities
-            .WithAll<RequestToggleChange>()
+            .WithAll<Interacted>()
             .ForEach((RenderMesh mesh, in Toggle toggle) =>
             {
                 mesh.material = toggle.On ? settings.GhostPlacementMaterial : settings.GhostRemovalMaterial;
             }).WithStructuralChanges().WithoutBurst().Run();
-
-        EntityManager.RemoveComponent<RequestToggleChange>(GetEntityQuery(typeof(RequestToggleChange)));
     }
 }
