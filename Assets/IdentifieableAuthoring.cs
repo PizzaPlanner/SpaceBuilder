@@ -22,6 +22,7 @@ public class IdentifieableAuthoring : MonoBehaviour, IConvertGameObjectToEntity
             return;
 
         var guid = UnityEditor.AssetDatabase.AssetPathToGUID(UnityEditor.AssetDatabase.GetAssetPath(gameObject));
+        if (guid.Length < 16) return;
         ItemId = long.Parse(guid.Substring(0,16),System.Globalization.NumberStyles.HexNumber);
     }
 #endif

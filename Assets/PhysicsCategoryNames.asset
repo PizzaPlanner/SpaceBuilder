@@ -18,8 +18,8 @@ MonoBehaviour:
   - 
   - Player
   - 
-  - 
-  - 
+  - GridPlacementGuide
+  - GridPlacementCast
   - 
   - 
   - 

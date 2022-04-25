@@ -6,6 +6,7 @@ public struct ElectricityPort : IExchangeNetworkPort<ElectricityNetwork>
 {
     public float Value;
     public bool NetworkOperational;
+    public bool On;
 }
 
 public struct ElectricityNetwork : IExchangeNetwork

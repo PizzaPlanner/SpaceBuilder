@@ -37,13 +37,6 @@ public partial class CameraControllerSystem : SystemBase
         var anchorLtw = GetComponent<LocalToWorld>(GetSingletonEntity<CameraAnchor>());
         var anchor = GetSingleton<CameraAnchor>();
 
-        if (!HasSingleton<GhostPlacementBuilder>() && Input.GetAxis("Mouse ScrollWheel") != 0)
-        {
-            anchor.ScrollFactor -= Input.GetAxis("Mouse ScrollWheel");
-            anchor.ScrollFactor = math.clamp(anchor.ScrollFactor, 0, 2);
-            SetSingleton(anchor);
-        }
-
         var camDistance = anchor.ScrollFactor;
         var rotatedOffset = math.mul(anchorLtw.Rotation, anchor.Offset);
         RaycastInput raycastInput = new RaycastInput

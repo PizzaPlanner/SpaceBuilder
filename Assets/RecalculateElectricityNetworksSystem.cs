@@ -5,7 +5,14 @@ using UnityEditor.MemoryProfiler;
 using UnityEngine;
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]
-public partial class GridRecalculationSystemGroup : ComponentSystemGroup { }
+public partial class GridRecalculationSystemGroup : ComponentSystemGroup
+{
+    protected override void OnCreate()
+    {
+        RequireForUpdate(GetEntityQuery(typeof(GridsNeedUpdate)));
+        base.OnCreate();
+    }
+}
 
 public struct NeedsUpdate : IComponentData { }
 

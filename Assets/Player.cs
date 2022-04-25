@@ -12,6 +12,11 @@ public struct Player : IComponentData
 
 }
 
+public struct Target : IComponentData
+{
+    public Entity Value;
+}
+
 [UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
 [UpdateBefore(typeof(TransformSystemGroup))]
 public partial class MovePlayerSystem : SystemBase

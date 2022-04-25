@@ -1,4 +1,5 @@
 using System.Linq;
+using SnapPoints;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;

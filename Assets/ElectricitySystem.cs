@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -26,7 +27,10 @@ public partial class ElectricitySystem : SystemBase
                 var prevPower = network.Power;
                 network.Power = 0;
                 for (int i = 0; i < connections.Length; i++)
-                    network.Power += GetComponent<ElectricityPort>(connections[i].Value).Value;
+                {
+                    var port = GetComponent<ElectricityPort>(connections[i].Value);
+                    network.Power += port.On ? port.Value : 0;
+                }
                 if(network.Power != prevPower)
                     buffer.AddComponent<NetworkPowerStatusChanged>(e);
             }).Schedule();
@@ -46,7 +50,6 @@ public partial class ElectricitySystem : SystemBase
                     var component = ports[entity];
                     component.NetworkOperational = network.Power > 0;
                     ports[entity] = component;
-                    Debug.Log($"Set operational {component.NetworkOperational} for {entity}. Network Power is {network.Power}");
                 }
                 buffer.RemoveComponent<NetworkPowerStatusChanged>(e);
             }).Schedule();

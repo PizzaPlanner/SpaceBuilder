@@ -1,6 +1,8 @@
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Cursor = UnityEngine.Cursor;
 
 public struct BuilderMode_Build : ISystemStateComponentData
 {
@@ -52,6 +54,7 @@ public partial class InputSystem : SystemBase
         if (HasSingleton<BuilderMode_Destroy>() && input.CurrentAction != ActionState.Deconstruct)
             EntityManager.RemoveComponent<BuilderMode_Destroy>(entity);
 
+        Cursor.lockState = HasSingleton<CanMove>() ? CursorLockMode.Locked : CursorLockMode.None;
         // uiRoot.style.display = input.CurrentAction != ActionState.None ? DisplayStyle.Flex : DisplayStyle.None;
 
         if (Input.GetMouseButtonDown(1))
@@ -92,6 +95,15 @@ public partial class InputSystem : SystemBase
                 EntityManager.RemoveComponent<CanMove>(player);
             else
                 EntityManager.AddComponent<CanMove>(player);
+        }
+
+
+        if (Input.GetAxis("Mouse ScrollWheel") != 0 && input.CurrentAction == ActionState.None)
+        {
+            var anchor = GetSingleton<CameraAnchor>();
+            anchor.ScrollFactor -= Input.GetAxis("Mouse ScrollWheel");
+            anchor.ScrollFactor = math.clamp(anchor.ScrollFactor, 0, 2);
+            SetSingleton(anchor);
         }
 
         if (Input.GetKeyDown(KeyCode.F1) && HasComponent<Docked>(GetSingletonEntity<LocalPlayer>()))

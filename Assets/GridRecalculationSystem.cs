@@ -86,11 +86,6 @@ public struct GridsNeedUpdate : IComponentData { }
 [UpdateInGroup(typeof(GridRecalculationSystemGroup), OrderFirst = true)]
 public partial class GridRecalculationSystem : SystemBase
 {
-    protected override void OnCreate()
-    {
-        RequireForUpdate(GetEntityQuery(typeof(GridsNeedUpdate)));
-    }
-
     protected override void OnUpdate()
     {
         Debug.Log("Recalculating Grids!");
