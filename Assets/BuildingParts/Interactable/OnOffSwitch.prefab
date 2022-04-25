@@ -49,14 +49,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b275e5f92732148048d7b77e264ac30e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ShapeType: 1
+  m_ShapeType: 2
   m_PrimitiveCenter:
     x: 0.0002939403
     y: -0.00055645406
     z: 0
   m_PrimitiveSize:
-    x: 0.38049638
-    y: 0.38049638
+    x: 0.38707748
+    y: 0.38707748
     z: 0.38707748
   m_PrimitiveOrientation:
     Value:
@@ -66,11 +66,11 @@ MonoBehaviour:
     RotationOrder: 4
   m_Capsule:
     Height: 0.38707748
-    Radius: 0.19024819
+    Radius: 0.19353874
     Axis: 2
   m_Cylinder:
     Height: 0.38707748
-    Radius: 0.19024819
+    Radius: 0.19353874
     Axis: 2
   m_CylinderSideCount: 20
   m_SphereRadius: 0.19353874
@@ -201,7 +201,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3887067573439316595}
-  m_Mesh: {fileID: 4300000, guid: f0d9e86f756bd4d469520f69481f3df1, type: 3}
+  m_Mesh: {fileID: 4300000, guid: f4452c0ced1da4047b7f8d66be9f8c92, type: 3}
 --- !u!23 &7051146566953519470
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -221,7 +221,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 55d7c742aa7972d4f9e3614e07908c19, type: 2}
+  - {fileID: 2100000, guid: 4cee7a5983b187943adc589b9cb1f084, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

@@ -34,7 +34,11 @@ public partial class BuildingPartManagementSystem : SystemBase
         for (int i = 0; i < builder.Prefabs.Length; i++)
         {
             var e = GameObjectConversionUtility.ConvertGameObjectHierarchy(builder.Prefabs[i].gameObject, settings);
-            BuildingPartById.Add(GetComponent<Identifieable>(e).ItemId, e);
+            var id = GetComponent<Identifieable>(e).ItemId;
+            if(BuildingPartById.ContainsKey(id))
+                Debug.LogError($"ID {id} is used by multiple things!");
+            else
+                BuildingPartById.Add(id, e);
         }
     }
 
