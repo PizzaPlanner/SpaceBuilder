@@ -279,7 +279,7 @@ PrefabInstance:
     - target: {fileID: -1185016455883590714, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: m_PrimitiveSize.x
-      value: 0.030000001
+      value: 0.03
       objectReference: {fileID: 0}
     - target: {fileID: -1185016455883590714, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
@@ -310,6 +310,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_PrimitiveOrientation.Value.x
       value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1185016455883590714, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_ConvexHullGenerationParameters.m_BevelRadius
+      value: 0.005
       objectReference: {fileID: 0}
     - target: {fileID: 469590530107639516, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}

@@ -490,7 +490,7 @@ Transform:
   m_Children:
   - {fileID: 2075896581}
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &410087042
 MonoBehaviour:
@@ -521,6 +521,25 @@ MonoBehaviour:
     x: 0
     y: 0.88
     z: 0.21
+--- !u!1 &432227475 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5576427260250767788, guid: a817ec66512170d4f86bc2bd607b741f,
+    type: 3}
+  m_PrefabInstance: {fileID: 1803911955}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &432227476
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 432227475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ConversionMode: 0
 --- !u!1 &442228684
 GameObject:
   m_ObjectHideFlags: 0
@@ -534,7 +553,7 @@ GameObject:
   - component: {fileID: 442228690}
   - component: {fileID: 442228685}
   m_Layer: 0
-  m_Name: MainGrid
+  m_Name: TestShip
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -582,51 +601,265 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Size: 2
   HasAirflow: 0
-  Blueprint: "Version:2\r\nName:Grid 417\r\nParts:(-?\\d+)\\|int3\\((-?\\d+), (-?\\d+),
-    (-?\\d+)\\)\\|quaternion\\((-?\\d*\\.?\\d+)f, (-?\\d*\\.?\\d+)f, (-?\\d*\\.?\\d+)f,
-    (-?\\d*\\.?\\d+)f\\)\r\n- Part:-5082319028868332060|int3(0, 0, 1)|quaternion(0f,
-    0f, 0f, 1f)\n- Part:-5082319028868332060|int3(1, 0, 1)|quaternion(0f, 0f, 0f,
-    1f)\n- Part:-5082319028868332060|int3(1, 0, 3)|quaternion(0f, 0f, 0f, 1f)\n-
-    Part:-5082319028868332060|int3(1, 0, 2)|quaternion(0f, 0f, 0f, 1f)\n- Part:-5082319028868332060|int3(0,
-    0, 2)|quaternion(0f, 0f, 0f, 1f)\n- Part:-5082319028868332060|int3(0, 0, 3)|quaternion(0f,
-    0f, 0f, 1f)\n- Part:-5082319028868332060|int3(0, 0, 5)|quaternion(0f, 0f, 0f,
-    1f)\n- Part:-5082319028868332060|int3(0, 0, 4)|quaternion(0f, 0f, 0f, 1f)\n-
-    Part:-5082319028868332060|int3(1, 0, 5)|quaternion(0f, 0f, 0f, 1f)\n- Part:-5082319028868332060|int3(1,
-    0, 4)|quaternion(0f, 0f, 0f, 1f)\n- Part:-5082319028868332060|int3(2, 0, 4)|quaternion(0f,
-    0f, 0f, 1f)\n- Part:-5082319028868332060|int3(2, 0, 5)|quaternion(0f, 0f, 0f,
-    1f)\n- Part:-5082319028868332060|int3(2, 0, 3)|quaternion(0f, 0f, 0f, 1f)\n-
-    Part:-5082319028868332060|int3(2, 0, 2)|quaternion(0f, 0f, 0f, 1f)\n- Part:6428036475589791220|int3(8,
-    0, 47)|quaternion(0f, 0f, -0.7071067f, -0.7071067f)\n- Part:-5082319028868332060|int3(2,
-    0, 1)|quaternion(0f, 0f, 0f, 1f)\n- Part:6333998605207945332|int3(8, 0, 43)|quaternion(0f,
-    0f, -0.7071067f, -0.7071067f)\n- Part:-5082319028868332060|int3(2, 0, 1)|quaternion(0f,
-    0f, -0.7071067f, -0.7071067f)\n- Part:6333998605207945332|int3(8, 0, 44)|quaternion(0f,
-    0f, -0.7071067f, -0.7071067f)\n- Part:6333998605207945332|int3(8, 0, 46)|quaternion(0f,
-    0f, -0.7071067f, -0.7071067f)\n- Part:-5082319028868332060|int3(2, 0, 2)|quaternion(0f,
-    0f, -0.7071067f, -0.7071067f)\n- Part:-4490311284870536236|int3(0, 0, 10)|quaternion(0f,
-    -0.7071068f, 0f, 0.7071068f)\n- Part:6428036475589791220|int3(8, 0, 41)|quaternion(0.7071067f,
-    0f, 0.7071067f, 0f)\n- Part:-5082319028868332060|int3(2, 0, 3)|quaternion(0f,
-    0f, -0.7071067f, -0.7071067f)\n- Part:6333998605207945332|int3(7, 0, 41)|quaternion(0.4999999f,
-    -0.4999999f, -0.4999999f, 0.4999999f)\n- Part:-5082319028868332060|int3(2, 0,
-    4)|quaternion(0f, 0f, -0.7071067f, -0.7071067f)\n- Part:6333998605207945332|int3(4,
-    0, 41)|quaternion(0.4999999f, -0.4999999f, -0.4999999f, 0.4999999f)\n- Part:6333998605207945332|int3(5,
-    0, 41)|quaternion(0.4999999f, -0.4999999f, -0.4999999f, 0.4999999f)\n- Part:-5082319028868332060|int3(2,
-    0, 5)|quaternion(0f, 0f, -0.7071067f, -0.7071067f)\n- Part:6333998605207945332|int3(8,
-    0, 42)|quaternion(0.7071067f, -0.7071067f, 0f, 0f)\n- Part:-5082319028868332060|int3(2,
-    0, 5)|quaternion(0.4999999f, 0.4999999f, -0.4999999f, -0.4999999f)\n- Part:6333998605207945332|int3(8,
-    0, 45)|quaternion(0.7071067f, -0.7071067f, 0f, 0f)\n- Part:-5082319028868332060|int3(1,
-    0, 5)|quaternion(0.4999999f, 0.4999999f, -0.4999999f, -0.4999999f)\n- Part:6333998605207945332|int3(8,
-    1, 47)|quaternion(-0.7071067f, 0f, 0f, 0.7071067f)\n- Part:-5082319028868332060|int3(0,
-    0, 5)|quaternion(0.4999999f, 0.4999999f, -0.4999999f, -0.4999999f)\n- Part:6333998605207945332|int3(8,
-    2, 47)|quaternion(-0.7071067f, 0f, 0f, 0.7071067f)\n- Part:-5082319028868332060|int3(0,
-    0, 4)|quaternion(0.7071067f, 0.7071067f, 0f, 0f)\n- Part:6333998605207945332|int3(8,
-    3, 47)|quaternion(-0.7071067f, 0f, 0f, 0.7071067f)\n- Part:-5082319028868332060|int3(0,
-    0, 5)|quaternion(0.7071067f, 0.7071067f, 0f, 0f)\n- Part:-5082319028868332060|int3(0,
-    0, 3)|quaternion(0.7071067f, 0.7071067f, 0f, 0f)\n- Part:8292889376317618708|int3(2,
-    1, 11)|quaternion(-0.7071067f, 0f, 0f, 0.7071067f)\n- Part:-5082319028868332060|int3(0,
-    0, 2)|quaternion(0.7071067f, 0.7071067f, 0f, 0f)\n- Part:-5082319028868332060|int3(0,
-    0, 1)|quaternion(0.7071067f, 0.7071067f, 0f, 0f)\n- Part:8099354944611683652|int3(1,
-    0, 9)|quaternion(0f, -0.9999999f, 0f, 0f)\n- Part:6428036475589791220|int3(6,
-    0, 41)|quaternion(0f, -0.7071067f, 0f, -0.7071067f)\r"
+  Blueprint: 'Version:2
+
+    Name:TestShip
+
+    Parts:(-?\d+)\|int3\((-?\d+), (-?\d+),
+    (-?\d+)\)\|quaternion\((-?\d*\.?\d+)f, (-?\d*\.?\d+)f, (-?\d*\.?\d+)f, (-?\d*\.?\d+)f\)
+
+    -
+    Part:-5082319028868332060|int3(0, 0, 4)|quaternion(0.7071067f, 0.7071067f, 0f,
+    0f)
+
+    - Part:-5082319028868332060|int3(0, 0, 5)|quaternion(0.4999999f, 0.4999999f,
+    -0.4999999f, -0.4999999f)
+
+    - Part:-5082319028868332060|int3(1, 0, 5)|quaternion(0.4999999f,
+    0.4999999f, -0.4999999f, -0.4999999f)
+
+    - Part:-5082319028868332060|int3(2,
+    0, 5)|quaternion(0.4999999f, 0.4999999f, -0.4999999f, -0.4999999f)
+
+    - Part:-5082319028868332060|int3(2,
+    0, 5)|quaternion(0f, 0f, -0.7071067f, -0.7071067f)
+
+    - Part:-5082319028868332060|int3(2,
+    0, 4)|quaternion(0f, 0f, -0.7071067f, -0.7071067f)
+
+    - Part:-5082319028868332060|int3(2,
+    0, 2)|quaternion(0f, 0f, -0.7071067f, -0.7071067f)
+
+    - Part:-5082319028868332060|int3(2,
+    0, 1)|quaternion(0f, 0f, -0.7071067f, -0.7071067f)
+
+    - Part:-5082319028868332060|int3(2,
+    0, 1)|quaternion(0f, 0f, 0f, 1f)
+
+    - Part:-5082319028868332060|int3(2, 0,
+    2)|quaternion(0f, 0f, 0f, 1f)
+
+    - Part:-5082319028868332060|int3(2, 0, 3)|quaternion(0f,
+    0f, 0f, 1f)
+
+    - Part:6333998605207945332|int3(8, 3, 47)|quaternion(-0.7071067f,
+    0f, 0f, 0.7071067f)
+
+    - Part:-5082319028868332060|int3(2, 0, 5)|quaternion(0f,
+    0f, 0f, 1f)
+
+    - Part:6333998605207945332|int3(8, 2, 47)|quaternion(-0.7071067f,
+    0f, 0f, 0.7071067f)
+
+    - Part:-5082319028868332060|int3(2, 0, 4)|quaternion(0f,
+    0f, 0f, 1f)
+
+    - Part:6333998605207945332|int3(8, 1, 47)|quaternion(-0.7071067f,
+    0f, 0f, 0.7071067f)
+
+    - Part:-5082319028868332060|int3(1, 0, 4)|quaternion(0f,
+    0f, 0f, 1f)
+
+    - Part:6333998605207945332|int3(8, 0, 45)|quaternion(0.7071067f,
+    -0.7071067f, 0f, 0f)
+
+    - Part:-5082319028868332060|int3(1, 0, 5)|quaternion(0f,
+    0f, 0f, 1f)
+
+    - Part:6333998605207945332|int3(8, 0, 42)|quaternion(0.7071067f,
+    -0.7071067f, 0f, 0f)
+
+    - Part:-5082319028868332060|int3(0, 0, 4)|quaternion(0f,
+    0f, 0f, 1f)
+
+    - Part:-5082319028868332060|int3(0, 0, 5)|quaternion(0f, 0f,
+    0f, 1f)
+
+    - Part:6333998605207945332|int3(5, 0, 41)|quaternion(0.4999999f,
+    -0.4999999f, -0.4999999f, 0.4999999f)
+
+    - Part:-5082319028868332060|int3(0,
+    0, 3)|quaternion(0f, 0f, 0f, 1f)
+
+    - Part:6333998605207945332|int3(4, 0, 41)|quaternion(0.4999999f,
+    -0.4999999f, -0.4999999f, 0.4999999f)
+
+    - Part:-5082319028868332060|int3(0,
+    0, 2)|quaternion(0f, 0f, 0f, 1f)
+
+    - Part:6333998605207945332|int3(7, 0, 41)|quaternion(0.4999999f,
+    -0.4999999f, -0.4999999f, 0.4999999f)
+
+    - Part:-5082319028868332060|int3(1,
+    0, 2)|quaternion(0f, 0f, 0f, 1f)
+
+    - Part:-5082319028868332060|int3(0, 0,
+    1)|quaternion(0.7071067f, 0.7071067f, 0f, 0f)
+
+    - Part:-5082319028868332060|int3(1,
+    0, 3)|quaternion(0f, 0f, 0f, 1f)
+
+    - Part:-5082319028868332060|int3(0, 0,
+    2)|quaternion(0.7071067f, 0.7071067f, 0f, 0f)
+
+    - Part:6333998605207945332|int3(8,
+    0, 46)|quaternion(0f, 0f, -0.7071067f, -0.7071067f)
+
+    - Part:-5082319028868332060|int3(1,
+    0, 1)|quaternion(0f, 0f, 0f, 1f)
+
+    - Part:8099354944611683652|int3(1, 0, 9)|quaternion(0f,
+    -0.9999999f, 0f, 0f)
+
+    - Part:6333998605207945332|int3(8, 0, 44)|quaternion(0f,
+    0f, -0.7071067f, -0.7071067f)
+
+    - Part:6333998605207945332|int3(8, 0, 43)|quaternion(0f,
+    0f, -0.7071067f, -0.7071067f)
+
+    - Part:-5082319028868332060|int3(0, 0, 5)|quaternion(0.7071067f,
+    0.7071067f, 0f, 0f)
+
+    - Part:-5082319028868332060|int3(0, 0, 1)|quaternion(0f,
+    0f, 0f, 1f)
+
+    - Part:8292889376317618708|int3(2, 1, 11)|quaternion(-0.7071067f,
+    0f, 0f, 0.7071067f)
+
+    - Part:6428036475589791220|int3(8, 0, 47)|quaternion(0f,
+    0f, -0.7071067f, -0.7071067f)
+
+    - Part:-4490311284870536236|int3(0, 0, 10)|quaternion(0f,
+    -0.7071068f, 0f, 0.7071068f)
+
+    - Part:-5863311833571607996|int3(6, 0, 41)|quaternion(0f,
+    0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(6, 0, 40)|quaternion(0f,
+    0f, 0f, 0.9999999f)
+
+    - Part:8099354944611683652|int3(6, 0, 7)|quaternion(0f,
+    0.7071067f, 0f, 0.7071067f)
+
+    - Part:8099354944611683652|int3(-1, 0, 7)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(0, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(1, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(2, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(3, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(4, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(6, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(5, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(7, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(9, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(10, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(11, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(12, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(14, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(13, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(19, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(18, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(16, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(15, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(17, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(20, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(21, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6333998605207945332|int3(22, 0, 29)|quaternion(0f,
+    -0.7071067f, 0f, 0.7071067f)
+
+    - Part:6428036475589791220|int3(23, 0, 30)|quaternion(0f,
+    0f, 0f, -0.9999999f)
+
+    - Part:6428036475589791220|int3(23, 0, 29)|quaternion(0f,
+    -0.9999999f, 0f, 0f)
+
+    - Part:-5863311833571607996|int3(8, 0, 41)|quaternion(0f,
+    -0.9999999f, 0f, 0f)
+
+    - Part:6333998605207945332|int3(8, 0, 40)|quaternion(0f,
+    -0.9999999f, 0f, 0f)
+
+    - Part:6333998605207945332|int3(8, 0, 39)|quaternion(0f,
+    -0.9999999f, 0f, 0f)
+
+    - Part:6333998605207945332|int3(8, 0, 38)|quaternion(0f,
+    -0.9999999f, 0f, 0f)
+
+    - Part:6333998605207945332|int3(8, 0, 36)|quaternion(0f,
+    -0.9999999f, 0f, 0f)
+
+    - Part:6333998605207945332|int3(8, 0, 37)|quaternion(0f,
+    -0.9999999f, 0f, 0f)
+
+    - Part:6333998605207945332|int3(8, 0, 33)|quaternion(0f,
+    -0.9999999f, 0f, 0f)
+
+    - Part:6333998605207945332|int3(8, 0, 35)|quaternion(0f,
+    -0.9999999f, 0f, 0f)
+
+    - Part:6333998605207945332|int3(8, 0, 34)|quaternion(0f,
+    -0.9999999f, 0f, 0f)
+
+    - Part:6333998605207945332|int3(8, 0, 32)|quaternion(0f,
+    -0.9999999f, 0f, 0f)
+
+    - Part:6333998605207945332|int3(8, 0, 31)|quaternion(0f,
+    -0.9999999f, 0f, 0f)
+
+    - Part:6333998605207945332|int3(8, 0, 30)|quaternion(0f,
+    -0.9999999f, 0f, 0f)
+
+    - Part:-5863311833571607996|int3(8, 0, 29)|quaternion(0f,
+    0.7071067f, 0f, -0.7071067f)
+
+    - Part:-5082319028868332060|int3(0, 0, 3)|quaternion(0.4999999f,
+    0.4999999f, 0.4999999f, -0.4999999f)
+
+    - Part:-5082319028868332060|int3(2,
+    0, 3)|quaternion(-0.4999999f, 0.4999999f, 0.4999999f, 0.4999999f)'
 --- !u!114 &442228690
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -678,6 +911,75 @@ MonoBehaviour:
     Tag05: 0
     Tag06: 0
     Tag07: 0
+--- !u!1001 &772251855
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 900498672609752416, guid: ba79cd105b81eeb46962a92fa3d40724,
+        type: 3}
+      propertyPath: m_Name
+      value: Cables
+      objectReference: {fileID: 0}
+    - target: {fileID: 2585194043582573175, guid: ba79cd105b81eeb46962a92fa3d40724,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2585194043582573175, guid: ba79cd105b81eeb46962a92fa3d40724,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 2.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 2585194043582573175, guid: ba79cd105b81eeb46962a92fa3d40724,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2.2330575
+      objectReference: {fileID: 0}
+    - target: {fileID: 2585194043582573175, guid: ba79cd105b81eeb46962a92fa3d40724,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 10.09123
+      objectReference: {fileID: 0}
+    - target: {fileID: 2585194043582573175, guid: ba79cd105b81eeb46962a92fa3d40724,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2585194043582573175, guid: ba79cd105b81eeb46962a92fa3d40724,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2585194043582573175, guid: ba79cd105b81eeb46962a92fa3d40724,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2585194043582573175, guid: ba79cd105b81eeb46962a92fa3d40724,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2585194043582573175, guid: ba79cd105b81eeb46962a92fa3d40724,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2585194043582573175, guid: ba79cd105b81eeb46962a92fa3d40724,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2585194043582573175, guid: ba79cd105b81eeb46962a92fa3d40724,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: ba79cd105b81eeb46962a92fa3d40724, type: 3}
 --- !u!1001 &945799536
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -951,8 +1253,77 @@ Transform:
   - {fileID: 115667419}
   - {fileID: 966720482}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1803911955
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 5576427260250767788, guid: a817ec66512170d4f86bc2bd607b741f,
+        type: 3}
+      propertyPath: m_Name
+      value: Floors
+      objectReference: {fileID: 0}
+    - target: {fileID: 7132630339526188731, guid: a817ec66512170d4f86bc2bd607b741f,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7132630339526188731, guid: a817ec66512170d4f86bc2bd607b741f,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 4.1987343
+      objectReference: {fileID: 0}
+    - target: {fileID: 7132630339526188731, guid: a817ec66512170d4f86bc2bd607b741f,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.5321465
+      objectReference: {fileID: 0}
+    - target: {fileID: 7132630339526188731, guid: a817ec66512170d4f86bc2bd607b741f,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 10.089443
+      objectReference: {fileID: 0}
+    - target: {fileID: 7132630339526188731, guid: a817ec66512170d4f86bc2bd607b741f,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7132630339526188731, guid: a817ec66512170d4f86bc2bd607b741f,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7132630339526188731, guid: a817ec66512170d4f86bc2bd607b741f,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7132630339526188731, guid: a817ec66512170d4f86bc2bd607b741f,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7132630339526188731, guid: a817ec66512170d4f86bc2bd607b741f,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7132630339526188731, guid: a817ec66512170d4f86bc2bd607b741f,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7132630339526188731, guid: a817ec66512170d4f86bc2bd607b741f,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a817ec66512170d4f86bc2bd607b741f, type: 3}
 --- !u!1001 &1857913618
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1025,6 +1396,25 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1857913618}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1915252032 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 900498672609752416, guid: ba79cd105b81eeb46962a92fa3d40724,
+    type: 3}
+  m_PrefabInstance: {fileID: 772251855}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1915252033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1915252032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ConversionMode: 0
 --- !u!1 &2075896580
 GameObject:
   m_ObjectHideFlags: 0

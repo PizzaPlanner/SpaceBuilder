@@ -1,7 +1,28 @@
 .dockingbutton-on {
-    -unity-background-image-tint-color: rgba(81, 251, 255, 255);
+    -unity-background-image-tint-color: rgb(81, 251, 255);
 }
 
 * {
-    color: rgba(235, 238, 233, 255);
+    color: rgb(235, 238, 233);
+}
+
+.inventory-button {
+    width: 48px;
+    height: 48px;
+    background-image: url('/Assets/UI/bg_default.png');
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-color: rgba(255, 255, 255, 0);
+    border-right-color: rgba(255, 255, 255, 0);
+    border-top-color: rgba(255, 255, 255, 0);
+    border-bottom-color: rgba(255, 255, 255, 0);
+}
+
+.inventory-button__Active {
+    border-left-color: rgba(117, 231, 255, 0.33);
+    border-right-color: rgba(117, 231, 255, 0.33);
+    border-top-color: rgba(117, 231, 255, 0.33);
+    border-bottom-color: rgba(117, 231, 255, 0.33);
 }

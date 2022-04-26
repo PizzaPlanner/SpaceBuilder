@@ -13,6 +13,7 @@ public struct BuilderMode_Destroy : ISystemStateComponentData
 {
     public Entity Grid;
 }
+
 public struct CanMove : IComponentData { }
 public partial class InputSystem : SystemBase
 {
@@ -41,6 +42,7 @@ public partial class InputSystem : SystemBase
         {
             uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("ContextMenu");
             uiRoot.style.display = DisplayStyle.None;
+            uiRoot.Q("BuildMenu").style.display = DisplayStyle.None;
         }
     }
 

@@ -10,7 +10,8 @@ public struct Identifieable : IComponentData
 
 public class IdentifieableAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 {
-    [SerializeField][HideInInspector] long ItemId;
+    [SerializeField][HideInInspector]long ItemId;
+    public long Id => ItemId;
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {
         dstManager.AddComponentData(entity, new Identifieable {ItemId = ItemId});
