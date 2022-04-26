@@ -32,8 +32,8 @@ public struct BoundingBox
     public int3 Extents;
 
     public int3 RotatedExtents;
-    public int3 Min => math.min(Origin, Origin + RotatedExtents);
-    public int3 Max => math.max(Origin, Origin + RotatedExtents);
+    public readonly int3 Min => math.min(Origin, Origin + RotatedExtents);
+    public readonly int3 Max => math.max(Origin, Origin + RotatedExtents);
 
     public readonly bool Contains(int3 value)
     {

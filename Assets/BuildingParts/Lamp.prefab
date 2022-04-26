@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 372578663517810333}
   - component: {fileID: 698535558741578235}
+  - component: {fileID: 2503747452903217189}
   m_Layer: 0
   m_Name: Point Light
   m_TagString: Untagged
@@ -93,6 +94,19 @@ Light:
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!114 &2503747452903217189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4951860584666615392}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_UsePipelineSettings: 1
 --- !u!1 &5275840618391098908
 GameObject:
   m_ObjectHideFlags: 0
@@ -261,6 +275,11 @@ PrefabInstance:
         type: 3}
       propertyPath: Name
       value: Wall Lamp
+      objectReference: {fileID: 0}
+    - target: {fileID: -4805197420517858524, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: Value
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: -1185016455883590714, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}

@@ -14,7 +14,6 @@ public partial class LightSourceSystem : SystemBase
     protected override void OnCreate()
     {
         bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-        // RequireForUpdate(GetEntityQuery(typeof(ElectricitySystem.NetworkPowerStatusChanged)));
     }
 
     protected override void OnUpdate()

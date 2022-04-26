@@ -1,25 +1,16 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Entities;
-using Unity.Rendering;
-using UnityEngine;
 
 [GenerateAuthoringComponent]
 public struct Toggle : IComponentData
 {
     public bool On;
     public Entity Target;
+    public Entity OnVisual;
+    public Entity OffVisual;
 }
 
 public partial class ToggleSystem : SystemBase
 {
-    private GhostPlacementSettings settings;
-
-    protected override void OnCreate()
-    {
-        settings = Resources.Load<GhostPlacementSettings>("GhostPlacementSettings");
-    }
-
     protected override void OnUpdate()
     {
         Entities
@@ -30,13 +21,13 @@ public partial class ToggleSystem : SystemBase
                 var port = GetComponent<ElectricityPort>(toggle.Target);
                 port.On = toggle.On;
                 SetComponent(toggle.Target, port);
-            }).Run();
-        
-        Entities
-            .WithAll<Interacted>()
-            .ForEach((RenderMesh mesh, in Toggle toggle) =>
-            {
-                mesh.material = toggle.On ? settings.GhostPlacementMaterial : settings.GhostRemovalMaterial;
-            }).WithStructuralChanges().WithoutBurst().Run();
+
+                var dOn = toggle.On ? toggle.OnVisual : toggle.OffVisual;
+                var dOff = toggle.On ? toggle.OffVisual : toggle.OnVisual;
+                if (HasComponent<Disabled>(dOn))
+                    EntityManager.RemoveComponent<Disabled>(dOn);
+                if (!HasComponent<Disabled>(dOff))
+                    EntityManager.AddComponent<Disabled>(dOff);
+            }).WithoutBurst().WithStructuralChanges().Run();
     }
 }
