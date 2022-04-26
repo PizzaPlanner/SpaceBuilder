@@ -1,7 +1,12 @@
 using System;
 using Unity.Entities;
 
-public struct PlaceBuildingItem : IBufferElementData
+public struct BuildableBuffer : IBufferElementData
 {
     public long PrefabId;
+}
+
+public struct SelectedItem : IComponentData
+{
+
 }

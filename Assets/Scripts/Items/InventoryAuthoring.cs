@@ -1,4 +1,7 @@
+using System.Collections;
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -32,18 +35,6 @@ public class InventoryAuthoring : MonoBehaviour, IConvertGameObjectToEntity
     }
 }
 
-public class InventoryButton : VisualElement
-{
-    public Entity Owner;
-    public int Slot;
-    public InventoryButton(Entity owner, int slot)
-    {
-        Owner = owner;
-        Slot = slot;
-        AddToClassList("inventory-button");
-    }
-}
-
 [UpdateInGroup(typeof(PresentationSystemGroup))]
 public partial class InventoryUISystem : SystemBase
 {
@@ -63,7 +54,7 @@ public partial class InventoryUISystem : SystemBase
         var inv = GetBuffer<Inventory>(GetSingletonEntity<LocalPlayer>());
         for(int i = 0; i < inv.Length; i++)
         {
-            uiRoot.Add(new InventoryButton(GetSingletonEntity<LocalPlayer>(), i));
+            uiRoot.Add(new InventoryButton{ Container = GetSingletonEntity<LocalPlayer>(), Slot = i});
         }
 
     }
@@ -75,6 +66,52 @@ public partial class InventoryUISystem : SystemBase
 
     protected override void OnUpdate()
     {
+        var inventories = GetBufferFromEntity<Inventory>(true);
+        uiRoot.Query<InventoryButton>().ForEach(x =>
+        {
 
+            if (x.Container == Entity.Null ||
+                !inventories.HasComponent(x.Container) ||
+                inventories[x.Container].Length <= x.Slot ||
+                inventories[x.Container][x.Slot].Slot.Item == Entity.Null)
+            {
+                x.Q<Label>().text = "";
+                return;
+            }
+
+            var item = inventories[x.Container][x.Slot].Slot.Item;
+            x.Name = GetComponent<Name>(item).Value.Value;
+            if (HasComponent<Stackable>(item))
+                x.Info = $"x{GetComponent<Stackable>(item).Size}";
+            else
+                x.Info = "";
+        });
+
+
+        if(GetSingleton<InputSystem.InputData>().ScrollMode == InputSystem.ScrollMode.Inventory)
+            SelectHotbarItem(GetSingleton<InputSystem.InputData>().Scroll);
+    }
+
+    void SelectHotbarItem(float scroll)
+    {
+        EntityManager.RemoveComponent<SelectedItem>(GetEntityQuery(typeof(SelectedItem)));
+        var buttons = uiRoot.Query<InventoryButton>().ToList();
+        if (buttons.Count == 0)
+            return;
+
+        var nextButton = 0;
+        for(int i = 0; i < buttons.Count; i++)
+            if (buttons[i].Selected)
+            {
+                nextButton = (i + (int)math.sign(scroll)).mod(buttons.Count);
+                buttons[i].Selected = false;
+                break;
+            }
+
+        buttons[nextButton].Selected = true;
+
+        var item = GetBuffer<Inventory>(GetSingletonEntity<LocalPlayer>())[buttons[nextButton].Slot].Slot.Item;
+        if(item != Entity.Null)
+            EntityManager.AddComponent<SelectedItem>(item);
     }
 }

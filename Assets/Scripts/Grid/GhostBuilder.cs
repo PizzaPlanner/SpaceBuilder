@@ -9,11 +9,6 @@ public class GhostBuilder : MonoBehaviour
     [SerializeField] public WireframeDisplay WireframePrefab;
 }
 
-public struct BuildableBuffer : IBufferElementData
-{
-    public long Id;
-}
-
 [UpdateInGroup(typeof(InitializationSystemGroup))]
 public partial class BuildingPartManagementSystem : SystemBase
 {

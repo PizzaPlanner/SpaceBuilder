@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -34,23 +35,28 @@ public partial class GhostPlacementSystem : SystemBase
 
         RequireSingletonForUpdate<BuilderMode_Build>();
         RequireSingletonForUpdate<LocalPlayer>();
+        RequireSingletonForUpdate<SelectedItem>();
+        RequireForUpdate(GetEntityQuery(typeof(BuildableBuffer), typeof(SelectedItem)));
     }
 
     protected override void OnStartRunning()
     {
+        currentGrid = GetSingleton<BuilderMode_Build>().Grid;
+        buildables = GetSingletonEntity<SelectedItem>();
+
         if (uiRoot == null)
             uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BuildMenu");
-        uiRoot.style.display = DisplayStyle.Flex;
+        uiRoot.Clear();
 
-        currentGrid = GetSingleton<BuilderMode_Build>().Grid;
-        if (buildables == Entity.Null)
+        var buffer = GetBuffer<BuildableBuffer>(buildables);
+        var prefabs = BuildingPartManagementSystem.BuildingPartById;
+        foreach (var id in buffer)
         {
-            buildables = EntityManager.CreateEntity(typeof(BuildableBuffer));
-            var buildBuffer = EntityManager.GetBuffer<BuildableBuffer>(buildables);
-            foreach (var prefab in BuildingPartManagementSystem.BuildingPartById.GetValueArray(Allocator.Temp))
-                if(HasComponent<GridItem>(prefab) && HasComponent<Identifieable>(prefab))
-                    buildBuffer.Add(new BuildableBuffer{Id = GetComponent<Identifieable>(prefab).ItemId});
+            var button = new BuilderButton {Prefab = prefabs[id.PrefabId]};
+            button.Q<Label>().text = GetComponent<Name>(prefabs[id.PrefabId]).Value.Value;
+            uiRoot.Add(button);
         }
+        uiRoot.style.display = DisplayStyle.Flex;
     }
 
     protected override void OnStopRunning()
@@ -64,29 +70,17 @@ public partial class GhostPlacementSystem : SystemBase
     {
         if (!HasSingleton<GhostPlacementBuilder>())
         {
-            var buffer = GetBuffer<BuildableBuffer>(buildables);
             var prefabs = BuildingPartManagementSystem.BuildingPartById;
-            var prefab0 = prefabs[buffer[(ghostId - 1).mod(buffer.Length)].Id];
-            var prefab1 = prefabs[buffer[ghostId].Id];
-            var prefab2 = prefabs[buffer[(ghostId + 1).mod(buffer.Length)].Id];
-            World.GetExistingSystem<BuildingSystem>().Build(buffer[ghostId].Id, currentGrid, int3.zero, currentRotation, true);
-
-            uiRoot.Q("Current") .Q<Icon3D>().SetObject(prefab1, World);
-            uiRoot.Q("Next")    .Q<Icon3D>().SetObject(prefab2, World);
-            uiRoot.Q("Previous").Q<Icon3D>().SetObject(prefab0, World);
-
-            uiRoot.Q("Current").Q<Label>().text = GetComponent<Name>(prefab1).Value.Value;
-            uiRoot.Q("Next")    .Q<Label>().text = GetComponent<Name>(prefab2).Value.Value;
-            uiRoot.Q("Previous").Q<Label>().text = GetComponent<Name>(prefab0).Value.Value;
-
-
+            var buffer = GetBuffer<BuildableBuffer>(buildables);
+            uiRoot.Query<BuilderButton>().ForEach(x => x.Selected = x.Prefab == prefabs[buffer[ghostId].PrefabId]);
+            World.GetExistingSystem<BuildingSystem>().Build(buffer[ghostId].PrefabId, currentGrid, int3.zero, currentRotation, true);
             return;
         }
 
         var bgp = GetSingleton<GhostPlacementBuilder>();
+        var ghostEntity = GetSingletonEntity<GhostPlacementBuilder>();
         if (bgp.Buildable && Input.GetMouseButtonDown(0))
         {
-            var ghostEntity = GetSingletonEntity<GhostPlacementBuilder>();
             var position = GetComponent<GridItem>(ghostEntity).Area.Origin;
             var rotation = GetComponent<Rotation>(ghostEntity);
             var buffer = GetBuffer<BuildableBuffer>(buildables);
@@ -94,7 +88,7 @@ public partial class GhostPlacementSystem : SystemBase
             {
                 Data = new BuildingPartInfo
                 {
-                    Id = buffer[ghostId].Id,
+                    Id = buffer[ghostId].PrefabId,
                     Position = position,
                     Orientation = rotation.Value
                 },
@@ -103,46 +97,49 @@ public partial class GhostPlacementSystem : SystemBase
             var e = EntityManager.CreateEntity(typeof(PendingPart));
             EntityManager.SetComponentData(e, pendingBuild);
             EntityManager.DestroyEntity(ghostEntity);
+
+            var item = GetSingletonEntity<SelectedItem>();
+            if (HasComponent<Stackable>(item))
+            {
+                var stack = GetComponent<Stackable>(item);
+                if(stack.Size > 0)
+                    stack.Size--;
+                if(stack.Size == 0)
+                    EntityManager.DestroyEntity(item);
+                else
+                    SetComponent(item, stack);
+            } else
+                EntityManager.DestroyEntity(item);
         }
 
         BuildingPartManagementSystem.WireframeDisplay.ShowAxes(new bool3(Input.GetKey(KeyCode.Alpha1), Input.GetKey(KeyCode.Alpha2), Input.GetKey(KeyCode.Alpha3)), currentRotation);
-        if (Input.GetAxis("Mouse ScrollWheel") != 0)
+        var input = GetSingleton<InputSystem.InputData>();
+        if (input.ScrollMode == InputSystem.ScrollMode.Rotate)
         {
-            var sign = (int) math.sign(Input.GetAxis("Mouse ScrollWheel"));
+            var sign = (int)math.sign(input.Scroll);
             if (Input.GetKey(KeyCode.Alpha1))
             {
                 currentRotation = math.mul(currentRotation, quaternion.RotateX(math.PI * sign * 0.5f));
-                rotating = true;
             }
 
             if (Input.GetKey(KeyCode.Alpha2))
             {
                 currentRotation = math.mul(currentRotation, quaternion.RotateY(math.PI * sign * 0.5f));
-                SetSingleton(bgp);
-                rotating = true;
             }
 
             if (Input.GetKey(KeyCode.Alpha3))
             {
                 currentRotation = math.mul(currentRotation, quaternion.RotateZ(math.PI * sign * 0.5f));
-                rotating = true;
             }
 
-            var entity = GetSingletonEntity<GhostPlacementBuilder>();
-            if (!rotating)
-            {
-                ghostId += sign;
-                ghostId = ghostId.mod(GetBuffer<BuildableBuffer>(buildables).Length);
-                EntityManager.DestroyEntity(entity);
-                return;
-            }
-            else
-            {
-                SetComponent(entity, BuildingSystem.RotateItem(bgp.Original, currentRotation));
-            }
-
+            SetComponent(ghostEntity, BuildingSystem.RotateItem(bgp.Original, currentRotation));
             EntityManager.SetComponentData(GetSingletonEntity<GhostPlacementBuilder>(), new Rotation{Value = currentRotation});
         }
-        else rotating = false;
+        else if (input.ScrollMode == InputSystem.ScrollMode.Context)
+        {
+            ghostId += (int)math.sign(input.Scroll);;
+            ghostId = ghostId.mod(GetBuffer<BuildableBuffer>(buildables).Length);
+            EntityManager.DestroyEntity(ghostEntity);
+        }
     }
 }

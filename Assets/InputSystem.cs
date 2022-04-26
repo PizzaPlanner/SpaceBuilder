@@ -20,7 +20,19 @@ public partial class InputSystem : SystemBase
     public struct InputData : ISystemStateComponentData
     {
         public InputSystem.ActionState CurrentAction;
+        public ScrollMode ScrollMode;
+        public float Scroll;
     }
+
+    public enum ScrollMode
+    {
+        None,
+        Camera,
+        Inventory,
+        Context,
+        Rotate
+    }
+
     public enum ActionState
     {
         None,
@@ -70,6 +82,8 @@ public partial class InputSystem : SystemBase
         else
             uiRoot.style.display = input.CurrentAction != ActionState.None ? DisplayStyle.Flex : DisplayStyle.None;
 
+        input.Scroll = -Input.GetAxis("Mouse ScrollWheel");
+        input.ScrollMode = ScrollMode.None;
 
         if (Input.GetKeyDown(KeyCode.B))
         {
@@ -108,13 +122,27 @@ public partial class InputSystem : SystemBase
                 EntityManager.AddComponent<CanMove>(player);
         }
 
-
-        if (Input.GetAxis("Mouse ScrollWheel") != 0 && input.CurrentAction == ActionState.None)
+        if (input.Scroll != 0)
         {
-            var anchor = GetSingleton<CameraAnchor>();
-            anchor.ScrollFactor -= Input.GetAxis("Mouse ScrollWheel");
-            anchor.ScrollFactor = math.clamp(anchor.ScrollFactor, 0, 2);
-            SetSingleton(anchor);
+            if (Input.GetKey(KeyCode.F2))
+            {
+                input.ScrollMode = ScrollMode.Camera;
+                var anchor = GetSingleton<CameraAnchor>();
+                anchor.ScrollFactor += input.Scroll;
+                anchor.ScrollFactor = math.clamp(anchor.ScrollFactor, 0, 2);
+                SetSingleton(anchor);
+            }
+            else if (HasSingleton<BuilderMode_Build>())
+            {
+                if (Input.GetKey(KeyCode.Alpha1) || Input.GetKey(KeyCode.Alpha2) || Input.GetKey(KeyCode.Alpha3))
+                    input.ScrollMode = ScrollMode.Rotate;
+                else
+                    input.ScrollMode = ScrollMode.Context;
+            }
+            else if (HasSingleton<BuilderMode_Destroy>())
+                input.ScrollMode = ScrollMode.Context;
+            else
+                input.ScrollMode = ScrollMode.Inventory;
         }
 
         if (Input.GetKeyDown(KeyCode.F1) && HasComponent<Docked>(GetSingletonEntity<LocalPlayer>()))

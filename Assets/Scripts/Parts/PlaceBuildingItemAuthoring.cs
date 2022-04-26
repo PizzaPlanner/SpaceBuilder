@@ -6,8 +6,8 @@ public class PlaceBuildingItemAuthoring : MonoBehaviour, IConvertGameObjectToEnt
     public BuildingPart[] Parts;
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {
-        var buffer = dstManager.AddBuffer<PlaceBuildingItem>(entity);
+        var buffer = dstManager.AddBuffer<BuildableBuffer>(entity);
         foreach (var part in Parts)
-            buffer.Add(new PlaceBuildingItem{ PrefabId = part.GetComponent<IdentifieableAuthoring>().Id });
+            buffer.Add(new BuildableBuffer{ PrefabId = part.GetComponent<IdentifieableAuthoring>().Id });
     }
 }

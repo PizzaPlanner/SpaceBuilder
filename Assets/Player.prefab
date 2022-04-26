@@ -459,7 +459,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3184554c06774a51b17c48c484ca9dd1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ScrollFactor: 1
+  ScrollFactor: 0
   Offset:
     x: 0.6
     y: 0
