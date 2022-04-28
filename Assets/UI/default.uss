@@ -84,7 +84,7 @@
 .inventory-button > .icon {
     background-image: url('/Assets/UI/crosshair.png');
     flex-grow: 1;
-    -unity-background-image-tint-color: rgba(115, 115, 115, 255);
+    -unity-background-image-tint-color: rgb(115, 115, 115);
 }
 
 .inventory-button > .stack {
@@ -101,4 +101,38 @@
     padding-right: 0;
     padding-top: 0;
     padding-bottom: 0;
+}
+
+.admin-console > TextField {
+    height: 24px;
+    background-color: rgba(255, 255, 255, 0.07);
+    flex-shrink: 0;
+    flex-grow: 0;
+    white-space: nowrap;
+}
+
+.admin-console > TextField > #unity-text-input {
+    background-color: rgba(255, 255, 255, 0);
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.admin-console {
+    background-image: url('/Assets/UI/bg_slim.png');
+    -unity-slice-left: 20;
+    -unity-slice-top: 20;
+    -unity-slice-right: 20;
+    -unity-slice-bottom: 20;
+    flex-direction: column;
+}
+
+.admin-console > ScrollView {
+    flex-grow: 1;
+    flex-shrink: 1;
 }

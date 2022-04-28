@@ -1,9 +1,5 @@
-using System.Collections;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics;
-using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -43,6 +39,7 @@ public partial class GhostPlacementSystem : SystemBase
     {
         currentGrid = GetSingleton<BuilderMode_Build>().Grid;
         buildables = GetSingletonEntity<SelectedItem>();
+        ghostId = 0;
 
         if (uiRoot == null)
             uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BuildMenu");
@@ -98,18 +95,7 @@ public partial class GhostPlacementSystem : SystemBase
             EntityManager.SetComponentData(e, pendingBuild);
             EntityManager.DestroyEntity(ghostEntity);
 
-            var item = GetSingletonEntity<SelectedItem>();
-            if (HasComponent<Stackable>(item))
-            {
-                var stack = GetComponent<Stackable>(item);
-                if(stack.Size > 0)
-                    stack.Size--;
-                if(stack.Size == 0)
-                    EntityManager.DestroyEntity(item);
-                else
-                    SetComponent(item, stack);
-            } else
-                EntityManager.DestroyEntity(item);
+            EntityManager.AddComponentData(buildables, new RemoveItem { Quantity = 1 });
         }
 
         BuildingPartManagementSystem.WireframeDisplay.ShowAxes(new bool3(Input.GetKey(KeyCode.Alpha1), Input.GetKey(KeyCode.Alpha2), Input.GetKey(KeyCode.Alpha3)), currentRotation);

@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Rendering;
 using Unity.Transforms;
@@ -12,6 +13,7 @@ public struct Stackable : IComponentData
     public ushort MaxSize;
 }
 
+[UpdateBefore(typeof(InventoryManagementSystem))]
 public partial class PickupItemSystem : SystemBase
 {
     protected override void OnUpdate()
@@ -44,6 +46,7 @@ public partial class PickupItemSystem : SystemBase
                     EntityManager.AddComponentData(e, new Parent{Value = interaction.Interactor});
                     EntityManager.AddComponent<LocalToParent>(e);
                 }
+                SetComponent(e, new LocalToWorld{Value = float4x4.Translate(new float3(float.PositiveInfinity))});
                 EntityManager.AddComponent<DisableRendering>(e);
                 EntityManager.RemoveComponent<PhysicsWorldIndex>(e);
             }
