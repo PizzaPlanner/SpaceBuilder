@@ -101,10 +101,13 @@ public partial class GhostChildrenUpdateSystem : SystemBase
         var entities = query.ToEntityArray(Allocator.Temp);
         foreach (var ghost in entities)
         {
+            var gParent = GetComponent<Ghost>(ghost);
             foreach (var child in childBuffer.GetAllChildren(ghost).ToArray())
             {
                 if (!HasComponent<Ghost>(child))
-                    EntityManager.AddComponent<Ghost>(child);
+                    EntityManager.AddComponentData(child, gParent);
+                else
+                    EntityManager.SetComponentData(child, gParent);
 
                 if (EntityManager.HasComponent<PhysicsCollider>(child))
                     EntityManager.RemoveComponent<PhysicsCollider>(child);
@@ -124,11 +127,10 @@ public partial class GhostVisualsUpdateSystem : SystemBase
     }
     protected override void OnUpdate()
     {
-        var buildable = GetSingleton<GhostPlacementBuilder>().Buildable;
-        Entities.WithAll<Ghost, RenderMesh>().ForEach((Entity e) =>
+        Entities.WithAll<RenderMesh>().ForEach((Entity e, in Ghost ghost) =>
         {
             var renderMesh = EntityManager.GetSharedComponentData<RenderMesh>(e);
-            renderMesh.material = buildable ? settings.GhostPlacementMaterial : settings.GhostRemovalMaterial;
+            renderMesh.material = ghost.Buildable ? settings.GhostPlacementMaterial : settings.GhostRemovalMaterial;
             EntityManager.SetSharedComponentData(e, renderMesh);
         }).WithoutBurst().WithStructuralChanges().Run();
     }

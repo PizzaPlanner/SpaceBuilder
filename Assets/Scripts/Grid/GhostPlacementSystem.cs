@@ -9,11 +9,13 @@ public struct GhostPlacementBuilder : IComponentData
 {
     public Grid TargetGrid;
     public float Range;
-    public bool Buildable;
     public GridItem Original;
 }
 
-public struct Ghost : IComponentData { }
+public struct Ghost : IComponentData
+{
+    public bool Buildable;
+}
 
 [UpdateBefore(typeof(TransformSystemGroup))]
 public partial class GhostPlacementSystem : SystemBase
@@ -41,6 +43,7 @@ public partial class GhostPlacementSystem : SystemBase
         buildables = GetSingletonEntity<SelectedItem>();
         ghostId = 0;
 
+        GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("ConstructionBorder").style.display = DisplayStyle.Flex;
         if (uiRoot == null)
             uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BuildMenu");
         uiRoot.Clear();
@@ -53,18 +56,18 @@ public partial class GhostPlacementSystem : SystemBase
             button.Q<Label>().text = GetComponent<Name>(prefabs[id.PrefabId]).Value.Value;
             uiRoot.Add(button);
         }
-        uiRoot.style.display = DisplayStyle.Flex;
     }
 
     protected override void OnStopRunning()
     {
+        GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("ConstructionBorder").style.display = DisplayStyle.None;
         uiRoot.style.display = DisplayStyle.None;
-        if(HasSingleton<GhostPlacementBuilder>())
-            EntityManager.DestroyEntity(GetSingletonEntity<GhostPlacementBuilder>());
+        EntityManager.DestroyEntity(GetEntityQuery(typeof(Ghost)));
     }
 
     protected override void OnUpdate()
     {
+        uiRoot.style.display = Input.GetKey(KeyCode.T) ? DisplayStyle.Flex : DisplayStyle.None;
         if (!HasSingleton<GhostPlacementBuilder>())
         {
             var prefabs = BuildingPartManagementSystem.BuildingPartById;
@@ -76,26 +79,31 @@ public partial class GhostPlacementSystem : SystemBase
 
         var bgp = GetSingleton<GhostPlacementBuilder>();
         var ghostEntity = GetSingletonEntity<GhostPlacementBuilder>();
-        if (bgp.Buildable && Input.GetMouseButtonDown(0))
+        if (GetComponent<Ghost>(ghostEntity).Buildable && Input.GetMouseButtonDown(0))
         {
-            var position = GetComponent<GridItem>(ghostEntity).Area.Origin;
-            var rotation = GetComponent<Rotation>(ghostEntity);
-            var buffer = GetBuffer<BuildableBuffer>(buildables);
-            var pendingBuild = new PendingPart
+            EntityManager.RemoveComponent<GhostPlacementBuilder>(ghostEntity);
+        } else if (Input.GetKeyDown(KeyCode.Return))
+        {
+            Entities
+                .WithNone<GhostPlacementBuilder>()
+                .WithAll<Ghost>()
+                .ForEach((Entity ghost, in GridItem item, in Rotation r, in Identifieable id) =>
             {
-                Data = new BuildingPartInfo
+                var pendingBuild = new PendingPart
                 {
-                    Id = buffer[ghostId].PrefabId,
-                    Position = position,
-                    Orientation = rotation.Value
-                },
-                Grid = currentGrid
-            };
-            var e = EntityManager.CreateEntity(typeof(PendingPart));
-            EntityManager.SetComponentData(e, pendingBuild);
-            EntityManager.DestroyEntity(ghostEntity);
-
-            EntityManager.AddComponentData(buildables, new RemoveItem { Quantity = 1 });
+                    Data = new BuildingPartInfo
+                    {
+                        Id = id.ItemId,
+                        Position = item.Area.Origin,
+                        Orientation = r.Value
+                    },
+                    Grid = currentGrid
+                };
+                var e = EntityManager.CreateEntity(typeof(PendingPart));
+                EntityManager.SetComponentData(e, pendingBuild);
+                EntityManager.AddComponentData(buildables, new RemoveItem { Quantity = 1 });
+                EntityManager.DestroyEntity(ghost);
+            }).WithStructuralChanges().WithoutBurst().Run();
         }
 
         BuildingPartManagementSystem.WireframeDisplay.ShowAxes(new bool3(Input.GetKey(KeyCode.Alpha1), Input.GetKey(KeyCode.Alpha2), Input.GetKey(KeyCode.Alpha3)), currentRotation);
@@ -121,7 +129,7 @@ public partial class GhostPlacementSystem : SystemBase
             SetComponent(ghostEntity, BuildingSystem.RotateItem(bgp.Original, currentRotation));
             EntityManager.SetComponentData(GetSingletonEntity<GhostPlacementBuilder>(), new Rotation{Value = currentRotation});
         }
-        else if (input.ScrollMode == InputSystem.ScrollMode.Context)
+        else if (input.ScrollMode == InputSystem.ScrollMode.Context && uiRoot.style.display == DisplayStyle.Flex)
         {
             ghostId += (int)math.sign(input.Scroll);;
             ghostId = ghostId.mod(GetBuffer<BuildableBuffer>(buildables).Length);

@@ -352,6 +352,7 @@ MonoBehaviour:
   - {fileID: 8381379748449754267, guid: 214af256a38c18b4b98bf7d3d66e1a9c, type: 3}
   - {fileID: 6547384800268808675, guid: 2d52ca43a6208a7439e1221adfbe4c3a, type: 3}
   - {fileID: 1806340176707341050, guid: 3424dc4a780d9e14abf6daa4512db8d6, type: 3}
+  - {fileID: 6147582119335741561, guid: cd490ec815df89c4e9764b35679b4bdb, type: 3}
   WireframePrefab: {fileID: 2115757601233503931, guid: ba7e58fcbe2d30747b2a671578b8770b,
     type: 3}
 --- !u!4 &1142151239

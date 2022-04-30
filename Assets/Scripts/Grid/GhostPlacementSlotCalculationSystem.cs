@@ -76,15 +76,13 @@ public partial class CalculateBuildingSlotSystem : SystemBase
         }
 
         var newPos = new Translation { Value = Grid.PositionFromCell(gridItem.Type, new LocalToWorld(), gridItem.Area.Origin) };
-
-        SetComponent(ghost, newPos);
-        SetComponent(ghost, gridItem);
-
         var canBuild = true;
         foreach (var item in GetBuffer<OccupationBuffer>(gridEntity))
             canBuild &= !(item.Size == gridItem.Type && gridItem.Area.Contains(item.Location) && (item.Value & gridItem.Occupied) > 0);
-        bgp.Buildable = canBuild;
-        SetSingleton(bgp);
+
+        SetComponent(ghost, new Ghost{Buildable = canBuild});
+        SetComponent(ghost, newPos);
+        SetComponent(ghost, gridItem);
 
         Transform wireframe = BuildingPartManagementSystem.WireframeDisplay.transform;
         wireframe.position = Grid.PositionFromCell(gridItem.Type, gridLtw, gridItem.Area.Origin);

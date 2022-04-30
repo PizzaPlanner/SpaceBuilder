@@ -31,15 +31,22 @@ public class AdminConsole : VisualElement
     public new class UxmlFactory : UxmlFactory<AdminConsole, UxmlTraits> { }
 }
 
-[AlwaysUpdateSystem]
+[GenerateAuthoringComponent]
+public class ExecuteAdminScript : IComponentData
+{
+    public string Script;
+}
+
 public partial class AdminConsoleSystem : SystemBase
 {
+    protected override void OnCreate()
+    {
+        RequireSingletonForUpdate<LocalPlayer>();
+    }
+
     private AdminConsole uiRoot;
-    private NativeArray<Identifieable> itemPrefabs;
     protected override void OnStartRunning()
     {
-        itemPrefabs = GetEntityQuery(typeof(Prefab), typeof(Item), typeof(Identifieable))
-            .ToComponentDataArray<Identifieable>(Allocator.Persistent);
         if (uiRoot == null)
         {
             uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q<AdminConsole>();
@@ -51,7 +58,7 @@ public partial class AdminConsoleSystem : SystemBase
                 switch (param[0])
                 {
                     case "give":
-                        if (param.Length < 2 || !long.TryParse(param[1], out var id)) return;
+                        if (param.Length < 2 || !TryGetId(param[1], out var id)) return;
                         ushort amount = 1;
                         if (param.Length > 2)
                             ushort.TryParse(param[2], out amount);
@@ -69,14 +76,33 @@ public partial class AdminConsoleSystem : SystemBase
         uiRoot.style.display = DisplayStyle.None;
     }
 
-    protected override void OnStopRunning()
+    private bool TryGetId(string s, out long id)
     {
-        itemPrefabs.Dispose();
+        if (long.TryParse(s, out id))
+            return true;
+
+        var query = GetEntityQuery(typeof(Prefab), typeof(Item), typeof(Identifieable), typeof(Name));
+        var idents = query.ToComponentDataArray<Identifieable>(Allocator.Temp);
+        var names = query.ToComponentDataArray<Name>(Allocator.Temp);
+        for(int i = 0; i < names.Length; i++)
+            if (names[i].Value.Value == s)
+            {
+                id = idents[i].ItemId;
+                return true;
+            }
+
+        return false;
     }
 
     protected override void OnUpdate()
     {
         if (Input.GetKeyDown(KeyCode.F4))
             uiRoot.style.display = uiRoot.style.display == DisplayStyle.Flex ? DisplayStyle.None : DisplayStyle.Flex;
+
+        Entities.ForEach((Entity e, ExecuteAdminScript script) =>
+        {
+            uiRoot.OnEnter(script.Script);
+            EntityManager.DestroyEntity(e);
+        }).WithoutBurst().WithStructuralChanges().Run();
     }
 }
