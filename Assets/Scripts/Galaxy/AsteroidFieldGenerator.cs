@@ -48,7 +48,7 @@ public partial class GenerateAsteroidFieldSystem : SystemBase
                     prefab = asteroidPrefab,
                     seed = random.NextUInt(),
                     Bounds = random.NextInt3(new int3(300,200,300), new int3(1500, 600, 1500)),
-                    diameterRange = random.NextInt2(new int2(15,15), new int2(100, 100))
+                    diameterRange = random.NextInt2(new int2(15,30), new int2(20, 100))
                 });
                 buffer.AddComponent<ToGenerate>(nativeThreadIndex, field);
                 buffer.RemoveComponent<ToGenerate>(nativeThreadIndex, e);
@@ -87,7 +87,6 @@ public partial class GenerateAsteroidFieldSystem : SystemBase
                     tries -= 2;
 
                     var asteroid = buffer.Instantiate(nativeThreadIndex, data.prefab);
-                    Debug.Log($"Generate Asteroid {asteroid}");
                     buffer.SetComponent(nativeThreadIndex, asteroid, new AsteroidData
                     {
                         Diameter = diameter,

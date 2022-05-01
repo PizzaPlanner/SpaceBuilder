@@ -11,7 +11,7 @@ public struct AsteroidData : IComponentData
     public float3 Seed;
 }
 
-public partial class AsteroidSystem : SystemBase
+public partial class GenerateAsteroidSystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem bufferSystem;
     protected override void OnCreate()
@@ -27,7 +27,7 @@ public partial class AsteroidSystem : SystemBase
             .WithAll<ToGenerate>()
             .ForEach((Entity e, RenderMesh emesh, in AsteroidData data) =>
             {
-                if (--maxPerFrame <= 0) return;
+                if (--maxPerFrame < 0) return;
                 var rm = emesh;
                 var generator = new MarchingCubesSphericalGenerator(data.Diameter, data.Seed, true);
                 generator.Generate();
