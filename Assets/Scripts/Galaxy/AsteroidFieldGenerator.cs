@@ -1,11 +1,9 @@
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-[GenerateAuthoringComponent]
 public struct AsteroidFieldData : IComponentData
 {
     public int3 Bounds;
@@ -16,22 +14,51 @@ public struct AsteroidFieldData : IComponentData
     public uint seed;
 }
 
-public struct ToGenerate : IComponentData { }
+public struct GenerateAsteroidField : IComponentData { }
 
 public partial class GenerateAsteroidFieldSystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem bufferSystem;
+    private Entity AsteroidFieldPrefab;
+    private Entity AsteroidPrefab;
     protected override void OnCreate()
     {
         bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
     }
 
+    protected override void OnStartRunning()
+    {
+        AsteroidPrefab = GetEntityQuery(typeof(AsteroidData), typeof(Prefab)).GetSingletonEntity();
+    }
+
     protected override void OnUpdate()
     {
         var buffer = bufferSystem.CreateCommandBuffer().AsParallelWriter();
+        var asteroidPrefab = AsteroidPrefab;
         Entities
-            .ForEach((int nativeThreadIndex, in Translation t, in AsteroidFieldData data) =>
+            .WithAll<GenerateAsteroidField, ToGenerate>()
+            .ForEach((Entity e, int nativeThreadIndex, in LocalToGalaxy ltg, in SectorData data) =>
             {
+                var random = new Unity.Mathematics.Random(data.Seed);
+                var field = buffer.CreateEntity(nativeThreadIndex);
+                buffer.AddComponent(nativeThreadIndex, field, new Translation{Value = random.NextFloat3(new float3(-2000), new float3(2000))});
+                buffer.AddComponent(nativeThreadIndex, field, new AsteroidFieldData
+                {
+                    density = random.NextFloat(1f, 4f),
+                    prefab = asteroidPrefab,
+                    seed = random.NextUInt(),
+                    Bounds = random.NextInt3(new int3(300,200,300), new int3(1500, 600, 1500)),
+                    diameterRange = random.NextInt2(new int2(15,15), new int2(100, 100))
+                });
+                buffer.AddComponent<ToGenerate>(nativeThreadIndex, field);
+                buffer.RemoveComponent<ToGenerate>(nativeThreadIndex, e);
+        }).ScheduleParallel();
+
+        Entities
+            .WithAll<ToGenerate>()
+            .ForEach((Entity e, int nativeThreadIndex, in Translation t, in AsteroidFieldData data) =>
+            {
+                Debug.Log($"Generate Asteroid field");
                 var occupied = new NativeList<int3>(Allocator.Temp);
                 var random = new Unity.Mathematics.Random {state = data.seed};
 
@@ -59,14 +86,15 @@ public partial class GenerateAsteroidFieldSystem : SystemBase
 
                     tries -= 2;
 
-                    var e = buffer.Instantiate(nativeThreadIndex, data.prefab);
-                    buffer.SetComponent(nativeThreadIndex, e, new AsteroidData
+                    var asteroid = buffer.Instantiate(nativeThreadIndex, data.prefab);
+                    Debug.Log($"Generate Asteroid {asteroid}");
+                    buffer.SetComponent(nativeThreadIndex, asteroid, new AsteroidData
                     {
                         Diameter = diameter,
                         Seed = random.NextFloat3(new float3(2, 2, 2), new float3(8, 8, 8))
                     });
-                    buffer.SetComponent(nativeThreadIndex, e, new Translation {Value = t.Value + rPos});
-                    buffer.AddComponent(nativeThreadIndex, e, new ToGenerate());
+                    buffer.SetComponent(nativeThreadIndex, asteroid, new Translation {Value = t.Value + rPos});
+                    buffer.AddComponent(nativeThreadIndex, asteroid, new ToGenerate());
 
                     var xden = (math.abs(random.NextFloat(0, 5 - data.density)) + 0.5f) * diameter;
                     var yden = (math.abs(random.NextFloat(0, 5 - data.density)) + 0.5f) * diameter;
@@ -78,9 +106,8 @@ public partial class GenerateAsteroidFieldSystem : SystemBase
                         occupied.Add(new int3(x+x1, y+y1, z+z1));
                     }
                 }
+                buffer.RemoveComponent<ToGenerate>(nativeThreadIndex, e);
             }).ScheduleParallel();
-
-        EntityManager.DestroyEntity(GetEntityQuery(typeof(AsteroidFieldData)));
         bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

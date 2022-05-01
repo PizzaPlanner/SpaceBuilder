@@ -13,8 +13,6 @@ public struct AsteroidData : IComponentData
 
 public partial class AsteroidSystem : SystemBase
 {
-    public MarchingCubesSphericalGenerator generator;
-
     private EndSimulationEntityCommandBufferSystem bufferSystem;
     protected override void OnCreate()
     {
@@ -24,7 +22,7 @@ public partial class AsteroidSystem : SystemBase
     protected override void OnUpdate()
     {
         var buffer = bufferSystem.CreateCommandBuffer();
-        var maxPerFrame = 2;
+        var maxPerFrame = 1;
         Entities
             .WithAll<ToGenerate>()
             .ForEach((Entity e, RenderMesh emesh, in AsteroidData data) =>
