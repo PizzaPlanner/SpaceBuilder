@@ -120,22 +120,35 @@ public partial class LoadSectorSystem : SystemBase
             .ForEach((Entity e, ref LocalToGalaxy ltg, ref Translation t) =>
             {
                 var secToLoad = ltg;
+                var offset = float3.zero;
                 var planePosition = t.Value.xz;
                 if (planePosition.x < -MAX_POSITION_IN_SECTOR)
+                {
                     secToLoad.XInTenKm--;
+                    offset.x = 2 * MAX_POSITION_IN_SECTOR;
+                }
                 else if (planePosition.x > MAX_POSITION_IN_SECTOR)
+                {
                     secToLoad.XInTenKm++;
+                    offset.x = -2 * MAX_POSITION_IN_SECTOR;
+                }
                 if (planePosition.y < -MAX_POSITION_IN_SECTOR)
+                {
                     secToLoad.YInTenKm--;
+                    offset.z = 2 * MAX_POSITION_IN_SECTOR;
+                }
                 else if (planePosition.y > MAX_POSITION_IN_SECTOR)
+                {
                     secToLoad.YInTenKm++;
+                    offset.z = -2 * MAX_POSITION_IN_SECTOR;
+                }
 
                 if (ltg.XInTenKm == secToLoad.XInTenKm && ltg.YInTenKm == secToLoad.YInTenKm)
                     return;
 
                 var update = buffer.CreateEntity();
                 buffer.AddComponent(update, new SectorChange{Entity = e, Previous = ltg, New = secToLoad});
-                t.Value %= new float3(MAX_POSITION_IN_SECTOR);
+                t.Value += offset;
             }).Run();
 
         List<LocalToGalaxy> added = new List<LocalToGalaxy>();

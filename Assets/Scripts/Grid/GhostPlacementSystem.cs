@@ -82,8 +82,6 @@ public partial class GhostPlacementSystem : SystemBase
         if (GetComponent<Ghost>(ghostEntity).Buildable && Input.GetMouseButtonDown(0))
         {
             EntityManager.RemoveComponent<GhostPlacementBuilder>(ghostEntity);
-        } else if (Input.GetKeyDown(KeyCode.Return))
-        {
             Entities
                 .WithNone<GhostPlacementBuilder>()
                 .WithAll<Ghost>()

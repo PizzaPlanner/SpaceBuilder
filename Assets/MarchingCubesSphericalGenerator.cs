@@ -19,40 +19,40 @@ public struct MarchingCubesSphericalGenerator
     List<float3> vertices;
     List<int> triangles;
 
-    public MarchingCubesSphericalGenerator(int diameter, float3 seed, bool smooth)
+    public MarchingCubesSphericalGenerator(int maxDiameter, bool smooth)
     {
-        this.seed = seed;
-        this.diameter = diameter;
+        this.seed = 0;
+        this.diameter = 0;
         this.smoothTerrain = smooth;
 
-        terrainMap = new float[diameter, diameter, diameter];
+        terrainMap = new float[maxDiameter, maxDiameter, maxDiameter];
         vertices = new List<float3>();
         triangles = new List<int>();
     }
 
-    public void Generate()
+    public void Generate(int diameter, float3 seed)
     {
+        this.diameter = diameter;
+        this.seed = seed;
         PopulateTerrainMap();
 
         vertices.Clear();
         triangles.Clear();
         // Loop through each "cube" in our terrain.
-        for (int x = 0; x < terrainMap.GetLength(0) - 1; x++)
-        for (int y = 0; y < terrainMap.GetLength(1) - 1; y++)
-        for (int z = 0; z < terrainMap.GetLength(2) - 1; z++)
+        for (int x = 0; x < diameter - 1; x++)
+        for (int y = 0; y < diameter - 1; y++)
+        for (int z = 0; z < diameter - 1; z++)
             // Pass the value into our MarchCube function.
             March(new int3(x, y, z));
     }
 
     void PopulateTerrainMap ()
     {
-        if (terrainMap?.GetLength(0) != diameter)
-            terrainMap = new float[diameter, diameter, diameter];
         // The data points for terrain are stored at the corners of our "cubes", so the terrainMap needs to be 1 larger
         // than the width/height of our mesh.
-        for(int x = 0; x < terrainMap.GetLength(0); x++)
-        for(int y = 0; y < terrainMap.GetLength(1); y++)
-        for (int z = 0; z < terrainMap.GetLength(2); z++)
+        for(int x = 0; x < diameter; x++)
+        for(int y = 0; y < diameter; y++)
+        for (int z = 0; z < diameter; z++)
             terrainMap[x, y, z] = GetRadialHeightAt(new float3(x,y,z) / diameter, seed);
     }
 

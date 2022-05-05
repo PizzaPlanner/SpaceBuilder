@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
@@ -7,8 +8,7 @@ using UnityEngine;
 [GenerateAuthoringComponent]
 public struct AsteroidData : IComponentData
 {
-    public int Diameter;
-    public float3 Seed;
+    public uint Seed;
 }
 
 public partial class GenerateAsteroidSystem : SystemBase
@@ -22,20 +22,17 @@ public partial class GenerateAsteroidSystem : SystemBase
     protected override void OnUpdate()
     {
         var buffer = bufferSystem.CreateCommandBuffer();
-        var maxPerFrame = 1;
+        var prefabs = GetEntityQuery(typeof(Prefab), typeof(AsteroidData), typeof(RenderMesh)).ToEntityArray(Allocator.Temp);
         Entities
             .WithAll<ToGenerate>()
-            .ForEach((Entity e, RenderMesh emesh, in AsteroidData data) =>
+            .ForEach((Entity e, in AsteroidData data) =>
             {
-                if (--maxPerFrame < 0) return;
-                var rm = emesh;
-                var generator = new MarchingCubesSphericalGenerator(data.Diameter, data.Seed, true);
-                generator.Generate();
-                rm.mesh = generator.Bake(true);
-                buffer.SetSharedComponent(e, rm);
-                buffer.SetComponent(e, new RenderBounds{Value = new AABB{Center = rm.mesh.bounds.center, Extents = rm.mesh.bounds.extents }});
+                var random = new Unity.Mathematics.Random(data.Seed);
+                var rm = EntityManager.GetSharedComponentData<RenderMesh>(
+                    prefabs[random.NextInt(0, prefabs.Length - 1)]);
+                EntityManager.SetSharedComponentData(e, rm);
                 buffer.RemoveComponent<ToGenerate>(e);
-        }).WithoutBurst().Run();
+            }).WithStructuralChanges().WithoutBurst().Run();
 
         bufferSystem.AddJobHandleForProducer(Dependency);
     }
