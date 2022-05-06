@@ -171,8 +171,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6267429550027872505}
-  - component: {fileID: 6972750085937812029}
   - component: {fileID: 2448789020281257528}
+  - component: {fileID: 358625485361647847}
+  - component: {fileID: 6972750085937812029}
   - component: {fileID: 737813652395812828}
   - component: {fileID: 1414906368907971548}
   - component: {fileID: -2966862484624451627}
@@ -199,6 +200,35 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2448789020281257528
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3887067573439316595}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23dcd5ab44867c841835350a2c0a2f18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  On: 1
+  OnVisual: {fileID: 664576399789193128}
+  OffVisual: {fileID: 149315623103021206}
+--- !u!114 &358625485361647847
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3887067573439316595}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8c7d2205bef45659d69535ee61258ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Doors: []
+  Ports: []
 --- !u!114 &6972750085937812029
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -342,22 +372,6 @@ MonoBehaviour:
         Tag07: 0
     m_SerializedVersion: 1
   m_SerializedVersion: 1
---- !u!114 &2448789020281257528
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3887067573439316595}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 23dcd5ab44867c841835350a2c0a2f18, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  On: 1
-  Target: {fileID: 0}
-  OnVisual: {fileID: 664576399789193128}
-  OffVisual: {fileID: 149315623103021206}
 --- !u!114 &737813652395812828
 MonoBehaviour:
   m_ObjectHideFlags: 0

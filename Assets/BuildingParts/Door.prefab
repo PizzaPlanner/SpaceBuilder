@@ -284,6 +284,16 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 2480976461271531961}
     m_Modifications:
+    - target: {fileID: 358625485361647847, guid: 7f6517346115547498d16f3a97e6f677,
+        type: 3}
+      propertyPath: Doors.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 358625485361647847, guid: 7f6517346115547498d16f3a97e6f677,
+        type: 3}
+      propertyPath: Doors.Array.data[0]
+      value: 
+      objectReference: {fileID: 3670618861331446458}
     - target: {fileID: 2448789020281257528, guid: 7f6517346115547498d16f3a97e6f677,
         type: 3}
       propertyPath: Type
@@ -584,10 +594,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   On: 0
-  Target: {fileID: 0}
   OnVisual: {fileID: 0}
   OffVisual: {fileID: 0}
-  Type: 0
 --- !u!1001 &4475049141318146660
 PrefabInstance:
   m_ObjectHideFlags: 0

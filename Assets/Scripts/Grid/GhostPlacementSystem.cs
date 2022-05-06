@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -62,7 +63,11 @@ public partial class GhostPlacementSystem : SystemBase
     {
         GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("ConstructionBorder").style.display = DisplayStyle.None;
         uiRoot.style.display = DisplayStyle.None;
-        EntityManager.DestroyEntity(GetEntityQuery(typeof(Ghost)));
+
+        // DONT destroy with query as parameter, it will throw errors when not all children are marked as ghost as well
+        foreach(var entity in GetEntityQuery(typeof(Ghost)).ToEntityArray(Allocator.Temp))
+            if(EntityManager.Exists(entity))
+                EntityManager.DestroyEntity(entity);
     }
 
     protected override void OnUpdate()

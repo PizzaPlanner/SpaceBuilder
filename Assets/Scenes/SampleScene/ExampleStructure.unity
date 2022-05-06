@@ -420,6 +420,7 @@ GameObject:
   - component: {fileID: 442228687}
   - component: {fileID: 442228690}
   - component: {fileID: 442228685}
+  - component: {fileID: 442228688}
   m_Layer: 0
   m_Name: TestShip
   m_TagString: Untagged
@@ -559,6 +560,20 @@ MonoBehaviour:
     1)|quaternion(-0.4999999f, 0.4999999f, -0.4999999f, 0.4999999f)\n- Part:3757370201533685268|int3(1,
     -1, 0)|quaternion(0f, 0.7071067f, -0.7071067f, 0f)\n- Part:-7378065442519746380|int3(1,
     0, 1)|quaternion(0f, 0f, 0f, -0.9999999f)\r"
+--- !u!114 &442228688
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 442228684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d326895bb1045bdbc669d3caa9aa44c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  XInTenKm: 157
+  YInTenKm: 119
 --- !u!114 &442228690
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -574,7 +589,7 @@ MonoBehaviour:
   m_MotionType: 0
   m_Smoothing: 1
   m_Mass: 1
-  m_LinearDamping: 0.1
+  m_LinearDamping: 0.01
   m_AngularDamping: 0.1
   m_InitialLinearVelocity:
     x: 0
@@ -621,6 +636,7 @@ GameObject:
   - component: {fileID: 1312093277}
   - component: {fileID: 1312093276}
   - component: {fileID: 1312093274}
+  - component: {fileID: 1312093275}
   m_Layer: 0
   m_Name: ShipYard
   m_TagString: Untagged
@@ -679,6 +695,20 @@ MonoBehaviour:
     Tag05: 0
     Tag06: 0
     Tag07: 0
+--- !u!114 &1312093275
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1312093273}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d326895bb1045bdbc669d3caa9aa44c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  XInTenKm: 157
+  YInTenKm: 119
 --- !u!114 &1312093276
 MonoBehaviour:
   m_ObjectHideFlags: 0

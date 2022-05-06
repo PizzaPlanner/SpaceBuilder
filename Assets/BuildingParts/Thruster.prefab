@@ -5081,6 +5081,18 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 3188693737791764811}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8248292436526861247 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: -2434382195995004172, guid: 24698b853c6c2a84fbbea541f06f0c6f,
+    type: 3}
+  m_PrefabInstance: {fileID: 3188693737791764811}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 517371228026502256}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc7e8cdbf2974f5ea72fea3c665b744b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &3986494901514784710
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5266,6 +5278,7 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
+  DefaultDirection: 16
 --- !u!1001 &4676923727548435845
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5273,6 +5286,21 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 722089883934573525}
     m_Modifications:
+    - target: {fileID: 358625485361647847, guid: 7f6517346115547498d16f3a97e6f677,
+        type: 3}
+      propertyPath: Ports.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 358625485361647847, guid: 7f6517346115547498d16f3a97e6f677,
+        type: 3}
+      propertyPath: Ports.Array.data[0]
+      value: 
+      objectReference: {fileID: 8248292436526861247}
+    - target: {fileID: 358625485361647847, guid: 7f6517346115547498d16f3a97e6f677,
+        type: 3}
+      propertyPath: Ports.Array.data[1]
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 2448789020281257528, guid: 7f6517346115547498d16f3a97e6f677,
         type: 3}
       propertyPath: Target

@@ -11,6 +11,9 @@ public struct Thruster : IComponentData
     public float RequiredPower;
     public float Strength;
     public float3 ForwardThrust;
+    public GridItem.Side DefaultDirection;
+
+    public GridItem.Side Direction(quaternion rotation) => DefaultDirection.Rotate(rotation);
 }
 
 public partial class ThrusterSystem : SystemBase
