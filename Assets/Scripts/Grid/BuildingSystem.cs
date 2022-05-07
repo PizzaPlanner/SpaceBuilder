@@ -72,7 +72,7 @@ public partial class BuildingSystem : SystemBase
         if (asGhost)
         {
             EntityManager.AddComponentData(entity, new GhostPlacementBuilder{
-                TargetGrid = GetComponent<Grid>(gridEntity),
+                TargetGrid = gridEntity,
                 Range = 10,
                 Original = originalGridItem
             });

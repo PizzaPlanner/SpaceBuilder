@@ -26,9 +26,8 @@ public partial class CalculateBuildingSlotSystem : SystemBase
     {
         var ghost = GetSingletonEntity<GhostPlacementBuilder>();
         var gridItem = GetComponent<GridItem>(ghost);
-        var gridEntity = gridItem.Grid;
-        var gridLtw = GetComponent<LocalToWorld>(gridEntity);
         var bgp = EntityManager.GetComponentData<GhostPlacementBuilder>(ghost);
+        var gridLtw = GetComponent<LocalToWorld>(bgp.TargetGrid);
 
         var collisionWorld = physicsWorld.PhysicsWorld.CollisionWorld;
 
@@ -45,12 +44,17 @@ public partial class CalculateBuildingSlotSystem : SystemBase
 
         var targetCell = Grid.CellFromPosition(gridItem.Type, gridLtw, target);
 
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-            bgp.Area.Extents.x = 1 - bgp.Area.Extents.x;
-        if (Input.GetKeyDown(KeyCode.Alpha2))
-            bgp.Area.Extents.y = 1 - bgp.Area.Extents.y;
-        if (Input.GetKeyDown(KeyCode.Alpha3))
-            bgp.Area.Extents.z = 1 - bgp.Area.Extents.z;
+        if (Input.GetMouseButton(0))
+        {
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+                bgp.Area.Extents.x = bgp.Area.Extents.x > 0 ? 0 : (math.abs(gridItem.Area.RotatedExtents.x) + 1);
+            if (Input.GetKeyDown(KeyCode.Alpha2))
+                bgp.Area.Extents.y = bgp.Area.Extents.y > 0 ? 0 : (math.abs(gridItem.Area.RotatedExtents.y) + 1);
+            if (Input.GetKeyDown(KeyCode.Alpha3))
+                bgp.Area.Extents.z = bgp.Area.Extents.z > 0 ? 0 : (math.abs(gridItem.Area.RotatedExtents.z) + 1);
+        }
+        else
+            bgp.Area.Extents = int3.zero;
 
         if (Input.GetMouseButton(0) && math.any(targetCell != bgp.Area.Origin))
         {
@@ -61,13 +65,14 @@ public partial class CalculateBuildingSlotSystem : SystemBase
             bgp.Area.Origin  = targetCell;
             bgp.Area.RotatedExtents = int3.zero;
         }
+        // bgp.Area.RotatedExtents += bgp.Area.RotatedExtents % (math.abs(gridItem.Area.RotatedExtents) + 1);
         SetSingleton(bgp);
 
         gridItem.Area.Origin = bgp.Area.Origin;
 
         var newPos = new Translation { Value = Grid.PositionFromCell(gridItem.Type, new LocalToWorld(), gridItem.Area.Origin) };
         var canBuild = true;
-        foreach (var item in GetBuffer<OccupationBuffer>(gridEntity))
+        foreach (var item in GetBuffer<OccupationBuffer>(bgp.TargetGrid))
             canBuild &= !(item.Size == gridItem.Type && gridItem.Area.Contains(item.Location) && (item.Value & gridItem.Occupied) > 0);
 
         SetComponent(ghost, new Ghost{Buildable = canBuild});
@@ -110,20 +115,18 @@ public partial class BuildingWireframeDisplaySystem : SystemBase
         var gpb = GetSingleton<GhostPlacementBuilder>();
         var gridItem = GetComponent<GridItem>(e);
         var ghost = GetComponent<Ghost>(e);
-        var gridEntity = gridItem.Grid;
-        var gridLtw = GetComponent<LocalToWorld>(gridEntity);
+        var gridLtw = GetComponent<LocalToWorld>(gpb.TargetGrid);
         Transform wireframe = BuildingPartManagementSystem.WireframeDisplay.transform;
         wireframe.position = Grid.PositionFromCell(gridItem.Type, gridLtw, gpb.Area.Min);
         wireframe.rotation = gridLtw.Rotation;
+        wireframe.localScale = (float3)(gpb.Area.Max - gpb.Area.Min + gridItem.Area.RotatedExtents + 1) * Grid.CellSize(gridItem.Type);
         if (Input.GetMouseButton(0))
         {
-            wireframe.localScale = (float3)(gpb.Area.Max - gpb.Area.Min + new int3(1)) * Grid.CellSize(gridItem.Type);
             BuildingPartManagementSystem.WireframeDisplay.ShowAxes(false, wireframe.rotation);
             BuildingPartManagementSystem.WireframeDisplay.ShowScaleAxes(gpb.Area.Extents == 1);
         }
         else
         {
-            wireframe.localScale = (float3)Grid.CellSize(gridItem.Type);
             BuildingPartManagementSystem.WireframeDisplay.ShowScaleAxes(false);
         }
         foreach(var renderer in gridRenderers)

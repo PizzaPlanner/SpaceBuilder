@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 [GenerateAuthoringComponent]
 public struct GhostPlacementBuilder : IComponentData
 {
-    public Grid TargetGrid;
+    public Entity TargetGrid;
     public float Range;
     public GridItem Original;
     public BoundingBox Area;
