@@ -11,6 +11,7 @@ public struct GhostPlacementBuilder : IComponentData
     public Grid TargetGrid;
     public float Range;
     public GridItem Original;
+    public BoundingBox Area;
 }
 
 public struct Ghost : IComponentData
@@ -34,6 +35,7 @@ public partial class GhostPlacementSystem : SystemBase
 
         RequireSingletonForUpdate<BuilderMode_Build>();
         RequireSingletonForUpdate<LocalPlayer>();
+        RequireForUpdate(GetEntityQuery(typeof(LocalPlayer), typeof(Docked)));
         RequireSingletonForUpdate<SelectedItem>();
         RequireForUpdate(GetEntityQuery(typeof(BuildableBuffer), typeof(SelectedItem)));
     }
@@ -45,8 +47,7 @@ public partial class GhostPlacementSystem : SystemBase
         ghostId = 0;
 
         GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("ConstructionBorder").style.display = DisplayStyle.Flex;
-        if (uiRoot == null)
-            uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BuildMenu");
+        uiRoot ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BuildMenu");
         uiRoot.Clear();
 
         var buffer = GetBuffer<BuildableBuffer>(buildables);
@@ -84,7 +85,7 @@ public partial class GhostPlacementSystem : SystemBase
 
         var bgp = GetSingleton<GhostPlacementBuilder>();
         var ghostEntity = GetSingletonEntity<GhostPlacementBuilder>();
-        if (GetComponent<Ghost>(ghostEntity).Buildable && Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonUp(0))
         {
             EntityManager.RemoveComponent<GhostPlacementBuilder>(ghostEntity);
             Entities
@@ -92,18 +93,23 @@ public partial class GhostPlacementSystem : SystemBase
                 .WithAll<Ghost>()
                 .ForEach((Entity ghost, in GridItem item, in Rotation r, in Identifieable id) =>
             {
-                var pendingBuild = new PendingPart
+                for (int x = bgp.Area.Min.x; x <= bgp.Area.Max.x; x++)
+                for (int y = bgp.Area.Min.y; y <= bgp.Area.Max.y; y++)
+                for (int z = bgp.Area.Min.z; z <= bgp.Area.Max.z; z++)
                 {
-                    Data = new BuildingPartInfo
+                    var pendingBuild = new PendingPart
                     {
-                        Id = id.ItemId,
-                        Position = item.Area.Origin,
-                        Orientation = r.Value
-                    },
-                    Grid = currentGrid
-                };
-                var e = EntityManager.CreateEntity(typeof(PendingPart));
-                EntityManager.SetComponentData(e, pendingBuild);
+                        Data = new BuildingPartInfo
+                        {
+                            Id = id.ItemId,
+                            Position = new int3(x,y,z),
+                            Orientation = r.Value
+                        },
+                        Grid = currentGrid
+                    };
+                    var e = EntityManager.CreateEntity(typeof(PendingPart));
+                    EntityManager.SetComponentData(e, pendingBuild);
+                }
                 EntityManager.AddComponentData(buildables, new RemoveItem { Quantity = 1 });
                 EntityManager.DestroyEntity(ghost);
             }).WithStructuralChanges().WithoutBurst().Run();

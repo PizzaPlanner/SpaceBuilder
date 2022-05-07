@@ -31,6 +31,7 @@ public partial class BuildingSystem : SystemBase
         if (!HasComponent<Grid>(gridEntity))
             return Entity.Null;
 
+        // Get prefab from id
         var prefabQuery = GetEntityQuery(typeof(Prefab), typeof(Identifieable));
         var identifiables = prefabQuery.ToComponentDataArray<Identifieable>(Allocator.Temp);
         var prefabs = prefabQuery.ToEntityArray(Allocator.Temp);
@@ -41,18 +42,28 @@ public partial class BuildingSystem : SystemBase
         if (prefab == Entity.Null)
             return Entity.Null;
 
-        var entity = EntityManager.Instantiate(prefab);
         var originalGridItem = GetComponent<GridItem>(prefab);
-        EntityManager.AddComponentData(entity, new UpdateRotation {Value = rotation, ReferencePrefab = prefab});
         var newGridItem = RotateItem(originalGridItem, rotation);
         newGridItem.Grid = gridEntity;
         newGridItem.Area.Origin = position;
-        EntityManager.SetComponentData(entity, newGridItem);
 
-        EntityManager.AddComponentData(entity, new LocalToParent());
-        EntityManager.AddComponentData(entity, new Parent { Value = gridEntity });
-        EntityManager.AddComponentData(entity, new Rotation{ Value = rotation });
-        EntityManager.AddComponentData(entity, new Translation{ Value = Grid.PositionFromCell(originalGridItem.Type, position) });
+        // Check if space is already occupied
+        if (!asGhost)
+        {
+            var canBuild = true;
+            foreach (var item in GetBuffer<OccupationBuffer>(gridEntity))
+                canBuild &= !(item.Size == newGridItem.Type && newGridItem.Area.Contains(item.Location) && (item.Value & newGridItem.Occupied) > 0);
+            if (!canBuild)
+                return Entity.Null;
+        }
+
+        // Create Part
+        var entity = EntityManager.Instantiate(prefab);
+        EntityManager.AddComponentData(entity, new UpdateRotation {Value = rotation, ReferencePrefab = prefab});
+        SetComponent(entity, newGridItem);
+        SetComponent(entity, new Parent { Value = gridEntity });
+        SetComponent(entity, new Rotation{ Value = rotation });
+        SetComponent(entity, new Translation{ Value = Grid.PositionFromCell(originalGridItem.Type, position) });
 
 #if UNITY_EDITOR
         if(HasComponent<Name>(entity))

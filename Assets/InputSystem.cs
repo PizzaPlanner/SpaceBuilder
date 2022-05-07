@@ -134,7 +134,7 @@ public partial class InputSystem : SystemBase
             }
             else if (HasSingleton<BuilderMode_Build>())
             {
-                if (Input.GetKey(KeyCode.Alpha1) || Input.GetKey(KeyCode.Alpha2) || Input.GetKey(KeyCode.Alpha3))
+                if (!Input.GetMouseButton(0) && (Input.GetKey(KeyCode.Alpha1) || Input.GetKey(KeyCode.Alpha2) || Input.GetKey(KeyCode.Alpha3)))
                     input.ScrollMode = ScrollMode.Rotate;
                 else
                     input.ScrollMode = ScrollMode.Context;
