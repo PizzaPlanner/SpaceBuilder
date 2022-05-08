@@ -30,10 +30,54 @@
             <ui:Label text="Build" display-tooltip-when-elided="true" name="MainActionName" />
         </ui:VisualElement>
     </ui:VisualElement>
-    <ui:VisualElement name="Inventory" style="position: absolute; bottom: 0; right: 50%; left: 50%; align-items: flex-end; justify-content: center; flex-direction: row;">
+    <ui:VisualElement name="Hotbar" style="position: absolute; bottom: 0; right: 50%; left: 50%; align-items: flex-end; justify-content: center; flex-direction: row;">
         <InventoryButton />
         <InventoryButton />
         <InventoryButton />
+    </ui:VisualElement>
+    <ui:VisualElement name="Inventory" style="align-items: center; justify-content: center; flex-direction: row; position: absolute; left: 0; top: 0; right: 0; bottom: 0;">
+        <ui:VisualElement name="Bag" style="width: 260px; height: 410px; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; background-image: url(&apos;/Assets/UI/bg_slim.png&apos;); -unity-slice-left: 10; -unity-slice-top: 10; -unity-slice-right: 10; -unity-slice-bottom: 10; flex-wrap: wrap; flex-direction: row;">
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+        </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement name="Center" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; align-items: flex-end; justify-content: center;">
         <ui:VisualElement name="BuildMenu" style="flex-wrap: wrap; height: 50%; -unity-slice-left: 20; -unity-slice-top: 20; -unity-slice-right: 20; -unity-slice-bottom: 20; background-image: url(&apos;/Assets/UI/bg_slim.png&apos;); display: none;">

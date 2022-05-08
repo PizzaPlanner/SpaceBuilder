@@ -105,6 +105,8 @@ public partial class InventoryManagementSystem : SystemBase
                 }
             }).Run();
 
+        EntityManager.CreateEntity(typeof(InventoryUISystem.InventoryChanged));
+
         bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

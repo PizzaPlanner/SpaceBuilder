@@ -1,9 +1,5 @@
-using System;
 using Unity.Entities;
-using Unity.Entities.UniversalDelegates;
 using UnityEngine;
-
-public struct Crafter : IComponentData { }
 
 public struct CraftingRecipe : IComponentData
 {
@@ -22,6 +18,11 @@ public struct CraftingOutput : IBufferElementData
     public ushort Amount;
 }
 
+public struct CraftingCatalyst : IBufferElementData
+{
+    public long ItemId;
+}
+
 public class CraftingRecipeAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 {
     [System.Serializable]
@@ -32,6 +33,7 @@ public class CraftingRecipeAuthoring : MonoBehaviour, IConvertGameObjectToEntity
     }
 
     public float Duration;
+    public ItemAuthoring[] Catalysts;
     public ItemWithAmount[] Input;
     public ItemWithAmount[] Output;
 
@@ -39,19 +41,24 @@ public class CraftingRecipeAuthoring : MonoBehaviour, IConvertGameObjectToEntity
     {
         dstManager.AddComponentData(entity, new CraftingRecipe {Duration = Duration});
         var inBuffer = dstManager.AddBuffer<CraftingInput>(entity);
-        var outBuffer = dstManager.AddBuffer<CraftingOutput>(entity);
         foreach (var thing in Input)
         {
-            conversionSystem.DeclareAssetDependency(gameObject, thing.Prefab.gameObject);
             inBuffer.Add(new CraftingInput
                 {Amount = thing.Amount, ItemId = thing.Prefab.GetComponent<IdentifieableAuthoring>().Id});
         }
 
+        var outBuffer = dstManager.AddBuffer<CraftingOutput>(entity);
         foreach (var thing in Output)
         {
-            conversionSystem.DeclareAssetDependency(gameObject, thing.Prefab.gameObject);
             outBuffer.Add(new CraftingOutput
                 {Amount = thing.Amount, ItemId = thing.Prefab.GetComponent<IdentifieableAuthoring>().Id});
+        }
+
+        var catBuffer = dstManager.AddBuffer<CraftingCatalyst>(entity);
+        foreach (var thing in Output)
+        {
+            catBuffer.Add(new CraftingCatalyst
+                {ItemId = thing.Prefab.GetComponent<IdentifieableAuthoring>().Id});
         }
     }
 }

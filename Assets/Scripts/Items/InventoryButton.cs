@@ -16,6 +16,11 @@ public class InventoryButton : VisualElement
         get => ClassListContains("inventory-button__Active");
     }
 
+    public bool IsEmpty
+    {
+        set { foreach (var child in Children()) child.style.display = value ? DisplayStyle.None : DisplayStyle.Flex; }
+    }
+
     public string Name
     {
         get => this.Q<Label>(null, "name").text;

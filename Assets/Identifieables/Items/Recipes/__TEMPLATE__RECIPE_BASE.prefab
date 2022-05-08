@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1030122779273188114}
   - component: {fileID: 3631652467321142445}
-  - component: {fileID: 1953010010489308920}
+  - component: {fileID: -2904738103308487677}
   m_Layer: 0
   m_Name: __TEMPLATE__RECIPE_BASE
   m_TagString: Untagged
@@ -47,7 +47,7 @@ MonoBehaviour:
   Duration: 0
   Input: []
   Output: []
---- !u!114 &1953010010489308920
+--- !u!114 &-2904738103308487677
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

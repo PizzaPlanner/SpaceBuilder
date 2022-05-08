@@ -7,6 +7,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -2904738103308487677, guid: feb35b4fd11de15449b4506b1b8d457d,
+        type: 3}
+      propertyPath: ItemId
+      value: 2884812399800912436
+      objectReference: {fileID: 0}
     - target: {fileID: 1030122779273188114, guid: feb35b4fd11de15449b4506b1b8d457d,
         type: 3}
       propertyPath: m_RootOrder
@@ -70,7 +75,7 @@ PrefabInstance:
     - target: {fileID: 3631652467321142445, guid: feb35b4fd11de15449b4506b1b8d457d,
         type: 3}
       propertyPath: Duration
-      value: 8
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 3631652467321142445, guid: feb35b4fd11de15449b4506b1b8d457d,
         type: 3}
@@ -84,8 +89,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3631652467321142445, guid: feb35b4fd11de15449b4506b1b8d457d,
         type: 3}
+      propertyPath: Catalysts.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3631652467321142445, guid: feb35b4fd11de15449b4506b1b8d457d,
+        type: 3}
+      propertyPath: Catalysts.Array.data[0]
+      value: 
+      objectReference: {fileID: 6271817655909554871, guid: 7a286842ade762f469e68c33edd0ed0e,
+        type: 3}
+    - target: {fileID: 3631652467321142445, guid: feb35b4fd11de15449b4506b1b8d457d,
+        type: 3}
       propertyPath: Input.Array.data[0].Amount
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3631652467321142445, guid: feb35b4fd11de15449b4506b1b8d457d,
         type: 3}
@@ -107,7 +123,7 @@ PrefabInstance:
     - target: {fileID: 8948261355119698084, guid: feb35b4fd11de15449b4506b1b8d457d,
         type: 3}
       propertyPath: m_Name
-      value: IronIngot
+      value: IronIngot_Furnace
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: feb35b4fd11de15449b4506b1b8d457d, type: 3}
