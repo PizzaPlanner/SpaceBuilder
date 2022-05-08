@@ -1,10 +1,18 @@
+using System;
+using System.Diagnostics;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Cursor = UnityEngine.Cursor;
+using Debug = UnityEngine.Debug;
 
 public struct BuilderMode_Build : ISystemStateComponentData
+{
+    public Entity Grid;
+}
+
+public struct BuilderMode_Blueprint : ISystemStateComponentData
 {
     public Entity Grid;
 }
@@ -14,12 +22,11 @@ public struct BuilderMode_Destroy : ISystemStateComponentData
     public Entity Grid;
 }
 
-public struct CanMove : IComponentData { }
 public partial class InputSystem : SystemBase
 {
     public struct InputData : ISystemStateComponentData
     {
-        public InputSystem.ActionState CurrentAction;
+        public ActionState CurrentAction;
         public ScrollMode ScrollMode;
         public float Scroll;
     }
@@ -33,11 +40,19 @@ public partial class InputSystem : SystemBase
         Rotate
     }
 
+    public enum CursorState
+    {
+        Disabled,
+        Default,
+        HotMenu
+    }
+
     public enum ActionState
     {
         None,
         Construct,
-        Deconstruct
+        Deconstruct,
+        Blueprint
     }
 
     private VisualElement uiRoot;
@@ -54,8 +69,8 @@ public partial class InputSystem : SystemBase
         {
             uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("ContextMenu");
             uiRoot.style.display = DisplayStyle.None;
-            uiRoot.Q("BuildMenu").style.display = DisplayStyle.None;
         }
+        SetCursor(CursorState.Disabled);
     }
 
     protected override void OnUpdate()
@@ -67,8 +82,8 @@ public partial class InputSystem : SystemBase
             EntityManager.RemoveComponent<BuilderMode_Build>(entity);
         if (HasSingleton<BuilderMode_Destroy>() && input.CurrentAction != ActionState.Deconstruct)
             EntityManager.RemoveComponent<BuilderMode_Destroy>(entity);
-
-        Cursor.lockState = HasSingleton<CanMove>() ? CursorLockMode.Locked : CursorLockMode.None;
+        if (HasSingleton<BuilderMode_Blueprint>() && input.CurrentAction != ActionState.Blueprint)
+            EntityManager.RemoveComponent<BuilderMode_Blueprint>(entity);
 
         if (Input.GetMouseButtonDown(1))
             input.CurrentAction = ActionState.None;
@@ -80,22 +95,22 @@ public partial class InputSystem : SystemBase
             uiRoot.Q<Label>("MainActionName").text = "Interact";
         }
         else
-            uiRoot.style.display = input.CurrentAction != ActionState.None ? DisplayStyle.Flex : DisplayStyle.None;
+            uiRoot.style.display = DisplayStyle.None;
 
         input.Scroll = -Input.GetAxis("Mouse ScrollWheel");
         input.ScrollMode = ScrollMode.None;
 
         if (Input.GetKeyDown(KeyCode.B))
         {
-            if (input.CurrentAction == ActionState.Construct)
+            if (input.CurrentAction == ActionState.Blueprint)
             {
                 input.CurrentAction = ActionState.None;
             }
             else if(input.CurrentAction == ActionState.None && HasComponent<Docked>(GetSingletonEntity<LocalPlayer>()))
             {
-                EntityManager.AddComponentData(entity, new BuilderMode_Build{Grid = GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target});
-                input.CurrentAction = ActionState.Construct;
-                uiRoot.Q<Label>("MainActionName").text = "Construct";
+                EntityManager.AddComponentData(entity, new BuilderMode_Blueprint{Grid = GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target});
+                input.CurrentAction = ActionState.Blueprint;
+                uiRoot.Q<Label>("MainActionName").text = "Design";
             }
         }
 
@@ -115,11 +130,10 @@ public partial class InputSystem : SystemBase
 
         if (Input.GetKeyDown(KeyCode.Tab))
         {
-            var player = GetSingletonEntity<LocalPlayer>();
-            if (HasComponent<CanMove>(player))
-                EntityManager.RemoveComponent<CanMove>(player);
-            else
-                EntityManager.AddComponent<CanMove>(player);
+            if (HasSingleton<ControlPlayer>())
+                SetCursor(CursorState.Default);
+            else if(HasSingleton<ControlUI>())
+                SetCursor(CursorState.Disabled);
         }
 
         if (input.Scroll != 0)
@@ -132,7 +146,7 @@ public partial class InputSystem : SystemBase
                 anchor.ScrollFactor = math.clamp(anchor.ScrollFactor, 0, 2);
                 SetSingleton(anchor);
             }
-            else if (HasSingleton<BuilderMode_Build>())
+            else if (HasSingleton<BuilderMode_Build>() || HasSingleton<BuilderMode_Blueprint>())
             {
                 if (!Input.GetMouseButton(0) && (Input.GetKey(KeyCode.Alpha1) || Input.GetKey(KeyCode.Alpha2) || Input.GetKey(KeyCode.Alpha3)))
                     input.ScrollMode = ScrollMode.Rotate;
@@ -151,5 +165,39 @@ public partial class InputSystem : SystemBase
         }
 
         SetSingleton(input);
+    }
+
+
+    public struct ControlUI : IComponentData { }
+    public struct ControlHotMenu : IComponentData { }
+    public struct ControlPlayer : IComponentData { }
+    public void SetCursor(CursorState state)
+    {
+        if(HasSingleton<ControlUI>())
+            EntityManager.DestroyEntity(GetSingletonEntity<ControlUI>());
+        if (HasSingleton<ControlPlayer>())
+            EntityManager.DestroyEntity(GetSingletonEntity<ControlPlayer>());
+        if (HasSingleton<ControlHotMenu>())
+            EntityManager.DestroyEntity(GetSingletonEntity<ControlHotMenu>());
+
+        switch (state)
+        {
+            case CursorState.Disabled:
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+                EntityManager.CreateEntity(typeof(ControlPlayer));
+                break;
+            case CursorState.Default:
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+                EntityManager.CreateEntity(typeof(ControlUI));
+                break;
+            case CursorState.HotMenu:
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+
+                EntityManager.CreateEntity(typeof(ControlHotMenu));
+                break;
+        }
     }
 }

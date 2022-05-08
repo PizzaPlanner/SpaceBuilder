@@ -98,15 +98,15 @@ public partial class BuildingWireframeDisplaySystem : SystemBase
     protected override void OnStartRunning()
     {
         gridRenderers.Clear();
-        foreach(var renderer in BuildingPartManagementSystem.WireframeDisplay.gameObject.GetComponentsInChildren<MeshRenderer>())
+        foreach(var renderer in GhostBuilder.Wireframe.gameObject.GetComponentsInChildren<MeshRenderer>())
             if (renderer.gameObject.layer == LayerMask.NameToLayer("Grid"))
                 gridRenderers.Add(renderer);
     }
 
     protected override void OnStopRunning()
     {
-        if(BuildingPartManagementSystem.WireframeDisplay)
-            BuildingPartManagementSystem.WireframeDisplay.gameObject.SetActive(false);
+        if(GhostBuilder.Wireframe)
+            GhostBuilder.Wireframe.gameObject.SetActive(false);
     }
 
     protected override void OnUpdate()
@@ -116,22 +116,22 @@ public partial class BuildingWireframeDisplaySystem : SystemBase
         var gridItem = GetComponent<GridItem>(e);
         var ghost = GetComponent<Ghost>(e);
         var gridLtw = GetComponent<LocalToWorld>(gpb.TargetGrid);
-        Transform wireframe = BuildingPartManagementSystem.WireframeDisplay.transform;
+        Transform wireframe = GhostBuilder.Wireframe.transform;
         wireframe.position = Grid.PositionFromCell(gridItem.Type, gridLtw, gpb.Area.Min);
         wireframe.rotation = gridLtw.Rotation;
         wireframe.localScale = (float3)(gpb.Area.Max - gpb.Area.Min + gridItem.Area.RotatedExtents + 1) * Grid.CellSize(gridItem.Type);
         if (Input.GetMouseButton(0))
         {
-            BuildingPartManagementSystem.WireframeDisplay.ShowAxes(false, wireframe.rotation);
-            BuildingPartManagementSystem.WireframeDisplay.ShowScaleAxes(gpb.Area.Extents == 1);
+            GhostBuilder.Wireframe.ShowAxes(false, wireframe.rotation);
+            GhostBuilder.Wireframe.ShowScaleAxes(gpb.Area.Extents == 1);
         }
         else
         {
-            BuildingPartManagementSystem.WireframeDisplay.ShowScaleAxes(false);
+            GhostBuilder.Wireframe.ShowScaleAxes(false);
         }
         foreach(var renderer in gridRenderers)
             renderer.sharedMaterial = ghost.Buildable ? settings.GridBuildMaterial : settings.GridDestroyMaterial;
 
-        BuildingPartManagementSystem.WireframeDisplay.gameObject.SetActive(true);
+        GhostBuilder.Wireframe.gameObject.SetActive(true);
     }
 }

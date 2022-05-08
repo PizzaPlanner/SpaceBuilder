@@ -42,6 +42,7 @@ public partial class AdminConsoleSystem : SystemBase
     protected override void OnCreate()
     {
         RequireSingletonForUpdate<LocalPlayer>();
+        RequireSingletonForUpdate<IdentifiableMappingSystem.Loaded>();
     }
 
     private AdminConsole uiRoot;

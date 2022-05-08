@@ -22,12 +22,13 @@ public partial class InventoryManagementSystem : SystemBase
     protected override void OnCreate()
     {
         bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
+        RequireSingletonForUpdate<IdentifiableMappingSystem.Loaded>();
     }
 
     protected override void OnUpdate()
     {
         var buffer = bufferSystem.CreateCommandBuffer();
-        var prefabMap = BuildingPartManagementSystem.BuildingPartById;
+        var prefabMap = IdentifiableMappingSystem.EntitiesById;
         Entities.ForEach((Entity e, in GetItemAction action) =>
         {
             buffer.DestroyEntity(e);

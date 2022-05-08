@@ -12,6 +12,7 @@ public partial class BuildingSystem : SystemBase
 {
     protected override void OnCreate()
     {
+        RequireSingletonForUpdate<IdentifiableMappingSystem.Loaded>();
         RequireForUpdate(GetEntityQuery(typeof(PendingPart)));
     }
 

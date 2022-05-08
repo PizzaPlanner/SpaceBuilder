@@ -41,10 +41,10 @@ public partial class GridItemRemovalSystem : SystemBase
 
     protected override void OnStartRunning()
     {
-        foreach(var renderer in BuildingPartManagementSystem.WireframeDisplay.gameObject.GetComponentsInChildren<MeshRenderer>())
+        foreach(var renderer in GhostBuilder.Wireframe.gameObject.GetComponentsInChildren<MeshRenderer>())
             if (renderer.gameObject.layer == LayerMask.NameToLayer("Grid"))
                 renderer.sharedMaterial = settings.GridDestroyMaterial;
-        BuildingPartManagementSystem.WireframeDisplay.gameObject.SetActive(true);
+        GhostBuilder.Wireframe.gameObject.SetActive(true);
     }
 
     protected override void OnStopRunning()
@@ -59,8 +59,8 @@ public partial class GridItemRemovalSystem : SystemBase
         }).WithoutBurst().Run();
         bufferSystem.AddJobHandleForProducer(Dependency);
         modifiedEntities.Clear();
-        if(BuildingPartManagementSystem.WireframeDisplay)
-            BuildingPartManagementSystem.WireframeDisplay.gameObject.SetActive(false);
+        if(GhostBuilder.Wireframe)
+            GhostBuilder.Wireframe.gameObject.SetActive(false);
     }
 
     protected override void OnUpdate()
@@ -68,7 +68,7 @@ public partial class GridItemRemovalSystem : SystemBase
         var parent = GetSingleton<BuilderMode_Destroy>().Grid;
         var grid = GetComponent<Grid>(parent);
         var gridLtw = GetComponent<LocalToWorld>(parent);
-        var wireframe = BuildingPartManagementSystem.WireframeDisplay.transform;
+        var wireframe = GhostBuilder.Wireframe.transform;
         wireframe.localScale = new float3(Grid.CellSize(grid.MaxSize));
         wireframe.rotation = gridLtw.Rotation;
         wireframe.transform.position = GetComponent<LocalToWorld>(GetSingletonEntity<LocalPlayer>()).Position;
@@ -89,12 +89,12 @@ public partial class GridItemRemovalSystem : SystemBase
             var modIdx = modifiedEntities.IndexOf(mrm.ParentGridItem);
             if(modIdx > -1)
                 modifiedEntities.RemoveAt(modIdx);
-            BuildingPartManagementSystem.WireframeDisplay.gameObject.SetActive(false);
+            GhostBuilder.Wireframe.gameObject.SetActive(false);
         }).WithoutBurst().Run();
 
         Entities.ForEach((Entity e, in LocalToWorld gridLtw, in GridItem gridItem, in TargetForRemoval target) =>
         {
-            BuildingPartManagementSystem.WireframeDisplay.transform.position = gridLtw.Position;
+            GhostBuilder.Wireframe.transform.position = gridLtw.Position;
             if (modifiedEntities.Contains(e))
                 return;
 

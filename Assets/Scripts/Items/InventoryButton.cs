@@ -47,7 +47,7 @@ public class InventoryButton : VisualElement
 
 public class BuilderButton : VisualElement
 {
-    public Entity Prefab;
+    public long Id;
 
     public bool Selected
     {

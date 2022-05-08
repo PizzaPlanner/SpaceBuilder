@@ -5,9 +5,6 @@ using UnityEditor.MemoryProfiler;
 using UnityEngine;
 using UnityEngine.PlayerLoop;
 
-[UpdateInGroup(typeof(InitializationSystemGroup))]
-public partial class GridRecalculationSystemGroup : ComponentSystemGroup { }
-
 public struct NeedsUpdate : IComponentData { }
 
 [UpdateInGroup(typeof(GridRecalculationSystemGroup))]

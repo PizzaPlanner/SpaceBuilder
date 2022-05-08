@@ -26,7 +26,8 @@ public partial class MovePlayerSystem : SystemBase
     {
         RequireSingletonForUpdate<LocalPlayer>();
         RequireSingletonForUpdate<CameraAnchor>();
-        RequireForUpdate(GetEntityQuery(typeof(LocalPlayer), typeof(LocalToWorld), typeof(CanMove)));
+        RequireSingletonForUpdate<InputSystem.ControlPlayer>();
+        RequireForUpdate(GetEntityQuery(typeof(LocalPlayer), typeof(LocalToWorld)));
         RequireForUpdate(GetEntityQuery(typeof(CameraAnchor), typeof(LocalToWorld)));
         fixedStepGroup = World.GetExistingSystem<FixedStepSimulationSystemGroup>();
     }

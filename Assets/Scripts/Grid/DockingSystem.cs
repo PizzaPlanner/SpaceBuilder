@@ -67,8 +67,8 @@ public partial class DockingSystem : SystemBase
         // SetComponent(entity, new Translation{Value = newLocalPos});
         // SetComponent(entity, new Rotation{Value = newLocalRot});
 
-        // swapRoot.Q(newParent != Origin ? "System" : "Station", "dockingbutton").RemoveFromClassList("dockingbutton-on");
-        // swapRoot.Q(newParent == Origin ? "System" : "Station", "dockingbutton").AddToClassList("dockingbutton-on");
+        swapRoot.Q(newParent != Origin ? "System" : "Station", "dockingbutton").RemoveFromClassList("dockingbutton-on");
+        swapRoot.Q(newParent == Origin ? "System" : "Station", "dockingbutton").AddToClassList("dockingbutton-on");
         var body = GetComponent<KinematicCharacterBody>(entity);
         body.ParentEntity = newParent;
         SetComponent(entity, body);

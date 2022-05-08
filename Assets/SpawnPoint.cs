@@ -34,10 +34,12 @@ public partial class PlayerSpawnSystem : SystemBase
         {
             var player = buffer.Instantiate(sp.Prefab);
             buffer.AddBuffer<CloseGrids>(player);
-            buffer.AddComponent<CanMove>(player);
             buffer.SetComponent(player, new Translation{ Value = ltw.Position });
             buffer.AddComponent(player, ltg);
             buffer.AddComponent(player, new CanTravelSectors());
+
+            var ctrl = buffer.CreateEntity();
+            buffer.AddComponent<InputSystem.ControlPlayer>(ctrl);
 
             var update = buffer.CreateEntity();
             buffer.AddComponent(update, new SectorChange
