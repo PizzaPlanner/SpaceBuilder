@@ -1,11 +1,81 @@
+using System;
+using System.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
+using UnityEngine;
 using UnityEngine.UIElements;
+
+public class InventoryElement : VisualElement
+{
+    public Entity Container;
+    private int lastLength = 0;
+    public Action<InventoryButton, InventoryButton> OnDragDrop;
+    public int2 Subset;
+
+    public void Update(BufferFromEntity<Inventory> inventories, ComponentDataFromEntity<Name> names, ComponentDataFromEntity<Stackable> stacks)
+    {
+        if (!inventories.HasComponent(Container))
+        {
+            this.Clear();
+            return;
+        }
+
+        var buffer = inventories[Container];
+        if (buffer.Length != lastLength)
+        {
+            this.Clear();
+            for (int i = math.max(0, Subset.x); i < math.min(buffer.Length, Subset.y == 0 ? buffer.Length : Subset.y); i++)
+            {
+                var button = new InventoryButton {Container = Container, Slot = i};
+                if (OnDragDrop != null)
+                {
+                    button.RegisterCallback<MouseDownEvent>(_ =>
+                    {
+                        InventoryButton.Dragged = button;
+                        InventoryButton.DragTarget = null;
+                    });
+                    button.RegisterCallback<MouseEnterEvent>(_ => InventoryButton.DragTarget = button);
+                    button.RegisterCallback<MouseLeaveEvent>(_ => InventoryButton.DragTarget = null);
+                    button.RegisterCallback<MouseUpEvent>(_ =>
+                    {
+                        if (InventoryButton.Dragged != null && InventoryButton.DragTarget != null && InventoryButton.Dragged != InventoryButton.DragTarget)
+                        {
+                            OnDragDrop(InventoryButton.Dragged, button);
+                        }
+                        InventoryButton.Dragged = null;
+                        InventoryButton.DragTarget = null;
+                    });
+                }
+                Add(button);
+            }
+            lastLength = buffer.Length;
+        }
+
+        this.Query<InventoryButton>().ForEach(x =>
+        {
+            var entity = buffer[x.Slot].Slot.Item;
+            x.IsEmpty = entity == Entity.Null;
+            if (entity == Entity.Null)
+                return;
+
+            x.Name = names.HasComponent(entity) ? names[entity].Value.Value : "";
+            x.Info = stacks.HasComponent(entity)
+                ? $"x{stacks[entity].Size}"
+                : "";
+        });
+    }
+
+    public new class UxmlFactory : UxmlFactory<InventoryElement, UxmlTraits> { }
+}
 
 public class InventoryButton : VisualElement
 {
     public Entity Container;
     public int Slot;
 
+    public bool StartDrag;
+    public static InventoryButton DragTarget;
+    public static InventoryButton Dragged;
     public bool Selected
     {
         set

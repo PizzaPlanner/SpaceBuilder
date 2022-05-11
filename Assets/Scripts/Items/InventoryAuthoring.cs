@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 using UnityEngine.UIElements;
 
 public struct Inventory : IBufferElementData
@@ -36,111 +37,99 @@ public class InventoryAuthoring : MonoBehaviour, IConvertGameObjectToEntity
     }
 }
 
+public class InventoryUI : IComponentData
+{
+    public InventoryElement Container;
+}
+
 [UpdateInGroup(typeof(PresentationSystemGroup))]
 public partial class InventoryUISystem : SystemBase
 {
     public struct InventoryChanged : IComponentData { }
 
-    private VisualElement hotbar;
-    private VisualElement inventory;
-
+    private bool initialized;
     private bool inventoryOpen;
+    private InventoryElement inventory, hotbar;
 
     protected override void OnCreate()
     {
         RequireSingletonForUpdate<LocalPlayer>();
-        // RequireForUpdate(GetEntityQuery(typeof(InventoryChanged)));
     }
 
     protected override void OnStartRunning()
     {
-        hotbar ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("Hotbar");
+        if (initialized)
+            return;
+
+        var playerInventory = GetBuffer<Inventory>(GetSingletonEntity<LocalPlayer>());
+        hotbar = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q<InventoryElement>("Hotbar");
+        hotbar.Container = GetSingletonEntity<LocalPlayer>();
+        hotbar.Subset = new int2(playerInventory.Length - 5, playerInventory.Length);
+        hotbar.OnDragDrop = OnDragDrop;
         hotbar.style.display = DisplayStyle.Flex;
-        hotbar.Clear();
 
-        inventory ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("Inventory");
+        inventory = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("Inventory").Q<InventoryElement>("MyBag");
+        inventory.Container = GetSingletonEntity<LocalPlayer>();
+        inventory.Subset = new int2(0, playerInventory.Length - 5);
+        inventory.OnDragDrop = OnDragDrop;
         inventory.style.display = DisplayStyle.None;
-        inventory.Q("Bag").Clear();
 
-        var inv = GetBuffer<Inventory>(GetSingletonEntity<LocalPlayer>());
-        for(int i = 0; i < 5; i++)
-        {
-            hotbar.Add(new InventoryButton{ Container = GetSingletonEntity<LocalPlayer>(), Slot = i});
-        }
+        var he = EntityManager.CreateEntity(typeof(InventoryUI));
+        EntityManager.SetComponentData(he, new InventoryUI{Container = hotbar});
 
-        for(int i = 0; i < inv.Length; i++)
-        {
-            var button = new InventoryButton {Container = GetSingletonEntity<LocalPlayer>(), Slot = i};
-            button.RegisterCallback<MouseEnterEvent>(_ => button.Selected = true);
-            button.RegisterCallback<MouseLeaveEvent>(_ => button.Selected = false);
-            inventory.Q("Bag").Add(button);
-        }
+        var ie = EntityManager.CreateEntity(typeof(InventoryUI));
+        EntityManager.SetComponentData(ie, new InventoryUI{Container = inventory});
 
+        initialized = true;
+        EntityManager.CreateEntity(typeof(InventoryChanged));
     }
 
-    protected override void OnStopRunning()
+    public void OnDragDrop(InventoryButton dragged, InventoryButton button)
     {
-        hotbar.style.display = DisplayStyle.None;
+        var i1 = GetBuffer<Inventory>(dragged.Container);
+        var i2 = GetBuffer<Inventory>(button.Container);
+
+        var from = i1[dragged.Slot];
+        var to = i2[button.Slot];
+
+        i1[dragged.Slot] = to;
+        i2[button.Slot] = from;
+
+        EntityManager.CreateEntity(typeof(InventoryChanged));
     }
+
+    protected override void OnStopRunning() { }
 
     protected override void OnUpdate()
     {
-        // EntityManager.DestroyEntity(GetEntityQuery(typeof(InventoryChanged)));
-        var inventories = GetBufferFromEntity<Inventory>(true);
-        hotbar.Query<InventoryButton>().ForEach(x =>
+        if (Input.GetKeyDown(KeyCode.C))
         {
-            if (x.Container == Entity.Null ||
-                !inventories.HasComponent(x.Container) ||
-                inventories[x.Container].Length <= x.Slot ||
-                inventories[x.Container][x.Slot].Slot.Item == Entity.Null)
-            {
-                x.IsEmpty = true;
-                return;
-            }
+            inventoryOpen = !inventoryOpen;
+            inventory.style.display = inventoryOpen ? DisplayStyle.Flex : DisplayStyle.None;
+            World.GetExistingSystem<InputSystem>().SetCursor(inventoryOpen ? InputSystem.CursorState.Default : InputSystem.CursorState.Disabled);
+        }
 
-            x.IsEmpty = false;
-            var item = inventories[x.Container][x.Slot].Slot.Item;
-            x.Name = GetComponent<Name>(item).Value.Value;
-            if (HasComponent<Stackable>(item))
-                x.Info = $"x{GetComponent<Stackable>(item).Size}";
-            else
-                x.Info = "";
-        });
+        if (!GetEntityQuery(typeof(InventoryChanged)).IsEmpty)
+        {
+            var inventories = GetBufferFromEntity<Inventory>(true);
+            var names = GetComponentDataFromEntity<Name>(true);
+            var stacks = GetComponentDataFromEntity<Stackable>(true);
+            var uiPanels = GetEntityQuery(typeof(InventoryUI)).ToComponentDataArray<InventoryUI>();
+            foreach (var ui in uiPanels)
+                ui.Container.Update(inventories, names, stacks);
+            EntityManager.DestroyEntity(GetEntityQuery(typeof(InventoryChanged)));
+            EntityManager.RemoveComponent<SelectedItem>(GetEntityQuery(typeof(SelectedItem)));
+        }
 
         if(GetSingleton<InputSystem.InputData>().ScrollMode == InputSystem.ScrollMode.Inventory)
             SelectHotbarItem(GetSingleton<InputSystem.InputData>().Scroll);
-
-        if (Input.GetKeyDown(KeyCode.C))
-            inventoryOpen = !inventoryOpen;
-        inventory.style.display = inventoryOpen ? DisplayStyle.Flex : DisplayStyle.None;
-
-        if (inventory.style.display == DisplayStyle.None)
-            return;
-
-        inventory.Query<InventoryButton>().ForEach(x =>
-        {
-            if (x.Container == Entity.Null ||
-                !inventories.HasComponent(x.Container) ||
-                inventories[x.Container].Length <= x.Slot ||
-                inventories[x.Container][x.Slot].Slot.Item == Entity.Null)
-            {
-                x.IsEmpty = true;
-                return;
-            }
-
-            x.IsEmpty = false;
-            var item = inventories[x.Container][x.Slot].Slot.Item;
-            x.Name = GetComponent<Name>(item).Value.Value;
-            if (HasComponent<Stackable>(item))
-                x.Info = $"x{GetComponent<Stackable>(item).Size}";
-            else
-                x.Info = "";
-            x.style.display = DisplayStyle.Flex;
-        });
     }
 
     void SelectHotbarItem(float scroll)
     {
+        if (scroll == 0)
+            return;
+
         EntityManager.RemoveComponent<SelectedItem>(GetEntityQuery(typeof(SelectedItem)));
         var buttons = hotbar.Query<InventoryButton>().ToList();
         if (buttons.Count == 0)

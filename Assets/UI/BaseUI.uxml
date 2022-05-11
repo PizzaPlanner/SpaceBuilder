@@ -24,62 +24,25 @@
         </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement name="Crosshair" style="width: 16px; height: 16px; position: absolute; left: 50%; top: 50%; right: 50%; bottom: 50%; background-image: url(&apos;/Assets/UI/crosshair.png&apos;);" />
-    <ui:VisualElement name="ContextMenu" style="left: 60%; top: 50%; display: flex; max-width: 200px; align-items: flex-start;">
+    <ui:VisualElement name="ContextMenu" picking-mode="Ignore" style="left: 60%; top: 50%; display: flex; max-width: 200px; align-items: flex-start;">
         <ui:VisualElement name="MainAction" style="flex-direction: row; align-items: center; background-image: url(&apos;/Assets/UI/bg_slim.png&apos;);">
             <ui:VisualElement style="width: 24px; height: 24px;" />
             <ui:Label text="Build" display-tooltip-when-elided="true" name="MainActionName" />
         </ui:VisualElement>
     </ui:VisualElement>
-    <ui:VisualElement name="Hotbar" style="position: absolute; bottom: 0; right: 50%; left: 50%; align-items: flex-end; justify-content: center; flex-direction: row;">
-        <InventoryButton />
-        <InventoryButton />
-        <InventoryButton />
+    <InventoryElement name="Hotbar" style="position: absolute; flex-direction: row; left: 50%; right: 50%; bottom: 0; justify-content: center; align-items: flex-end;" />
+    <ui:VisualElement name="Inventory" picking-mode="Ignore" style="align-items: center; justify-content: space-around; flex-direction: row; position: absolute; left: 0; top: 0; right: 0; bottom: 0;">
+        <InventoryElement name="MyBag" class="inventory">
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+            <InventoryButton />
+        </InventoryElement>
+        <ui:VisualElement name="Crafting" style="background-image: url(&apos;/Assets/UI/bg_slim.png&apos;); width: 128px; height: 128px; -unity-slice-left: 20; -unity-slice-top: 20; -unity-slice-right: 20; -unity-slice-bottom: 20;" />
+        <InventoryElement name="RemoteBag" class="inventory" />
     </ui:VisualElement>
-    <ui:VisualElement name="Inventory" style="align-items: center; justify-content: center; flex-direction: row; position: absolute; left: 0; top: 0; right: 0; bottom: 0;">
-        <ui:VisualElement name="Bag" style="width: 260px; height: 410px; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; background-image: url(&apos;/Assets/UI/bg_slim.png&apos;); -unity-slice-left: 10; -unity-slice-top: 10; -unity-slice-right: 10; -unity-slice-bottom: 10; flex-wrap: wrap; flex-direction: row;">
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-        </ui:VisualElement>
-    </ui:VisualElement>
-    <ui:VisualElement name="Center" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; align-items: flex-end; justify-content: center;">
+    <ui:VisualElement name="Center" picking-mode="Ignore" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; align-items: flex-end; justify-content: center;">
         <ui:VisualElement name="BuildMenu" style="flex-wrap: wrap; height: 50%; -unity-slice-left: 20; -unity-slice-top: 20; -unity-slice-right: 20; -unity-slice-bottom: 20; background-image: url(&apos;/Assets/UI/bg_slim.png&apos;); display: none;">
             <BuilderButton class="builder-button__Active" />
             <BuilderButton />
@@ -88,7 +51,7 @@
             <BuilderButton />
             <BuilderButton />
             <BuilderButton />
-            <BuilderButton />
+            <BuilderButton class="inventory" />
             <BuilderButton />
         </ui:VisualElement>
     </ui:VisualElement>
