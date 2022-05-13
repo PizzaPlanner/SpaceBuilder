@@ -20,6 +20,7 @@ public class InventoryElement : VisualElement
             return;
         }
 
+
         var buffer = inventories[Container];
         if (buffer.Length != lastLength)
         {
@@ -51,6 +52,7 @@ public class InventoryElement : VisualElement
             lastLength = buffer.Length;
         }
 
+        // TODO: This is not triggered for new items after crafting?
         this.Query<InventoryButton>().ForEach(x =>
         {
             var entity = buffer[x.Slot].Slot.Item;
@@ -118,6 +120,49 @@ public class InventoryButton : VisualElement
     }
 
     public new class UxmlFactory : UxmlFactory<InventoryButton, UxmlTraits> { }
+}
+
+public class CraftingInputButton : VisualElement
+{
+    public CraftingInput Input;
+
+    public bool HasItems
+    {
+        set
+        {
+            if (value) RemoveFromClassList("crafting-input__missing");
+            else AddToClassList("crafting-input__missing");
+        }
+        get => !ClassListContains("crafting-input__missing");
+    }
+
+    public string Name
+    {
+        get => this.Q<Label>(null, "name").text;
+        set { this.Q<Label>(null, "name").text = value; }
+    }
+
+    public string Info
+    {
+        get => this.Q<Label>(null, "stack").text;
+        set { this.Q<Label>(null, "stack").text = value; }
+    }
+
+    public CraftingInputButton()
+    {
+        AddToClassList("crafting-input");
+        var icon = new VisualElement();
+        icon.AddToClassList("icon");
+        var label = new Label("Test");
+        label.AddToClassList("name");
+        var stack = new Label("x10");
+        stack.AddToClassList("stack");
+        Add(icon);
+        Add(label);
+        Add(stack);
+    }
+
+    public new class UxmlFactory : UxmlFactory<CraftingInputButton, UxmlTraits> { }
 }
 
 public class BuilderButton : VisualElement

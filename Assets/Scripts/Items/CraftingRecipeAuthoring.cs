@@ -55,10 +55,10 @@ public class CraftingRecipeAuthoring : MonoBehaviour, IConvertGameObjectToEntity
         }
 
         var catBuffer = dstManager.AddBuffer<CraftingCatalyst>(entity);
-        foreach (var thing in Output)
+        foreach (var thing in Catalysts)
         {
             catBuffer.Add(new CraftingCatalyst
-                {ItemId = thing.Prefab.GetComponent<IdentifieableAuthoring>().Id});
+                {ItemId = thing.GetComponent<IdentifieableAuthoring>().Id});
         }
     }
 }

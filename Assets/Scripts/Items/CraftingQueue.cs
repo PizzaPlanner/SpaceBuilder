@@ -9,6 +9,11 @@ public struct CraftingQueue : IComponentData
     public Entity CatalystInventory;
 }
 
+public struct CraftableBuffer : IBufferElementData
+{
+    public Entity Recipe;
+}
+
 public struct CraftingBuffer : IBufferElementData
 {
     public Entity Recipe;

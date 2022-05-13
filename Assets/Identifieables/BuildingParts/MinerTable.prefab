@@ -302,6 +302,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cc657df93b545efbc9716b6ea082c21, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Recipes:
+  - {fileID: 3596002252489825693, guid: f54fad7ad4eaca54f8d40cf67623d3f9, type: 3}
+  - {fileID: 2248868790609929265, guid: 7b80157f7a47ad448ac19712617cd7fd, type: 3}
   Input: {fileID: -8865198869745752262}
   Output: {fileID: -8865198869745752262}
   Catalysts: {fileID: -8865198869745752262}

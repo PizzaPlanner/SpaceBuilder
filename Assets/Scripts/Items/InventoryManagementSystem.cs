@@ -23,6 +23,7 @@ public partial class InventoryManagementSystem : SystemBase
     {
         bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
         RequireSingletonForUpdate<IdentifiableMappingSystem.Loaded>();
+        RequireForUpdate(GetEntityQuery(new EntityQueryDesc{Any = new[]{ComponentType.ReadWrite<GetItemAction>(), ComponentType.ReadWrite<RemoveItem>()}}));
     }
 
     protected override void OnUpdate()

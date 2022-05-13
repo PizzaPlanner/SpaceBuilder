@@ -16,9 +16,16 @@ public struct Stackable : IComponentData
 [UpdateBefore(typeof(InventoryManagementSystem))]
 public partial class PickupItemSystem : SystemBase
 {
+    private EntityCommandBufferSystem bufferSystem;
+    protected override void OnCreate()
+    {
+        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
+    }
+
     protected override void OnUpdate()
     {
         var inventories = GetBufferFromEntity<Inventory>(false);
+        var buffer = bufferSystem.CreateCommandBuffer();
         Entities
             .WithAll<PhysicsWorldIndex>()
             .WithNone<DisableRendering>()
@@ -43,14 +50,16 @@ public partial class PickupItemSystem : SystemBase
             {
                 if (!HasComponent<Parent>(e))
                 {
-                    EntityManager.AddComponentData(e, new Parent{Value = interaction.Interactor});
-                    EntityManager.AddComponent<LocalToParent>(e);
+                    buffer.AddComponent(e, new Parent{Value = interaction.Interactor});
+                    buffer.AddComponent<LocalToParent>(e);
                 }
                 SetComponent(e, new LocalToWorld{Value = float4x4.Translate(new float3(float.PositiveInfinity))});
-                EntityManager.AddComponent<DisableRendering>(e);
-                EntityManager.RemoveComponent<PhysicsWorldIndex>(e);
+                buffer.AddComponent<DisableRendering>(e);
+                buffer.RemoveComponent<PhysicsWorldIndex>(e);
             }
 
-        }).WithStructuralChanges().WithoutBurst().Run();
+        }).Run();
+
+        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

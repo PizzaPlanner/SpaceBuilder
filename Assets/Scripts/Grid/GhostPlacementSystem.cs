@@ -135,7 +135,6 @@ public partial class GhostPlacementSystem : SystemBase
                     var e = EntityManager.CreateEntity(typeof(PendingPart));
                     EntityManager.SetComponentData(e, pendingBuild);
                 }
-                EntityManager.AddComponentData(buildables, new RemoveItem { Quantity = 1 });
                 EntityManager.DestroyEntity(ghost);
             }).WithStructuralChanges().WithoutBurst().Run();
         }
