@@ -4,6 +4,7 @@ using UnityEngine;
 public class GhostPlacementSettings : ScriptableObject
 {
     public Material GhostPlacementMaterial;
+    public Material GhostBlueprintedMaterial;
     public Material GhostRemovalMaterial;
 
     public Material GridBuildMaterial;

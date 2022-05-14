@@ -12,6 +12,7 @@ public struct BuildingPartInfo
     public long Id;
     public int3 Position;
     public quaternion Orientation;
+    public ushort BuildStatus;
 }
 
 public struct PendingPart : IComponentData
@@ -23,6 +24,7 @@ public struct PendingPart : IComponentData
 public struct BuildingBlueprint
 {
     private const string RInt = @"(-?\d+)";
+    private const string RUInt = @"(\d+)";
     private const string RFloat = @"(-?\d*\.?\d+)f";
     public int Version;
     public string Name;
@@ -33,8 +35,8 @@ public struct BuildingBlueprint
     {
         return $@"Version:{Version}
 Name:{Name}
-Parts:{RInt}\|int3\({RInt}, {RInt}, {RInt}\)\|quaternion\({RFloat}, {RFloat}, {RFloat}, {RFloat}\)
-{string.Join("\n", Parts.Select(x => $"- Part:{x.Id}|{x.Position}|{x.Orientation.ToString("G", CultureInfo.InvariantCulture)}"))}
+Parts:{RInt}\|int3\({RInt}, {RInt}, {RInt}\)\|quaternion\({RFloat}, {RFloat}, {RFloat}, {RFloat}\)\|{RUInt}
+{string.Join("\n", Parts.Select(x => $"- Part:{x.Id}|{x.Position}|{x.Orientation.ToString("G", CultureInfo.InvariantCulture)}|{x.BuildStatus.ToString()}"))}
 ";
     }
 }
@@ -48,7 +50,6 @@ public static class BlueprintUtils
         bp.Version = Version;
         bp.Name = em.GetComponentData<Name>(grid).Value.Value;
         bp.Grid = em.GetComponentData<Grid>(grid);
-        var gridLtw = em.GetComponentData<LocalToWorld>(grid);
 
         var parts = new List<BuildingPartInfo>();
         var children = em.GetBuffer<Child>(grid);
@@ -64,7 +65,8 @@ public static class BlueprintUtils
             {
                 Id = identifieable.ItemId,
                 Orientation = rotation.Value,
-                Position = gridItem.Area.Origin
+                Position = gridItem.Area.Origin,
+                BuildStatus = em.HasComponent<UnderConstruction>(child.Value) ? em.GetComponentData<UnderConstruction>(child.Value).Progress : ushort.MaxValue
             });
         }
 
@@ -78,11 +80,11 @@ public static class BlueprintUtils
         var lines = blueprint.Split('\n');
         var compiled = new BuildingBlueprint();
         compiled.Parts = new List<BuildingPartInfo>();
-        Parse(ref compiled, lines);
+        ParseV2(ref compiled, lines);
         return compiled;
     }
 
-    private static void Parse(ref BuildingBlueprint blueprint, string[] lines)
+    private static void ParseV2(ref BuildingBlueprint blueprint, string[] lines)
     {
         var partsRegex = "<INVALID>";
         foreach (var line in lines)
@@ -118,7 +120,8 @@ public static class BlueprintUtils
                             float.Parse(match.Groups[5].Value, CultureInfo.InvariantCulture),
                             float.Parse(match.Groups[6].Value, CultureInfo.InvariantCulture),
                             float.Parse(match.Groups[7].Value, CultureInfo.InvariantCulture),
-                            float.Parse(match.Groups[8].Value, CultureInfo.InvariantCulture))
+                            float.Parse(match.Groups[8].Value, CultureInfo.InvariantCulture)),
+                        BuildStatus = ushort.Parse(match.Groups[9].Value)
                     };
                     blueprint.Parts.Add(part);
                 }

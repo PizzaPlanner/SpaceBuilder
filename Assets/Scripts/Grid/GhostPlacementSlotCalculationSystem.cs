@@ -76,8 +76,8 @@ public partial class CalculateBuildingSlotSystem : SystemBase
             canBuild &= !(item.Size == gridItem.Type && gridItem.Area.Contains(item.Location) && (item.Value & gridItem.Occupied) > 0);
 
         SetComponent(ghost, new Ghost{Buildable = canBuild});
-        SetComponent(ghost, newPos);
         SetComponent(ghost, gridItem);
+        SetComponent(ghost, newPos);
     }
 }
 

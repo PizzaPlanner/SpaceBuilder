@@ -30,7 +30,7 @@ public partial class GridSubItemInitializationSystem : SystemBase
         Entities
             .WithReadOnly(idEntities)
             .WithReadOnly(idIds)
-            .WithNone<GridItem, Ghost>()
+            .WithNone<GridItem, Ghost, Blueprinted>()
             .ForEach((Entity e, in GridSubItem subItem, in Identifieable id) =>
         {
             var parentGridItem = e;

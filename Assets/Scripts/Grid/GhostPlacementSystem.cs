@@ -4,7 +4,6 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Cursor = UnityEngine.Cursor;
 
 [GenerateAuthoringComponent]
 public struct GhostPlacementBuilder : IComponentData
@@ -20,11 +19,17 @@ public struct Ghost : IComponentData
     public bool Buildable;
 }
 
+public struct Blueprinted : IComponentData
+{
+}
+
 [UpdateBefore(typeof(TransformSystemGroup))]
+[UpdateBefore(typeof(BuildingSystem))]
 public partial class GhostPlacementSystem : SystemBase
 {
     private int ghostId;
     private bool rotating;
+    private bool wantSwitchGhost;
     public quaternion currentRotation;
     private VisualElement buildMenu, constructionBorder;
     private Entity currentGrid;
@@ -47,7 +52,7 @@ public partial class GhostPlacementSystem : SystemBase
 
         buildMenu ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BuildMenu");
         buildMenu.style.display = DisplayStyle.None;
-        constructionBorder ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("ConstructionBorder");
+        constructionBorder ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BlueprintBorder");
         constructionBorder.style.display = DisplayStyle.Flex;
         buildMenu.Clear();
 
@@ -66,8 +71,7 @@ public partial class GhostPlacementSystem : SystemBase
             button.RegisterCallback<MouseEnterEvent>(_ =>
             {
                 ghostId = tempId;
-                if(HasSingleton<GhostPlacementBuilder>())
-                    EntityManager.DestroyEntity(GetSingletonEntity<GhostPlacementBuilder>());
+                wantSwitchGhost = true;
             });
             buildMenu.Add(button);
         }
@@ -100,42 +104,75 @@ public partial class GhostPlacementSystem : SystemBase
             World.GetExistingSystem<InputSystem>().SetCursor(InputSystem.CursorState.Disabled);
         }
 
+        var query = GetEntityQuery(typeof(GhostPlacementBuilder));
+        var placers = query.CalculateEntityCount();
+        if (wantSwitchGhost || placers > 1)
+        {
+            EntityManager.DestroyEntity(query.ToEntityArray(Allocator.Temp));
+            wantSwitchGhost = false;
+            return;
+        }
+
         if (!HasSingleton<GhostPlacementBuilder>())
         {
             var buffer = GetBuffer<BuildableBuffer>(buildables);
-            buildMenu.Query<BuilderButton>().ForEach(x => x.Selected = x.Id == buffer[ghostId].PrefabId);
-            World.GetExistingSystem<BuildingSystem>().Build(buffer[ghostId].PrefabId, currentGrid, int3.zero, currentRotation, true);
+            var prefabId = buffer[ghostId].PrefabId;
+            buildMenu.Query<BuilderButton>().ForEach(x => x.Selected = x.Id == prefabId);
+            var pp = EntityManager.CreateEntity(typeof(PendingPart), typeof(Ghost));
+            SetComponent(pp, new PendingPart
+            {
+                Data = new BuildingPartInfo
+                {
+                    Id = prefabId,
+                    Position = int3.zero,
+                    Orientation = currentRotation,
+                    BuildStatus = 0
+                },
+                Grid = currentGrid
+            });
+            var ppquery = GetEntityQuery(typeof(Ghost), typeof(PendingPart));
+            new BuildingSystem.BuildJob
+            {
+                buffer = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>().CreateCommandBuffer(),
+                grids = GetComponentDataFromEntity<Grid>(true),
+                gridItems = GetComponentDataFromEntity<GridItem>(true),
+                occupations = GetBufferFromEntity<OccupationBuffer>(true),
+                prefabMap = IdentifiableMappingSystem.EntitiesById,
+                IsCreateGhostJob = true
+            }.Run(ppquery);
+            EntityManager.DestroyEntity(pp);
             return;
         }
 
         var bgp = GetSingleton<GhostPlacementBuilder>();
-        var ghostEntity = GetSingletonEntity<GhostPlacementBuilder>();
+        var placement = GetSingletonEntity<GhostPlacementBuilder>();
         if (Input.GetMouseButtonUp(0))
         {
-            EntityManager.RemoveComponent<GhostPlacementBuilder>(ghostEntity);
             Entities
-                .WithNone<GhostPlacementBuilder>()
-                .WithAll<Ghost>()
-                .ForEach((Entity ghost, in GridItem item, in Rotation r, in Identifieable id) =>
-            {
-                for (int x = bgp.Area.Min.x; x <= bgp.Area.Max.x; x++)
-                for (int y = bgp.Area.Min.y; y <= bgp.Area.Max.y; y++)
-                for (int z = bgp.Area.Min.z; z <= bgp.Area.Max.z; z++)
+                .ForEach((Entity e, in GridItem item, in Rotation r, in Identifieable id, in Ghost ghost) =>
                 {
-                    var pendingBuild = new PendingPart
+                    if (!ghost.Buildable)
+                        return;
+
+                    for (int x = bgp.Area.Min.x; x <= bgp.Area.Max.x; x++)
+                    for (int y = bgp.Area.Min.y; y <= bgp.Area.Max.y; y++)
+                    for (int z = bgp.Area.Min.z; z <= bgp.Area.Max.z; z++)
                     {
-                        Data = new BuildingPartInfo
+                        var pendingBuild = new PendingPart
                         {
-                            Id = id.ItemId,
-                            Position = new int3(x,y,z),
-                            Orientation = r.Value
-                        },
-                        Grid = currentGrid
-                    };
-                    var e = EntityManager.CreateEntity(typeof(PendingPart));
-                    EntityManager.SetComponentData(e, pendingBuild);
-                }
-                EntityManager.DestroyEntity(ghost);
+                            Data = new BuildingPartInfo
+                            {
+                                Id = id.ItemId,
+                                Position = new int3(x,y,z),
+                                Orientation = r.Value,
+                                BuildStatus = 0
+                            },
+                            Grid = currentGrid
+                        };
+                        var part = EntityManager.CreateEntity(typeof(PendingPart));
+                        EntityManager.SetComponentData(part, pendingBuild);
+                    }
+                    EntityManager.DestroyEntity(e);
             }).WithStructuralChanges().WithoutBurst().Run();
         }
 
@@ -151,7 +188,7 @@ public partial class GhostPlacementSystem : SystemBase
             if (Input.GetKey(KeyCode.Alpha3))
                 currentRotation = math.mul(currentRotation, quaternion.RotateZ(math.PI * sign * 0.5f));
 
-            SetComponent(ghostEntity, BuildingSystem.RotateItem(bgp.Original, currentRotation));
+            SetComponent(placement, BuildingSystem.RotateItem(bgp.Original, currentRotation));
             EntityManager.SetComponentData(GetSingletonEntity<GhostPlacementBuilder>(), new Rotation{Value = currentRotation});
         }
     }

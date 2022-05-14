@@ -28,7 +28,6 @@ public partial class PlayerSpawnSystem : SystemBase
             return;
         }
         var buffer = bufferSystem.CreateCommandBuffer();
-        var origin = World.GetExistingSystem<DockingSystem>().Origin;
 
         Entities.ForEach((in SpawnPoint sp, in LocalToWorld ltw, in LocalToGalaxy ltg) =>
         {

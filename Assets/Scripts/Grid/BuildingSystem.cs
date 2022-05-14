@@ -1,5 +1,3 @@
-using System.Linq;
-using SnapPoints;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -10,81 +8,99 @@ using UnityEngine;
 
 public partial class BuildingSystem : SystemBase
 {
+    private EntityCommandBufferSystem bufferSystem;
+    private EntityQuery query;
     protected override void OnCreate()
     {
+        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
         RequireSingletonForUpdate<IdentifiableMappingSystem.Loaded>();
-        RequireForUpdate(GetEntityQuery(typeof(PendingPart)));
+        query = GetEntityQuery(typeof(PendingPart), ComponentType.Exclude<Ghost>());
+        RequireForUpdate(query);
+    }
+
+    public partial struct BuildJob : IJobEntity
+    {
+        public EntityCommandBuffer buffer;
+        [ReadOnly] public NativeHashMap<long, Entity> prefabMap;
+        [ReadOnly] public ComponentDataFromEntity<Grid> grids;
+        [ReadOnly] public ComponentDataFromEntity<GridItem> gridItems;
+        [ReadOnly] public BufferFromEntity<OccupationBuffer> occupations;
+
+        public bool IsCreateGhostJob;
+        public bool IsFinishConstructionJob;
+
+        public void Execute(Entity e, in PendingPart part)
+        {
+            if (!grids.HasComponent(part.Grid))
+                return;
+
+            // Get prefab from id
+            if (!prefabMap.TryGetValue(part.Data.Id, out var prefab))
+                return;
+
+            var originalGridItem = gridItems[prefab];
+            var newGridItem = RotateItem(originalGridItem, part.Data.Orientation);
+            newGridItem.Grid = part.Grid;
+            newGridItem.Area.Origin = part.Data.Position;
+
+            // Check if space is already occupied
+            if (!IsCreateGhostJob && !IsFinishConstructionJob)
+            {
+                var canBuild = true;
+                foreach (var item in occupations[part.Grid])
+                    canBuild &= !(item.Size == newGridItem.Type && newGridItem.Area.Contains(item.Location) &&
+                                  (item.Value & newGridItem.Occupied) > 0);
+                if (!canBuild)
+                    return;
+            }
+
+            // Create Part
+            var entity = buffer.Instantiate(prefab);
+            buffer.AddComponent(entity, new UpdateRotation {Value = part.Data.Orientation, ReferencePrefab = prefab});
+            buffer.SetComponent(entity, newGridItem);
+            buffer.SetComponent(entity, new Parent {Value = part.Grid});
+            buffer.SetComponent(entity, new Rotation {Value = part.Data.Orientation});
+            buffer.SetComponent(entity, new Translation {Value = Grid.PositionFromCell(originalGridItem.Type, part.Data.Position)});
+
+            if (part.Data.BuildStatus == 0)
+            {
+                if(!IsCreateGhostJob)
+                {
+                    buffer.AddComponent<Blueprinted>(entity);
+                    buffer.AddComponent<UnderConstruction>(entity);
+                }
+                else
+                {
+                    buffer.AddComponent<Ghost>(entity);
+                    buffer.AddComponent(entity, new GhostPlacementBuilder
+                    {
+                        Original = originalGridItem,
+                        Range = 10,
+                        TargetGrid = part.Grid
+                    });
+                }
+            } else if(!IsCreateGhostJob && part.Data.BuildStatus < ushort.MaxValue)
+                buffer.AddComponent(entity, new UnderConstruction{Progress = part.Data.BuildStatus});
+
+            buffer.DestroyEntity(e);
+        }
     }
 
     protected override void OnUpdate()
     {
-        Entities.ForEach((in PendingPart part) =>
+        var buffer = bufferSystem.CreateCommandBuffer();
+        Dependency = new BuildJob
         {
-            Build(part.Data.Id, part.Grid, part.Data.Position, part.Data.Orientation, false);
-        }).WithoutBurst().WithStructuralChanges().Run();
+            buffer = buffer,
+            grids = GetComponentDataFromEntity<Grid>(true),
+            gridItems = GetComponentDataFromEntity<GridItem>(true),
+            occupations = GetBufferFromEntity<OccupationBuffer>(true),
+            prefabMap = IdentifiableMappingSystem.EntitiesById,
+            IsCreateGhostJob = false
+        }.Schedule(query);
 
-        EntityManager.DestroyEntity(GetEntityQuery(typeof(PendingPart)));
+        bufferSystem.AddJobHandleForProducer(Dependency);
         EntityManager.CreateEntity(typeof(GridsNeedUpdate));
-    }
-
-    public Entity Build(long id, Entity gridEntity, int3 position, quaternion rotation, bool asGhost)
-    {
-        if (!HasComponent<Grid>(gridEntity))
-            return Entity.Null;
-
-        // Get prefab from id
-        var prefabQuery = GetEntityQuery(typeof(Prefab), typeof(Identifieable));
-        var identifiables = prefabQuery.ToComponentDataArray<Identifieable>(Allocator.Temp);
-        var prefabs = prefabQuery.ToEntityArray(Allocator.Temp);
-        var prefab = Entity.Null;
-        for(int i = 0; i < identifiables.Length; i++)
-            if (identifiables[i].ItemId == id)
-                prefab = prefabs[i];
-        if (prefab == Entity.Null)
-            return Entity.Null;
-
-        var originalGridItem = GetComponent<GridItem>(prefab);
-        var newGridItem = RotateItem(originalGridItem, rotation);
-        newGridItem.Grid = gridEntity;
-        newGridItem.Area.Origin = position;
-
-        // Check if space is already occupied
-        if (!asGhost)
-        {
-            var canBuild = true;
-            foreach (var item in GetBuffer<OccupationBuffer>(gridEntity))
-                canBuild &= !(item.Size == newGridItem.Type && newGridItem.Area.Contains(item.Location) && (item.Value & newGridItem.Occupied) > 0);
-            if (!canBuild)
-                return Entity.Null;
-        }
-
-        // Create Part
-        var entity = EntityManager.Instantiate(prefab);
-        EntityManager.AddComponentData(entity, new UpdateRotation {Value = rotation, ReferencePrefab = prefab});
-        SetComponent(entity, newGridItem);
-        SetComponent(entity, new Parent { Value = gridEntity });
-        SetComponent(entity, new Rotation{ Value = rotation });
-        SetComponent(entity, new Translation{ Value = Grid.PositionFromCell(originalGridItem.Type, position) });
-
-#if UNITY_EDITOR
-        if(HasComponent<Name>(entity))
-            EntityManager.SetName(entity, GetComponent<Name>(entity).Value);
-#endif
-        if (asGhost)
-        {
-            EntityManager.AddComponentData(entity, new GhostPlacementBuilder{
-                TargetGrid = gridEntity,
-                Range = 10,
-                Original = originalGridItem
-            });
-            EntityManager.AddComponent<Ghost>(entity);
-
-#if UNITY_EDITOR
-            EntityManager.SetName(entity, "[GHOST]");
-#endif
-        }
-
-        return entity;
     }
 
     public static GridItem RotateItem(GridItem original, quaternion rotation)
@@ -101,30 +117,51 @@ public partial class BuildingSystem : SystemBase
 public partial class GhostChildrenUpdateSystem : SystemBase
 {
     private EntityQuery query;
+    private EntityCommandBufferSystem bufferSystem;
     protected override void OnCreate()
     {
+        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
         query = GetEntityQuery(typeof(Ghost), typeof(GridItem));
         RequireForUpdate(query);
     }
 
     protected override void OnUpdate()
     {
-        var childBuffer = GetBufferFromEntity<Child>(true);
-        var entities = query.ToEntityArray(Allocator.Temp);
-        foreach (var ghost in entities)
-        {
-            var gParent = GetComponent<Ghost>(ghost);
-            foreach (var child in childBuffer.GetAllChildren(ghost).ToArray())
+        var buffer = bufferSystem.CreateCommandBuffer();
+        Entities
+            .ForEach((Entity e, in DynamicBuffer<Child> childBuffer, in Ghost ghost) =>
             {
-                if (!HasComponent<Ghost>(child))
-                    EntityManager.AddComponentData(child, gParent);
-                else
-                    EntityManager.SetComponentData(child, gParent);
+                for (int i = 0; i < childBuffer.Length; i++)
+                {
+                    var e2 = childBuffer[i].Value;
+                    if (HasComponent<Ghost>(e2))
+                        buffer.SetComponent(e2, ghost);
+                    else
+                        buffer.AddComponent(e2, ghost);
+                }
+            }).Schedule();
 
-                if (EntityManager.HasComponent<PhysicsCollider>(child))
-                    EntityManager.RemoveComponent<PhysicsCollider>(child);
-            }
-        }
+        Entities
+            .ForEach((Entity e, in DynamicBuffer<Child> childBuffer, in Blueprinted bp) =>
+            {
+                for (int i = 0; i < childBuffer.Length; i++)
+                {
+                    var e2 = childBuffer[i].Value;
+                    if (HasComponent<Blueprinted>(e2))
+                        continue;
+
+                    buffer.AddComponent(e2, bp);
+                }
+            }).Schedule();
+
+        Entities
+            .WithAny<Ghost, Blueprinted>()
+            .ForEach((ref PhysicsCollider collider) =>
+            {
+                collider.Value.Value.Filter = new CollisionFilter{BelongsTo = 1 << 12, CollidesWith = 1<< 12};
+            }).Schedule();
+
+        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }
 
@@ -135,14 +172,36 @@ public partial class GhostVisualsUpdateSystem : SystemBase
     protected override void OnCreate()
     {
         settings = Resources.Load<GhostPlacementSettings>("GhostPlacementSettings");
-        RequireSingletonForUpdate<GhostPlacementBuilder>();
+        RequireForUpdate(GetEntityQuery(new EntityQueryDesc{Any = new[]
+        {
+            ComponentType.ReadOnly<BuilderMode_Blueprint>(),
+            ComponentType.ReadOnly<BuilderMode_Build>()
+        }}));
     }
+
+    protected override void OnStartRunning()
+    {
+        EntityManager.RemoveComponent<DisableRendering>(GetEntityQuery(typeof(DisableRendering), typeof(Blueprinted)));
+    }
+
+    protected override void OnStopRunning()
+    {
+        EntityManager.AddComponent<DisableRendering>(GetEntityQuery(ComponentType.Exclude<DisableRendering>(), typeof(Blueprinted)));
+    }
+
     protected override void OnUpdate()
     {
         Entities.WithAll<RenderMesh>().ForEach((Entity e, in Ghost ghost) =>
         {
             var renderMesh = EntityManager.GetSharedComponentData<RenderMesh>(e);
             renderMesh.material = ghost.Buildable ? settings.GhostPlacementMaterial : settings.GhostRemovalMaterial;
+            EntityManager.SetSharedComponentData(e, renderMesh);
+        }).WithoutBurst().WithStructuralChanges().Run();
+
+        Entities.WithAll<RenderMesh, Blueprinted>().ForEach((Entity e) =>
+        {
+            var renderMesh = EntityManager.GetSharedComponentData<RenderMesh>(e);
+            renderMesh.material = settings.GhostBlueprintedMaterial;
             EntityManager.SetSharedComponentData(e, renderMesh);
         }).WithoutBurst().WithStructuralChanges().Run();
     }

@@ -9,6 +9,7 @@ public struct Target : IComponentData
     public Entity Value;
     public Entity PreviousValue;
     public bool CanInteract;
+    public bool CanConstruct;
 }
 
 public partial class TargetSystem : SystemBase
@@ -23,7 +24,7 @@ public partial class TargetSystem : SystemBase
         RequireSingletonForUpdate<CameraAnchor>();
         physicsWorld = World.GetExistingSystem<BuildPhysicsWorld>();
         filter = CollisionFilter.Default;
-        filter.CollidesWith = 1u << 7;
+        filter.CollidesWith = (1u << 7) | (1u << 12);
         filter.BelongsTo = ~0u;
     }
 
@@ -53,8 +54,10 @@ public partial class TargetSystem : SystemBase
         SetComponent(GetSingletonEntity<LocalPlayer>(), target);
 
         Entities.ForEach((ref Target t) =>
-            {
-                t.CanInteract = t.Value != Entity.Null && HasComponent<Interactable>(t.Value);
-            }).Run();
+        {
+            var isGhost = t.Value != Entity.Null && HasComponent<Ghost>(t.Value);
+            t.CanConstruct = !isGhost && t.Value != Entity.Null && HasComponent<UnderConstruction>(t.Value);
+            t.CanInteract = !t.CanConstruct && !isGhost && t.Value != Entity.Null && HasComponent<Interactable>(t.Value);
+        }).Run();
     }
 }

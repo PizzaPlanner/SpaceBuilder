@@ -7,10 +7,7 @@ using UnityEngine.UIElements;
 using Cursor = UnityEngine.Cursor;
 using Debug = UnityEngine.Debug;
 
-public struct BuilderMode_Build : ISystemStateComponentData
-{
-    public Entity Grid;
-}
+public struct BuilderMode_Build : ISystemStateComponentData { }
 
 public struct BuilderMode_Blueprint : ISystemStateComponentData
 {
@@ -94,6 +91,11 @@ public partial class InputSystem : SystemBase
             uiRoot.style.display = DisplayStyle.Flex;
             uiRoot.Q<Label>("MainActionName").text = "Interact";
         }
+        else if (target.CanConstruct && target.Value != Entity.Null && input.CurrentAction == ActionState.Construct)
+        {
+            uiRoot.style.display = DisplayStyle.Flex;
+            uiRoot.Q<Label>("MainActionName").text = "Construct";
+        }
         else
             uiRoot.style.display = DisplayStyle.None;
 
@@ -110,7 +112,19 @@ public partial class InputSystem : SystemBase
             {
                 EntityManager.AddComponentData(entity, new BuilderMode_Blueprint{Grid = GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target});
                 input.CurrentAction = ActionState.Blueprint;
-                uiRoot.Q<Label>("MainActionName").text = "Design";
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.V))
+        {
+            if (input.CurrentAction == ActionState.Construct)
+            {
+                input.CurrentAction = ActionState.None;
+            }
+            else if(input.CurrentAction == ActionState.None)
+            {
+                EntityManager.AddComponentData(entity, new BuilderMode_Build());
+                input.CurrentAction = ActionState.Construct;
             }
         }
 
@@ -124,7 +138,6 @@ public partial class InputSystem : SystemBase
             {
                 EntityManager.AddComponentData(entity, new BuilderMode_Destroy{Grid = GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target});
                 input.CurrentAction = ActionState.Deconstruct;
-                uiRoot.Q<Label>("MainActionName").text = "Deconstruct";
             }
         }
 

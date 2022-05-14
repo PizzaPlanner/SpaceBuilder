@@ -5,7 +5,8 @@
         <ui:Label text="Label" display-tooltip-when-elided="true" name="Coordinates" />
         <ui:Label text="Label" display-tooltip-when-elided="true" name="Forward" />
     </ui:VisualElement>
-    <ui:VisualElement name="ConstructionBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(0, 178, 255, 0.58); border-right-color: rgba(0, 178, 255, 0.58); border-top-color: rgba(0, 178, 255, 0.58); border-bottom-color: rgba(0, 178, 255, 0.58); display: none;" />
+    <ui:VisualElement name="ConstructionBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(0, 255, 99, 0.58); border-right-color: rgba(0, 255, 99, 0.58); border-top-color: rgba(0, 255, 99, 0.58); border-bottom-color: rgba(0, 255, 99, 0.58); display: none;" />
+    <ui:VisualElement name="BlueprintBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(0, 178, 255, 0.58); border-right-color: rgba(0, 178, 255, 0.58); border-top-color: rgba(0, 178, 255, 0.58); border-bottom-color: rgba(0, 178, 255, 0.58); display: none;" />
     <AdminConsole style="position: absolute; width: 30%; height: 25%; display: none;" />
     <ui:VisualElement name="DockInfo" style="position: absolute; left: 0; bottom: 0; align-items: center; justify-content: center;">
         <ui:VisualElement name="System" class="dockingbutton dockingbutton-on" style="flex-direction: row; align-items: center; -unity-background-scale-mode: stretch-to-fill; justify-content: flex-start; width: 100%; margin-top: 1px; margin-bottom: 1px; background-image: url(&apos;/Assets/UI/bg_default.png&apos;);">
@@ -28,6 +29,12 @@
         <ui:VisualElement name="MainAction" style="flex-direction: row; align-items: center; background-image: url(&apos;/Assets/UI/bg_slim.png&apos;);">
             <ui:VisualElement style="width: 24px; height: 24px;" />
             <ui:Label text="Build" display-tooltip-when-elided="true" name="MainActionName" />
+        </ui:VisualElement>
+        <ui:VisualElement name="Construction" style="background-image: url(&apos;/Assets/UI/bg_slim.png&apos;); -unity-slice-left: 20; -unity-slice-top: 20; -unity-slice-right: 20; -unity-slice-bottom: 20; padding-left: 2px; padding-right: 2px; padding-top: 2px; padding-bottom: 2px; display: none;">
+            <ui:VisualElement name="ProgressBarBack" style="height: 22px; border-left-color: rgba(255, 255, 255, 0.39); border-right-color: rgba(255, 255, 255, 0.39); border-top-color: rgba(255, 255, 255, 0.39); border-bottom-color: rgba(255, 255, 255, 0.39); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; min-width: 128px;">
+                <ui:VisualElement name="progressbar" style="width: 58%; height: 100%; background-color: rgb(224, 219, 149);" />
+            </ui:VisualElement>
+            <ui:VisualElement name="ItemList" />
         </ui:VisualElement>
     </ui:VisualElement>
     <InventoryElement name="Hotbar" style="position: absolute; flex-direction: row; left: 50%; right: 50%; bottom: 0; justify-content: center; align-items: flex-end;" />

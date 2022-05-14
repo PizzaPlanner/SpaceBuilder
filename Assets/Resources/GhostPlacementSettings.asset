@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GhostPlacementSettings
   GhostPlacementMaterial: {fileID: 2100000, guid: b79c1604180e4124ebf820cd4c4441e8,
     type: 2}
+  GhostBlueprintedMaterial: {fileID: 2100000, guid: 33979c8bf78e6b44eb7aa5026977bd7d,
+    type: 2}
   GhostRemovalMaterial: {fileID: 2100000, guid: 55d7c742aa7972d4f9e3614e07908c19,
     type: 2}
   GridBuildMaterial: {fileID: 2100000, guid: 5f30a45282d9924419e1ce2d071401dd, type: 2}
