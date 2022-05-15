@@ -10,14 +10,18 @@ public struct UpdateRotation : IComponentData
     public Entity ReferencePrefab;
 }
 
+[ExecuteAlways]
+[UpdateInGroup(typeof(LateSimulationSystemGroup), OrderFirst = true)]
+public class BeginLateSimulationEntitiyCommandBufferSystem : EntityCommandBufferSystem { }
+
 [UpdateInGroup(typeof(LateSimulationSystemGroup))]
 public partial class GridSubItemInitializationSystem : SystemBase
 {
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
+    private EntityCommandBufferSystem bufferSystem;
 
     protected override void OnCreate()
     {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
+        bufferSystem = World.GetExistingSystem<BeforeReparentingEntitiyCommandBufferSystem>();
     }
 
     protected override void OnUpdate()
@@ -30,7 +34,7 @@ public partial class GridSubItemInitializationSystem : SystemBase
         Entities
             .WithReadOnly(idEntities)
             .WithReadOnly(idIds)
-            .WithNone<GridItem, Ghost, Blueprinted>()
+            .WithNone<GridItem, Blueprinted>()
             .ForEach((Entity e, in GridSubItem subItem, in Identifieable id) =>
         {
             var parentGridItem = e;

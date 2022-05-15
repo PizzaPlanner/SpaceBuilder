@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -174,7 +175,17 @@ public partial class InputSystem : SystemBase
 
         if (Input.GetKeyDown(KeyCode.F1) && HasComponent<Docked>(GetSingletonEntity<LocalPlayer>()))
         {
-            Debug.Log(BlueprintUtils.Save(GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target, EntityManager));
+
+            var grid = GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target;
+            if (grid != Entity.Null)
+            {
+                var bp = BlueprintUtils.Save(grid, EntityManager);
+#if UNITY_EDITOR
+                var name = GetComponent<Name>(grid).Value.Value;
+                File.WriteAllText(Application.dataPath + $"/Blueprints/{name}.txt", bp.ToString());
+                Debug.Log($"Saved Blueprint {name}");
+#endif
+            }
         }
 
         SetSingleton(input);

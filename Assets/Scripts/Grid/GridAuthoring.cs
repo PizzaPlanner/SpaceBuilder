@@ -6,8 +6,7 @@ public class GridAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 {
     public Grid.Size Size;
     public bool HasAirflow;
-    [Multiline]
-    public string Blueprint;
+    public TextAsset Blueprint;
 
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {
@@ -16,9 +15,9 @@ public class GridAuthoring : MonoBehaviour, IConvertGameObjectToEntity
             dstManager.AddBuffer<AirtightBuffer>(entity);
         dstManager.AddBuffer<OccupationBuffer>(entity);
         dstManager.AddComponent<TrackedTransform>(entity);
-        if (!string.IsNullOrWhiteSpace(Blueprint))
+        if (Blueprint != null)
         {
-            var bp = BlueprintUtils.Load(Blueprint);
+            var bp = BlueprintUtils.Load(Blueprint.text);
             dstManager.AddComponentData(entity, new Name {Value = bp.Name});
             foreach (var part in bp.Parts)
             {

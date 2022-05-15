@@ -14,6 +14,8 @@ public struct UnderConstruction : IComponentData
     public ushort Progress;
 }
 
+public struct FinishConstruction : IComponentData { }
+
 [UpdateBefore(typeof(InventoryManagementSystem))]
 public partial class ConstructionSystem : SystemBase
 {
@@ -127,7 +129,7 @@ public partial class ConstructionSystem : SystemBase
             current.Progress++;
             if (current.Progress >= maxProgress)
             {
-                ConstructBlueprint(target.Value);
+                EntityManager.AddComponent<FinishConstruction>(target.Value);
             }
             else
                 SetComponent(target.Value, current);
@@ -140,35 +142,5 @@ public partial class ConstructionSystem : SystemBase
         progressBar.style.width =
             new StyleLength(new Length(current.Progress * 100f / maxProgress, LengthUnit.Percent));
 
-    }
-
-    private void ConstructBlueprint(Entity bp)
-    {
-        var pp = EntityManager.CreateEntity(typeof(PendingPart), typeof(UnderConstruction));
-        var position = GetComponent<GridItem>(bp).Area.Origin;
-        var rotation = GetComponent<Rotation>(bp).Value;
-        SetComponent(pp, new PendingPart
-        {
-            Data = new BuildingPartInfo
-            {
-                Id = GetComponent<Identifieable>(bp).ItemId,
-                Position = position,
-                Orientation = rotation,
-                BuildStatus = ushort.MaxValue
-            },
-            Grid = GetComponent<GridItem>(bp).Grid
-        });
-        var ppquery = GetEntityQuery(typeof(UnderConstruction), typeof(PendingPart));
-        new BuildingSystem.BuildJob
-        {
-            buffer = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>().CreateCommandBuffer(),
-            grids = GetComponentDataFromEntity<Grid>(true),
-            gridItems = GetComponentDataFromEntity<GridItem>(true),
-            occupations = GetBufferFromEntity<OccupationBuffer>(true),
-            prefabMap = IdentifiableMappingSystem.EntitiesById,
-            IsFinishConstructionJob = true
-        }.Run(ppquery);
-        EntityManager.DestroyEntity(pp);
-        EntityManager.DestroyEntity(bp);
     }
 }
