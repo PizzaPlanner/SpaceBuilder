@@ -102,6 +102,8 @@ public partial class RepairStationTargetSystem : SystemBase
         var entities = gridQuery.ToEntityArray(Allocator.TempJob);
         var grids = gridQuery.ToComponentDataArray<GridItem>(Allocator.TempJob);
         Entities
+            .WithDisposeOnCompletion(entities)
+            .WithDisposeOnCompletion(grids)
             .WithNone<UnderConstruction>()
             .ForEach((ref Target target, in Constructor c, in GridItem item) =>
         {

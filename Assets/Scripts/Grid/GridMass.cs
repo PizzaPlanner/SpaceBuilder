@@ -13,7 +13,7 @@ public partial class ApplyMassSystem : SystemBase
 {
     protected override void OnCreate()
     {
-        RequireForUpdate(GetEntityQuery(typeof(GridsNeedUpdate)));
+        RequireForUpdate(GetEntityQuery(typeof(GridNeedsUpdate)));
     }
 
     protected override void OnUpdate()

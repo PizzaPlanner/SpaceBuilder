@@ -119,14 +119,24 @@ public partial class RecalculateElectricityNetworksSystem : SystemBase
             .WithName("ConnectPortsToNetworks")
             .WithDisposeOnCompletion(entities)
             .WithDisposeOnCompletion(portConnections)
-            .ForEach((DynamicBuffer<ConnectionBuffer> connections, in ElectricityNetwork network) =>
+            .ForEach((Entity e, DynamicBuffer<ConnectionBuffer> connections, in ElectricityNetwork network) =>
         {
             connections.Clear();
+            var hasThings = false;
             for (int i = 0; i < entities.Length; i++)
             {
                 if (portConnections[i].Id == network.Id)
-                    connections.Add(new ConnectionBuffer {Value = entities[i], Type = ConnectionType.Related});
+                {
+                    connections.Add(new ConnectionBuffer {Value = entities[i], Type = ConnectionType.Power});
+                    hasThings = true;
+                }
             }
+
+            // if (!hasThings)
+            // {
+            //     buffer.DestroyEntity(e);
+            //     Debug.Log($"Deleted network {network.Id}");
+            // }
         }).Schedule();
 
         bufferSystem.AddJobHandleForProducer(Dependency);

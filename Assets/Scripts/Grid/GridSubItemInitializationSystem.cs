@@ -21,7 +21,7 @@ public partial class GridSubItemInitializationSystem : SystemBase
 
     protected override void OnCreate()
     {
-        bufferSystem = World.GetExistingSystem<BeforeReparentingEntitiyCommandBufferSystem>();
+        bufferSystem = World.GetExistingSystem<BeginInitializationEntityCommandBufferSystem>();
     }
 
     protected override void OnUpdate()

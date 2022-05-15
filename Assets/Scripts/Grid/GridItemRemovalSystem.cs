@@ -39,6 +39,11 @@ public partial class GridItemRemovalSystem : SystemBase
         modifiedEntities = new NativeList<Entity>(Allocator.Persistent);
     }
 
+    protected override void OnDestroy()
+    {
+        modifiedEntities.Dispose();
+    }
+
     protected override void OnStartRunning()
     {
         foreach(var renderer in GhostBuilder.Wireframe.gameObject.GetComponentsInChildren<MeshRenderer>())
@@ -120,7 +125,7 @@ public partial class GridItemRemovalSystem : SystemBase
         if (Input.GetMouseButtonDown(0))
         {
             EntityManager.DestroyEntity(modifiedEntities);
-            EntityManager.CreateEntity(typeof(GridsNeedUpdate));
+            EntityManager.CreateEntity(typeof(GridNeedsUpdate));
         }
     }
 }

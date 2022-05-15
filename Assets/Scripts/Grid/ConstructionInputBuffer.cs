@@ -123,9 +123,10 @@ public partial class ConstructionSystem : SystemBase
             }
         }
 
-        if (Input.GetKey(KeyCode.F) && Time.ElapsedTime - lastInputGiven > 0.1f && itemToConsume != Entity.Null)
+        if (Input.GetKey(KeyCode.F) && Time.ElapsedTime - lastInputGiven > 0.1f && (itemToConsume != Entity.Null || maxProgress == 0))
         {
-            EntityManager.AddComponentData(itemToConsume, new RemoveItem {Quantity = 1});
+            if (itemToConsume != Entity.Null)
+                EntityManager.AddComponentData(itemToConsume, new RemoveItem {Quantity = 1});
             current.Progress++;
             if (current.Progress >= maxProgress)
             {

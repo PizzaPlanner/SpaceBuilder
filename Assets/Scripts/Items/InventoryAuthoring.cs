@@ -61,6 +61,7 @@ public partial class InventoryUISystem : SystemBase
 
     private bool initialized;
     private bool inventoryOpen;
+    private bool wantOpenInventory;
     static InventoryElement Inventory, Hotbar, RemoteInventory;
     static CraftingWindow CraftWindow;
 
@@ -118,8 +119,10 @@ public partial class InventoryUISystem : SystemBase
 
     protected override void OnUpdate()
     {
-        if (Input.GetKeyDown(KeyCode.C))
+        var needFullUpdate = !GetEntityQuery(typeof(InventoryChanged)).IsEmpty;
+        if (Input.GetKeyDown(KeyCode.C) || wantOpenInventory)
         {
+            wantOpenInventory = false;
             inventoryOpen = !inventoryOpen;
             Inventory.style.display = inventoryOpen ? DisplayStyle.Flex : DisplayStyle.None;
             if (!inventoryOpen)
@@ -127,12 +130,15 @@ public partial class InventoryUISystem : SystemBase
                 RemoteInventory.style.display = DisplayStyle.None;
                 CraftWindow.style.display = DisplayStyle.None;
             }
+            else
+            {
+                needFullUpdate = true;
+            }
             World.GetExistingSystem<InputSystem>().SetCursor(inventoryOpen ? InputSystem.CursorState.Default : InputSystem.CursorState.Disabled);
         }
 
         var player = GetSingletonEntity<LocalPlayer>();
         var elm = InventoryUISystem.RemoteInventory;
-        var needFullUpdate = !GetEntityQuery(typeof(InventoryChanged)).IsEmpty;
         Entities
             .ForEach((Entity e, in DynamicBuffer<Inventory> inv, in Interacted interact) =>
             {
@@ -141,7 +147,8 @@ public partial class InventoryUISystem : SystemBase
 
                 elm.Container = e;
                 elm.style.display = DisplayStyle.Flex;
-                needFullUpdate = true;
+                if(!inventoryOpen)
+                    wantOpenInventory = true;
             }).WithoutBurst().Run();
 
         var crft = InventoryUISystem.CraftWindow;
@@ -153,7 +160,6 @@ public partial class InventoryUISystem : SystemBase
 
                 crft.SetCrafter(crafter.Queue, EntityManager);
                 crft.style.display = DisplayStyle.Flex;
-                needFullUpdate = true;
             }).WithoutBurst().Run();
 
         if (needFullUpdate)

@@ -6,6 +6,11 @@
         <ui:Label text="Label" display-tooltip-when-elided="true" name="Forward" />
     </ui:VisualElement>
     <ui:VisualElement name="ConstructionBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(0, 255, 99, 0.58); border-right-color: rgba(0, 255, 99, 0.58); border-top-color: rgba(0, 255, 99, 0.58); border-bottom-color: rgba(0, 255, 99, 0.58); display: none;" />
+    <ui:VisualElement name="SteeringOverlay" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: none; align-items: center; justify-content: center; cursor: url(&apos;/Assets/UI/swap.png&apos;);">
+        <ui:VisualElement style="align-items: center; justify-content: center; background-image: url(&apos;/Assets/UI/steering_overlay.png&apos;); width: 256px; height: 256px;">
+            <ui:VisualElement name="Cursor" style="background-image: url(&apos;/Assets/UI/crosshair.png&apos;); width: 32px; height: 32px;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
     <ui:VisualElement name="BlueprintBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(0, 178, 255, 0.58); border-right-color: rgba(0, 178, 255, 0.58); border-top-color: rgba(0, 178, 255, 0.58); border-bottom-color: rgba(0, 178, 255, 0.58); display: none;" />
     <AdminConsole style="position: absolute; width: 30%; height: 25%; display: none;" />
     <ui:VisualElement name="DockInfo" style="position: absolute; left: 0; bottom: 0; align-items: center; justify-content: center;">

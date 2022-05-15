@@ -81,7 +81,7 @@ public struct ConnectionBufferSided : IBufferElementData
     public GridItem.Side Side;
 }
 
-public struct GridsNeedUpdate : IComponentData { }
+public struct GridNeedsUpdate : IComponentData { }
 
 [UpdateInGroup(typeof(GridRecalculationSystemGroup), OrderFirst = true)]
 public partial class GridRecalculationSystem : SystemBase
@@ -90,7 +90,7 @@ public partial class GridRecalculationSystem : SystemBase
     protected override void OnCreate()
     {
         bufferSystem = World.GetExistingSystem<EndInitializationEntityCommandBufferSystem>();
-        RequireForUpdate(GetEntityQuery(typeof(GridsNeedUpdate)));
+        RequireForUpdate(GetEntityQuery(typeof(GridNeedsUpdate)));
     }
 
     protected override void OnUpdate()
@@ -107,7 +107,7 @@ public partial class GridRecalculationSystem : SystemBase
         }).Run();
 
         var gridItemEntities = GetEntityQuery(
-            ComponentType.Exclude<Ghost>(),
+            ComponentType.Exclude<Blueprinted>(),
             ComponentType.ReadOnly<GridItem>(),
             ComponentType.ReadWrite<ConnectionBuffer>());
 
@@ -119,9 +119,9 @@ public partial class GridRecalculationSystem : SystemBase
             nbbuffer.Clear();
             for (int e2 = 0; e2 < entities.Length; e2++)
             {
-                if (e1 == e2) continue;
                 if (gridItems[e1].Grid != gridItems[e2].Grid) continue;
                 if (gridItems[e1].Type != gridItems[e2].Type) continue;
+                if (e1 == e2) continue;
                 var distance = gridItems[e2].Area.Origin - gridItems[e1].Area.Origin;
                 if (math.dot(distance, distance) != 1) continue;
                 GridItem.Side side = 0;
@@ -205,7 +205,7 @@ public partial class GridRecalculationSystem : SystemBase
             }
         }).Run();
         var buffer = bufferSystem.CreateCommandBuffer();
-        buffer.DestroyEntitiesForEntityQuery(GetEntityQuery(typeof(GridsNeedUpdate)));
+        buffer.DestroyEntitiesForEntityQuery(GetEntityQuery(typeof(GridNeedsUpdate)));
         bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

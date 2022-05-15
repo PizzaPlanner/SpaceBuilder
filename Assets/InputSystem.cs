@@ -20,6 +20,15 @@ public struct BuilderMode_Destroy : ISystemStateComponentData
     public Entity Grid;
 }
 
+public static class ControlScheme
+{
+    public struct OnFeet : ISystemStateComponentData { }
+    public struct SteerShip : ISystemStateComponentData
+    {
+        public Entity Steerer;
+    }
+}
+
 public partial class InputSystem : SystemBase
 {
     public struct InputData : ISystemStateComponentData
@@ -58,7 +67,8 @@ public partial class InputSystem : SystemBase
     {
         RequireSingletonForUpdate<LocalPlayer>();
         RequireSingletonForUpdate<InputData>();
-        EntityManager.CreateEntity(typeof(InputData));
+        var input = EntityManager.CreateEntity(typeof(InputData));
+        EntityManager.AddComponent<ControlScheme.OnFeet>(input);
     }
 
     protected override void OnStartRunning()
@@ -84,7 +94,11 @@ public partial class InputSystem : SystemBase
             EntityManager.RemoveComponent<BuilderMode_Blueprint>(entity);
 
         if (Input.GetMouseButtonDown(1))
+        {
             input.CurrentAction = ActionState.None;
+            if(HasSingleton<ControlScheme.SteerShip>())
+                SetSchemeFeet();
+        }
 
         var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
         if (target.CanInteract && target.Value != Entity.Null && input.CurrentAction == ActionState.None)
@@ -223,5 +237,21 @@ public partial class InputSystem : SystemBase
                 EntityManager.CreateEntity(typeof(ControlHotMenu));
                 break;
         }
+    }
+
+    public void SetSchemeSteer(Entity target)
+    {
+        var input = GetSingletonEntity<InputData>();
+        EntityManager.RemoveComponent<ControlScheme.OnFeet>(input);
+        EntityManager.AddComponentData(input, new ControlScheme.SteerShip{Steerer = target});
+        SetCursor(CursorState.Default);
+    }
+
+    public void SetSchemeFeet()
+    {
+        var input = GetSingletonEntity<InputData>();
+        EntityManager.RemoveComponent<ControlScheme.SteerShip>(input);
+        EntityManager.AddComponent<ControlScheme.OnFeet>(input);
+        SetCursor(CursorState.Disabled);
     }
 }

@@ -5273,7 +5273,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Port: {fileID: 517371228026502256}
   RequiredPower: 5000
-  Strength: 2000
+  Strength: 0
+  MaxStrength: 2000
   ForwardThrust:
     x: 0
     y: 0

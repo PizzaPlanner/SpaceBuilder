@@ -1,5 +1,6 @@
 using Unity.Entities;
 using Unity.Physics;
+using UnityEngine;
 
 public enum ToggleType
 {
@@ -36,9 +37,14 @@ public partial class ToggleSystem : SystemBase
         var buffer = bufferSystem.CreateCommandBuffer();
         Entities
             .WithAll<Interacted>()
-            .ForEach((ref Toggle toggle, in DynamicBuffer<ControlledItems> items) =>
+            .ForEach((ref Toggle toggle) =>
             {
                 toggle.On = !toggle.On;
+            }).Run();
+
+        Entities
+            .WithChangeFilter<Toggle>()
+            .ForEach((ref DynamicBuffer<ControlledItems> items, in Toggle toggle) => {
                 foreach (var item in items)
                 {
                     if (item.Type == ToggleType.PowerPort)
@@ -59,24 +65,26 @@ public partial class ToggleSystem : SystemBase
                             buffer.AddComponent(item.Target, ComponentType.ReadOnly<PhysicsWorldIndex>());
                             buffer.RemoveComponent<Disabled>(item.Target);
                         }
-
                     }
                 }
-            }).Schedule();
+            }).Run();
         bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }
 
+[UpdateAfter(typeof(ToggleSystem))]
 public partial class ToggleVisualsUpdateSystem : SystemBase
 {
     protected override void OnUpdate()
     {
         Entities
-            .WithAll<Interacted>()
+            .WithChangeFilter<Toggle>()
             .ForEach((in Toggle toggle) =>
             {
                 var dOn = toggle.On ? toggle.OnVisual : toggle.OffVisual;
                 var dOff = toggle.On ? toggle.OffVisual : toggle.OnVisual;
+                if (dOn == Entity.Null || dOff == Entity.Null)
+                    return;
                 if (HasComponent<Disabled>(dOn))
                     EntityManager.RemoveComponent<Disabled>(dOn);
                 if (!HasComponent<Disabled>(dOff))

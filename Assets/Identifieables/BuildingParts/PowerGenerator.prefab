@@ -314,6 +314,16 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 3943331210900383551}
     m_Modifications:
+    - target: {fileID: 358625485361647847, guid: 7f6517346115547498d16f3a97e6f677,
+        type: 3}
+      propertyPath: Ports.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 358625485361647847, guid: 7f6517346115547498d16f3a97e6f677,
+        type: 3}
+      propertyPath: Ports.Array.data[0]
+      value: 
+      objectReference: {fileID: 5390125274037054667}
     - target: {fileID: 2448789020281257528, guid: 7f6517346115547498d16f3a97e6f677,
         type: 3}
       propertyPath: Target
@@ -456,3 +466,15 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 1511736311851769407}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &5390125274037054667 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: -2434382195995004172, guid: 24698b853c6c2a84fbbea541f06f0c6f,
+    type: 3}
+  m_PrefabInstance: {fileID: 1511736311851769407}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4581377163842427652}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc7e8cdbf2974f5ea72fea3c665b744b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -6,6 +6,7 @@ using Unity.Physics.Extensions;
 using Unity.Physics.Systems;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 [GenerateAuthoringComponent]
 public struct Player : IComponentData
@@ -21,16 +22,14 @@ public partial class MovePlayerSystem : SystemBase
     public const float MOVEMENT_SPEED_RUNNING = 15;
     private const float ROTATION_SENSIVITY = 0.2f;
 
-    FixedStepSimulationSystemGroup fixedStepGroup;
-
     protected override void OnCreate()
     {
         RequireSingletonForUpdate<LocalPlayer>();
         RequireSingletonForUpdate<CameraAnchor>();
         RequireSingletonForUpdate<InputSystem.ControlPlayer>();
+        RequireSingletonForUpdate<ControlScheme.OnFeet>();
         RequireForUpdate(GetEntityQuery(typeof(LocalPlayer), typeof(LocalToWorld)));
         RequireForUpdate(GetEntityQuery(typeof(CameraAnchor), typeof(LocalToWorld)));
-        fixedStepGroup = World.GetExistingSystem<FixedStepSimulationSystemGroup>();
     }
 
     protected override void OnUpdate()
@@ -47,20 +46,19 @@ public partial class MovePlayerSystem : SystemBase
         movement = math.mul(cameraLtw.Rotation, movement);
 
         // --- Rotation ---
-        var rotation =  new float3(-Input.GetAxis("Mouse Y"), Input.GetAxis("Mouse X"), Input.GetAxis("RotateZAxis")) * ROTATION_SENSIVITY;
+        var rotation =  new float3(-Input.GetAxis("Mouse Y"), Input.GetAxis("Mouse X"), Input.GetAxis("RotateZAxis") * 5) * ROTATION_SENSIVITY;
 
         var camAnchor = GetSingleton<CameraAnchor>();
         if (HasComponent<Docked>(player))
         {
             camAnchor.XRotation += math.degrees(rotation.x);
-            camAnchor.XRotation = math.clamp(camAnchor.XRotation, -90, 55);
+            camAnchor.XRotation = math.clamp(camAnchor.XRotation, -90, 75);
         }
         else
             camAnchor.XRotation = 0;
         SetSingleton(camAnchor);
 
         var deltaTime = Time.DeltaTime;
-        var fixedDeltaTime = fixedStepGroup.RateManager.Timestep;
 
         Entities
             .WithAll<Player>()
@@ -73,24 +71,41 @@ public partial class MovePlayerSystem : SystemBase
 
         Entities
             .WithAll<Player>()
-            .ForEach((ref Rotation r, ref PhysicsVelocity velocity, in KinematicCharacterBody body, in Docked docked) =>
+            .ForEach((ref Docked docked, ref PhysicsVelocity velocity, in KinematicCharacterBody body) =>
             {
-                var targetLtw = GetComponent<LocalToWorld>(docked.Target);
-                r.Value = math.mul(r.Value, quaternion.EulerXYZ(new float3(0, rotation.y, 0)));
-                if (math.lengthsq(movement) > 0f)
-                {
-                    CharacterControlUtilities.SlerpRotationTowardsDirectionAroundUp(
-                        ref r.Value, deltaTime,
-                        math.normalizesafe(movement),
-                        targetLtw.Up,
-                        0);
-                }
-
-                // Add rotation from parent body to the character rotation
-                // (this is for allowing a rotating moving platform to rotate your character as well, and handle interpolation properly)
-                KinematicCharacterUtilities.ApplyParentRotationToTargetRotation(ref r.Value, in body, fixedDeltaTime, deltaTime);
-
+                docked.Rotation = math.mul(docked.Rotation, quaternion.EulerXYZ(new float3(0, rotation.y, 0)));
                 velocity.Linear = movement;
             }).Schedule();
+    }
+}
+
+[UpdateAfter(typeof(MovePlayerSystem))]
+[UpdateBefore(typeof(TransformSystemGroup))]
+public partial class UpdateDockedCharacterPositionRotationSystem : SystemBase
+{
+    protected override void OnUpdate()
+    {
+        Entities.ForEach((ref Docked docked) =>
+        {
+            docked.TargetRotation = GetComponent<Rotation>(docked.Target).Value;
+        }).Run();
+
+        Entities.ForEach((ref Rotation r, in Translation t, in Docked docked) =>
+        {
+            r.Value = math.mul(docked.TargetRotation, docked.Rotation);
+        }).Run();
+
+        Entities.ForEach((ref ThirdPersonCharacterComponent character, in Docked docked) =>
+        {
+            character.Gravity = math.mul(docked.TargetRotation, math.up()) * -5;
+        }).Run();
+
+        Entities
+            .WithNone<Docked>()
+            .ForEach((ref ThirdPersonCharacterComponent character, ref StoredKinematicCharacterBodyProperties props) =>
+        {
+            character.Gravity = 0;
+            props.RelativeVelocity = float3.zero;
+        }).Run();
     }
 }

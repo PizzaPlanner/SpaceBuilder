@@ -10,6 +10,7 @@ public struct Thruster : IComponentData
     public Entity Port;
     public float RequiredPower;
     public float Strength;
+    public float MaxStrength;
     public float3 ForwardThrust;
     public GridItem.Side DefaultDirection;
 
@@ -46,7 +47,7 @@ public partial class ThrusterSystem : SystemBase
             port.Value = -thrust.RequiredPower;
             SetComponent(thrust.Port, port);
 
-            thrust.ForwardThrust = port.NetworkOperational && port.On ? -ltw.Forward * thrust.Strength : float3.zero;
+            thrust.ForwardThrust = port.NetworkOperational && port.On ? -ltw.Forward * thrust.Strength * thrust.MaxStrength : float3.zero;
         }).Schedule();
 
         bufferSystem.AddJobHandleForProducer(Dependency);

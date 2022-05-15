@@ -13,7 +13,7 @@ public partial class RecalculateSteeringControllerSystem : SystemBase
     protected override void OnCreate()
     {
         bufferSystem = World.GetExistingSystem<EndInitializationEntityCommandBufferSystem>();
-        RequireForUpdate(GetEntityQuery(typeof(GridsNeedUpdate)));
+        RequireForUpdate(GetEntityQuery(typeof(GridNeedsUpdate)));
     }
 
     protected override void OnUpdate()

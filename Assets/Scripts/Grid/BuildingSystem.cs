@@ -104,7 +104,7 @@ public partial class BuildingSystem : SystemBase
         }.Schedule(query);
 
         bufferSystem.AddJobHandleForProducer(Dependency);
-        EntityManager.CreateEntity(typeof(GridsNeedUpdate));
+        EntityManager.CreateEntity(typeof(GridNeedsUpdate));
     }
 
     public static GridItem RotateItem(GridItem original, quaternion rotation)

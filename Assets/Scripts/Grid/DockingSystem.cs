@@ -2,6 +2,7 @@ using System;
 using Rival;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -9,6 +10,9 @@ using UnityEngine.UIElements;
 public struct Docked : IComponentData
 {
     public Entity Target;
+    public quaternion TargetRotation;
+    public quaternion Rotation;
+    public float3 Position;
 }
 
 public struct AlignUpVector : IComponentData
@@ -60,10 +64,6 @@ public partial class DockingSystem : SystemBase
 
     void Dock(Entity entity, Entity newParent)
     {
-        // SetComponent(entity, new Parent{Value = newParent});
-        // SetComponent(entity, new Translation{Value = newLocalPos});
-        // SetComponent(entity, new Rotation{Value = newLocalRot});
-
         swapRoot.Q(newParent != Entity.Null ? "System" : "Station", "dockingbutton").RemoveFromClassList("dockingbutton-on");
         swapRoot.Q(newParent == Entity.Null ? "System" : "Station", "dockingbutton").AddToClassList("dockingbutton-on");
         var body = GetComponent<KinematicCharacterBody>(entity);
@@ -72,9 +72,9 @@ public partial class DockingSystem : SystemBase
         if (newParent != Entity.Null && HasComponent<Grid>(newParent))
         {
             if (!HasComponent<Docked>(entity))
-                EntityManager.AddComponentData(entity, new Docked{ Target = newParent });
+                EntityManager.AddComponentData(entity, new Docked{ Target = newParent, Rotation = GetComponent<Rotation>(entity).Value });
             else
-                EntityManager.SetComponentData(entity, new Docked{ Target = newParent });
+                EntityManager.SetComponentData(entity, new Docked{ Target = newParent, Rotation = GetComponent<Rotation>(entity).Value });
             if (!HasComponent<AlignUpVector>(entity))
                 EntityManager.AddComponent<AlignUpVector>(entity);
         }
@@ -103,21 +103,18 @@ public partial class RotateTowardsDockedLtwSystem : SystemBase
         var buffer = bufferSystem.CreateCommandBuffer();
         var deltaTime = Time.DeltaTime;
         Entities
-            .ForEach((Entity e, ref Rotation r, ref AlignUpVector up, in Docked docked) =>
+            .ForEach((Entity e, ref AlignUpVector up, ref Docked docked) =>
             {
                 var otherLtw = GetComponent<LocalToWorld>(docked.Target);
                 var myLtw = GetComponent<LocalToWorld>(e);
-                if (up.Progress < 1)
+                var forward = myLtw.Forward;
+                forward.y = 0;
+                var target = quaternion.LookRotation(forward, math.up());
+                docked.Rotation = math.slerp(docked.Rotation, target, up.Progress);
+                up.Progress += deltaTime;
+                if(up.Progress >= 1)
                 {
-                    var localForwardNoY = myLtw.Forward;
-                    localForwardNoY.y = 0;
-                    var step = math.slerp(r.Value, quaternion.LookRotation(localForwardNoY, otherLtw.Up), up.Progress);
-                    r.Value = step;
-                    up.Progress += deltaTime;
-                }
-                else
-                {
-                    r.Value = quaternion.LookRotation(myLtw.Forward, otherLtw.Up);
+                    docked.Rotation = target;
                     buffer.RemoveComponent<AlignUpVector>(e);
                 }
             }).Schedule();
