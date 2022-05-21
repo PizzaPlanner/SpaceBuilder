@@ -8,19 +8,19 @@ public struct CraftingRecipe : IComponentData
 
 public struct CraftingInput : IBufferElementData
 {
-    public long ItemId;
+    public ulong ItemId;
     public ushort Amount;
 }
 
 public struct CraftingOutput : IBufferElementData
 {
-    public long ItemId;
+    public ulong ItemId;
     public ushort Amount;
 }
 
 public struct CraftingCatalyst : IBufferElementData
 {
-    public long ItemId;
+    public ulong ItemId;
 }
 
 public class CraftingRecipeAuthoring : MonoBehaviour, IConvertGameObjectToEntity

@@ -120,9 +120,9 @@ GameObject:
   - component: {fileID: 7780807752270266388}
   - component: {fileID: 7780807752270266390}
   - component: {fileID: 7780807752270266377}
-  - component: {fileID: 5377213409938586074}
   - component: {fileID: -987416224015658794}
   - component: {fileID: 3074412916961436309}
+  - component: {fileID: 7969165323175802319}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -326,7 +326,36 @@ MonoBehaviour:
         Tag07: 0
     m_SerializedVersion: 1
   m_SerializedVersion: 1
---- !u!114 &5377213409938586074
+--- !u!114 &-987416224015658794
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7780807752270266386}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e60dafcb08aa4d2085827f8e42ed2b47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Value: {fileID: 0}
+  PreviousValue: {fileID: 0}
+  CanInteract: 0
+  CanConstruct: 0
+--- !u!114 &3074412916961436309
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7780807752270266386}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92cc974c227048d0bd792d4a264da34b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Size: 40
+--- !u!114 &7969165323175802319
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -349,21 +378,21 @@ MonoBehaviour:
       Tag06: 0
       Tag07: 0
     InterpolateTranslation: 1
-    InterpolateRotation: 1
+    InterpolateRotation: 0
     EvaluateGrounding: 1
-    SnapToGround: 1
-    GroundSnappingDistance: 1
+    SnapToGround: 0
+    GroundSnappingDistance: 0.3
     MaxGroundedSlopeAngle: 60
     DetectMovementCollisions: 1
     DecollideFromOverlaps: 1
     AddCloseHitsForVelocityProjection: 0
     MaxContinuousCollisionsIterations: 8
     MaxOverlapDecollisionIterations: 2
-    DiscardMovementWhenExceedMaxIterations: 1
+    DiscardMovementWhenExceedMaxIterations: 0
     KillVelocityWhenExceedMaxIterations: 1
     DetectObstructionsForParentBodyMovement: 0
-    SimulateDynamicBody: 1
-    Mass: 80
+    SimulateDynamicBody: 0
+    Mass: 1
   ThirdPersonCharacter:
     RotationSharpness: 25
     GroundMaxSpeed: 10
@@ -378,8 +407,8 @@ MonoBehaviour:
       z: -0
     StepHandling: 0
     MaxStepHeight: 0.5
-    ExtraStepChecksDistance: 0.1
-    PreventGroundingWhenMovingTowardsNoGrounding: 1
+    ExtraStepChecksDistance: 0.2
+    PreventGroundingWhenMovingTowardsNoGrounding: 0
     HasMaxDownwardSlopeChangeAngle: 0
     MaxDownwardSlopeChangeAngle: 90
     ConstrainVelocityToGroundPlane: 1
@@ -387,34 +416,6 @@ MonoBehaviour:
       x: 0
       y: 1
       z: 0
---- !u!114 &-987416224015658794
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7780807752270266386}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e60dafcb08aa4d2085827f8e42ed2b47, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Value: {fileID: 0}
-  PreviousValue: {fileID: 0}
-  CanInteract: 0
---- !u!114 &3074412916961436309
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7780807752270266386}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 92cc974c227048d0bd792d4a264da34b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Size: 40
 --- !u!1 &7780807753546966488
 GameObject:
   m_ObjectHideFlags: 0

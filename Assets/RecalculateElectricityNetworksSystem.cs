@@ -1,7 +1,6 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
-using UnityEditor.MemoryProfiler;
 using UnityEngine;
 using UnityEngine.PlayerLoop;
 

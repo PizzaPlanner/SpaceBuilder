@@ -13,6 +13,7 @@ public struct Docked : IComponentData
     public quaternion TargetRotation;
     public quaternion Rotation;
     public float3 Position;
+    public float3 TargetPosition;
 }
 
 public struct AlignUpVector : IComponentData
@@ -49,7 +50,10 @@ public partial class DockingSystem : SystemBase
         }
         else
         {
-            swapRoot.Q("Station", "dockingbutton").Q<Label>().text = GetComponent<Name>(grids[0].Grid).Value.ToString();
+            var gridToDisplay = HasComponent<Docked>(GetSingletonEntity<LocalPlayer>())
+                ? GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target
+                : grids[0].Grid;
+            swapRoot.Q("Station", "dockingbutton").Q<Label>().text = GetComponent<Name>(gridToDisplay).Value.ToString();
             swapRoot.Q("Station", "dockingbutton").SetEnabled(true);
             swapRoot.Q("Swap").SetEnabled(true);
         }
@@ -69,22 +73,54 @@ public partial class DockingSystem : SystemBase
         var body = GetComponent<KinematicCharacterBody>(entity);
         body.ParentEntity = newParent;
         SetComponent(entity, body);
+
         if (newParent != Entity.Null && HasComponent<Grid>(newParent))
         {
+            var parentLtw = GetComponent<LocalToWorld>(newParent);
+            var ltw = GetComponent<LocalToWorld>(entity);
+            var docked = new Docked
+            {
+                Target = newParent,
+                Rotation = ltw.Rotation,
+                Position = ltw.Position - parentLtw.Position
+            };
+
             if (!HasComponent<Docked>(entity))
-                EntityManager.AddComponentData(entity, new Docked{ Target = newParent, Rotation = GetComponent<Rotation>(entity).Value });
+                EntityManager.AddComponentData(entity, docked);
             else
-                EntityManager.SetComponentData(entity, new Docked{ Target = newParent, Rotation = GetComponent<Rotation>(entity).Value });
+                EntityManager.SetComponentData(entity, docked);
             if (!HasComponent<AlignUpVector>(entity))
                 EntityManager.AddComponent<AlignUpVector>(entity);
         }
         else
         {
+
             if(HasComponent<Docked>(entity))
                 EntityManager.RemoveComponent<Docked>(entity);
             if(HasComponent<AlignUpVector>(entity))
                 EntityManager.RemoveComponent<AlignUpVector>(entity);
+
+            var ltw = GetComponent<LocalToWorld>(entity);
+            SetComponent(entity, new Translation{Value = ltw.Position});
+            SetComponent(entity, new Rotation{Value = ltw.Rotation});
         }
+    }
+}
+
+[GenerateAuthoringComponent]
+public struct AutoDock : IComponentData
+{
+    public Entity Parent;
+}
+
+public partial class AutoDockSystem : SystemBase
+{
+    protected override void OnUpdate()
+    {
+        Entities.ForEach((ref KinematicCharacterBody body, in AutoDock dock) =>
+        {
+            body.ParentEntity = dock.Parent;
+        }).Run();
     }
 }
 

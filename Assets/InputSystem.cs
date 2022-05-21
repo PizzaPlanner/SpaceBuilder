@@ -101,12 +101,12 @@ public partial class InputSystem : SystemBase
         }
 
         var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
-        if (target.CanInteract && target.Value != Entity.Null && input.CurrentAction == ActionState.None)
+        if (HasSingleton<ControlPlayer>() && target.CanInteract && target.Value != Entity.Null && input.CurrentAction == ActionState.None)
         {
             uiRoot.style.display = DisplayStyle.Flex;
             uiRoot.Q<Label>("MainActionName").text = "Interact";
         }
-        else if (target.CanConstruct && target.Value != Entity.Null && input.CurrentAction == ActionState.Construct)
+        else if (HasSingleton<ControlPlayer>() && target.CanConstruct && target.Value != Entity.Null && input.CurrentAction == ActionState.Construct)
         {
             uiRoot.style.display = DisplayStyle.Flex;
             uiRoot.Q<Label>("MainActionName").text = "Construct";
@@ -117,42 +117,51 @@ public partial class InputSystem : SystemBase
         input.Scroll = -Input.GetAxis("Mouse ScrollWheel");
         input.ScrollMode = ScrollMode.None;
 
-        if (Input.GetKeyDown(KeyCode.B))
+        if (HasSingleton<ControlPlayer>())
         {
-            if (input.CurrentAction == ActionState.Blueprint)
+            if (Input.GetKeyDown(KeyCode.B))
             {
-                input.CurrentAction = ActionState.None;
+                if (input.CurrentAction == ActionState.Blueprint)
+                {
+                    input.CurrentAction = ActionState.None;
+                }
+                else if (input.CurrentAction == ActionState.None &&
+                         HasComponent<Docked>(GetSingletonEntity<LocalPlayer>()))
+                {
+                    EntityManager.AddComponentData(entity,
+                        new BuilderMode_Blueprint
+                            {Grid = GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target});
+                    input.CurrentAction = ActionState.Blueprint;
+                }
             }
-            else if(input.CurrentAction == ActionState.None && HasComponent<Docked>(GetSingletonEntity<LocalPlayer>()))
-            {
-                EntityManager.AddComponentData(entity, new BuilderMode_Blueprint{Grid = GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target});
-                input.CurrentAction = ActionState.Blueprint;
-            }
-        }
 
-        if (Input.GetKeyDown(KeyCode.V))
-        {
-            if (input.CurrentAction == ActionState.Construct)
+            if (Input.GetKeyDown(KeyCode.V))
             {
-                input.CurrentAction = ActionState.None;
+                if (input.CurrentAction == ActionState.Construct)
+                {
+                    input.CurrentAction = ActionState.None;
+                }
+                else if (input.CurrentAction == ActionState.None)
+                {
+                    EntityManager.AddComponentData(entity, new BuilderMode_Build());
+                    input.CurrentAction = ActionState.Construct;
+                }
             }
-            else if(input.CurrentAction == ActionState.None)
-            {
-                EntityManager.AddComponentData(entity, new BuilderMode_Build());
-                input.CurrentAction = ActionState.Construct;
-            }
-        }
 
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            if (input.CurrentAction == ActionState.Deconstruct)
+            if (Input.GetKeyDown(KeyCode.F))
             {
-                input.CurrentAction = ActionState.None;
-            }
-            else if(input.CurrentAction == ActionState.None && HasComponent<Docked>(GetSingletonEntity<LocalPlayer>()))
-            {
-                EntityManager.AddComponentData(entity, new BuilderMode_Destroy{Grid = GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target});
-                input.CurrentAction = ActionState.Deconstruct;
+                if (input.CurrentAction == ActionState.Deconstruct)
+                {
+                    input.CurrentAction = ActionState.None;
+                }
+                else if (input.CurrentAction == ActionState.None &&
+                         HasComponent<Docked>(GetSingletonEntity<LocalPlayer>()))
+                {
+                    EntityManager.AddComponentData(entity,
+                        new BuilderMode_Destroy
+                            {Grid = GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target});
+                    input.CurrentAction = ActionState.Deconstruct;
+                }
             }
         }
 
@@ -196,7 +205,7 @@ public partial class InputSystem : SystemBase
                 var bp = BlueprintUtils.Save(grid, EntityManager);
 #if UNITY_EDITOR
                 var name = GetComponent<Name>(grid).Value.Value;
-                File.WriteAllText(Application.dataPath + $"/Blueprints/{name}.txt", bp.ToString());
+                File.WriteAllText(Application.dataPath + $"/Blueprints/{name}.txt", bp);
                 Debug.Log($"Saved Blueprint {name}");
 #endif
             }

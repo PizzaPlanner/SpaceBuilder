@@ -7,49 +7,15 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-public struct BuildingPartInfo
-{
-    public long Id;
-    public int3 Position;
-    public quaternion Orientation;
-    public ushort BuildStatus;
-}
-
-public struct PendingPart : IComponentData
-{
-    public Entity Grid;
-    public BuildingPartInfo Data;
-}
-
-public struct BuildingBlueprint
+public struct BlueprintParserV2 : IBlueprintParser
 {
     private const string RInt = @"(-?\d+)";
     private const string RUInt = @"(\d+)";
     private const string RFloat = @"(-?\d*\.?\d+)f";
-    public int Version;
-    public string Name;
-    public Grid Grid;
-    public List<BuildingPartInfo> Parts;
 
-    public override string ToString()
+    public string Save(Entity grid, EntityManager em)
     {
-        return $@"Version:{Version}
-Name:{Name}
-Parts:{RInt}\|int3\({RInt}, {RInt}, {RInt}\)\|quaternion\({RFloat}, {RFloat}, {RFloat}, {RFloat}\)\|{RUInt}
-{string.Join("\n", Parts.Select(x => $"- Part:{x.Id}|{x.Position}|{x.Orientation.ToString("G", CultureInfo.InvariantCulture)}|{x.BuildStatus.ToString()}"))}
-";
-    }
-}
-
-public static class BlueprintUtils
-{
-    public const int Version = 0x2;
-    public static BuildingBlueprint Save(Entity grid, EntityManager em)
-    {
-        var bp = new BuildingBlueprint();
-        bp.Version = Version;
-        bp.Name = em.GetComponentData<Name>(grid).Value.Value;
-        bp.Grid = em.GetComponentData<Grid>(grid);
+        var name = em.GetComponentData<Name>(grid).Value.Value;
 
         var parts = new List<BuildingPartInfo>();
         var children = em.GetBuffer<Child>(grid);
@@ -64,28 +30,24 @@ public static class BlueprintUtils
             parts.Add(new BuildingPartInfo
             {
                 Id = identifieable.ItemId,
-                Orientation = rotation.Value,
+                Orientation = new RightAngleRotation(rotation.Value),
                 Position = gridItem.Area.Origin,
                 BuildStatus = em.HasComponent<UnderConstruction>(child.Value) ? em.GetComponentData<UnderConstruction>(child.Value).Progress : ushort.MaxValue
             });
         }
 
-        bp.Parts = parts;
-        return bp;
+        return $@"Name:{name}
+Parts:{RInt}\|int3\({RInt}, {RInt}, {RInt}\)\|quaternion\({RFloat}, {RFloat}, {RFloat}, {RFloat}\)\|{RUInt}
+{string.Join("\n", parts.Select(x => $"- Part:{x.Id}|{x.Position}|{x.Orientation.ToString()}|{x.BuildStatus.ToString()}"))}
+";
     }
 
-    public static BuildingBlueprint Load(string blueprint)
+    public BlueprintData Load(string data)
     {
-        blueprint = blueprint.Replace("\t", "").Replace("\r", "");
-        var lines = blueprint.Split('\n');
-        var compiled = new BuildingBlueprint();
-        compiled.Parts = new List<BuildingPartInfo>();
-        ParseV2(ref compiled, lines);
-        return compiled;
-    }
-
-    private static void ParseV2(ref BuildingBlueprint blueprint, string[] lines)
-    {
+        data = data.Replace("\t", "").Replace("\r", "");
+        var lines = data.Split('\n');
+        var parts = new List<BuildingPartInfo>();
+        var name = "";
         var partsRegex = "<INVALID>";
         foreach (var line in lines)
         {
@@ -94,7 +56,7 @@ public static class BlueprintUtils
             var key = line.Substring(0, idx);
             var value = line.Substring(idx + 1).Trim();
             if (key == "Name")
-                blueprint.Name = value;
+                name = value;
             // else if (key == "Version")
             //     blueprint.Version = int.Parse(value);
             else if (key == "Parts")
@@ -111,19 +73,19 @@ public static class BlueprintUtils
                 {
                     var part = new BuildingPartInfo
                     {
-                        Id = long.Parse(match.Groups[1].Value),
+                        Id = unchecked((ulong)long.Parse(match.Groups[1].Value)),
                         Position = new int3(
                             int.Parse(match.Groups[2].Value),
                             int.Parse(match.Groups[3].Value),
                             int.Parse(match.Groups[4].Value)),
-                        Orientation = new quaternion(
+                        Orientation = new RightAngleRotation(new quaternion(
                             float.Parse(match.Groups[5].Value, CultureInfo.InvariantCulture),
                             float.Parse(match.Groups[6].Value, CultureInfo.InvariantCulture),
                             float.Parse(match.Groups[7].Value, CultureInfo.InvariantCulture),
-                            float.Parse(match.Groups[8].Value, CultureInfo.InvariantCulture)),
+                            float.Parse(match.Groups[8].Value, CultureInfo.InvariantCulture))),
                         BuildStatus = ushort.Parse(match.Groups[9].Value)
                     };
-                    blueprint.Parts.Add(part);
+                    parts.Add(part);
                 }
                 catch
                 {
@@ -135,5 +97,9 @@ public static class BlueprintUtils
                 }
             }
         }
+
+        return new BlueprintData {Name = name, Parts = parts};
     }
+
+    public string VersionIdentifier => "Version:2";
 }

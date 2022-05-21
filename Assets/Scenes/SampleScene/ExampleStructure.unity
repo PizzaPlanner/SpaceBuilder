@@ -418,8 +418,6 @@ GameObject:
   m_Component:
   - component: {fileID: 442228686}
   - component: {fileID: 442228687}
-  - component: {fileID: 442228690}
-  - component: {fileID: 442228685}
   - component: {fileID: 442228688}
   m_Layer: 0
   m_Name: TestShip
@@ -428,18 +426,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &442228685
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 442228684}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 49f02f5a4fd5476e9e66429ce2159ed7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &442228686
 Transform:
   m_ObjectHideFlags: 0
@@ -452,7 +438,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &442228687
 MonoBehaviour:
@@ -466,9 +452,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06913eaca2a8453bb9319793fa51e964, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Size: 2
-  HasAirflow: 0
-  Blueprint: {fileID: 4900000, guid: 0276475a591396244b09839b48abac1c, type: 3}
+  FilePath: TestShip
 --- !u!114 &442228688
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -483,58 +467,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   XInTenKm: 157
   YInTenKm: 119
---- !u!114 &442228690
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 442228684}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ccea9ea98e38942e0b0938c27ed1903e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_MotionType: 0
-  m_Smoothing: 1
-  m_Mass: 1
-  m_LinearDamping: 0.01
-  m_AngularDamping: 0.1
-  m_InitialLinearVelocity:
-    x: 0
-    y: 0
-    z: 0
-  m_InitialAngularVelocity:
-    x: 0
-    y: 0
-    z: 0
-  m_GravityFactor: 0
-  m_OverrideDefaultMassDistribution: 0
-  m_CenterOfMass:
-    x: 0
-    y: 0
-    z: 0
-  m_Orientation:
-    Value:
-      x: 0
-      y: 0
-      z: 0
-    RotationOrder: 4
-  m_InertiaTensor:
-    x: 0
-    y: 0
-    z: 0
-  m_WorldIndex: 0
-  m_CustomTags:
-    Tag00: 0
-    Tag01: 0
-    Tag02: 0
-    Tag03: 0
-    Tag04: 0
-    Tag05: 0
-    Tag06: 0
-    Tag07: 0
---- !u!1 &1312093273
+--- !u!1 &1486386791
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -542,10 +475,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1312093277}
-  - component: {fileID: 1312093276}
-  - component: {fileID: 1312093274}
-  - component: {fileID: 1312093275}
+  - component: {fileID: 1486386795}
+  - component: {fileID: 1486386794}
+  - component: {fileID: 1486386793}
   m_Layer: 0
   m_Name: ShipYard
   m_TagString: Untagged
@@ -553,64 +485,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1312093274
+--- !u!114 &1486386793
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1312093273}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ccea9ea98e38942e0b0938c27ed1903e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_MotionType: 0
-  m_Smoothing: 1
-  m_Mass: 1e+9
-  m_LinearDamping: 0
-  m_AngularDamping: 0
-  m_InitialLinearVelocity:
-    x: 0
-    y: 0
-    z: 0
-  m_InitialAngularVelocity:
-    x: 0
-    y: 0
-    z: 0
-  m_GravityFactor: 0
-  m_OverrideDefaultMassDistribution: 0
-  m_CenterOfMass:
-    x: 0
-    y: 0
-    z: 0
-  m_Orientation:
-    Value:
-      x: 0
-      y: 0
-      z: 0
-    RotationOrder: 4
-  m_InertiaTensor:
-    x: 0
-    y: 0
-    z: 0
-  m_WorldIndex: 0
-  m_CustomTags:
-    Tag00: 0
-    Tag01: 0
-    Tag02: 0
-    Tag03: 0
-    Tag04: 0
-    Tag05: 0
-    Tag06: 0
-    Tag07: 0
---- !u!114 &1312093275
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1312093273}
+  m_GameObject: {fileID: 1486386791}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2d326895bb1045bdbc669d3caa9aa44c, type: 3}
@@ -618,34 +499,32 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   XInTenKm: 157
   YInTenKm: 119
---- !u!114 &1312093276
+--- !u!114 &1486386794
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1312093273}
+  m_GameObject: {fileID: 1486386791}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 06913eaca2a8453bb9319793fa51e964, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Size: 2
-  HasAirflow: 0
-  Blueprint: {fileID: 4900000, guid: bf4359e444c21aa4fa32bca7b7579d75, type: 3}
---- !u!4 &1312093277
+  FilePath: Grid 359
+--- !u!4 &1486386795
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1312093273}
+  m_GameObject: {fileID: 1486386791}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -16.41, y: 0, z: 0.01}
+  m_LocalPosition: {x: 0, y: 0, z: 5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2075896580
 GameObject:

@@ -125,7 +125,7 @@ public partial class GhostPlacementSystem : SystemBase
                 {
                     Id = prefabId,
                     Position = int3.zero,
-                    Orientation = currentRotation,
+                    Orientation = new RightAngleRotation(currentRotation),
                     BuildStatus = 0
                 },
                 Grid = currentGrid
@@ -164,7 +164,7 @@ public partial class GhostPlacementSystem : SystemBase
                             {
                                 Id = id.ItemId,
                                 Position = new int3(x,y,z),
-                                Orientation = r.Value,
+                                Orientation = new RightAngleRotation(r.Value),
                                 BuildStatus = 0
                             },
                             Grid = currentGrid

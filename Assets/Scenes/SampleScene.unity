@@ -513,7 +513,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fdbaf758733048ab806979812755fa3d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Script: give -2471003305502191436 100
+  Script: give "Iron Ingot" 100
+  Executor: {fileID: 0}
 --- !u!1 &1601316477
 GameObject:
   m_ObjectHideFlags: 0
@@ -558,6 +559,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Script: give Anvil 100
+  Executor: {fileID: 0}
 --- !u!1 &2015872655
 GameObject:
   m_ObjectHideFlags: 0
@@ -601,4 +603,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fdbaf758733048ab806979812755fa3d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Script: give 2683459701984189908 100
+  Script: give "Iron Ore" 100
+  Executor: {fileID: 0}

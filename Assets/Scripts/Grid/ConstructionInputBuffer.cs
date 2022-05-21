@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 public struct ConstructionInputBuffer : IBufferElementData
 {
-    public long ItemId;
+    public ulong ItemId;
     public ushort Amount;
 }
 
@@ -22,8 +22,6 @@ public partial class ConstructionSystem : SystemBase
     private VisualElement uiRoot;
     private VisualElement progressBar, itemList;
     private VisualElement constructionBorder;
-    private bool needItemListUpdate;
-    private double lastInputGiven;
 
     protected override void OnCreate()
     {
@@ -41,7 +39,13 @@ public partial class ConstructionSystem : SystemBase
         constructionBorder ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("ConstructionBorder");
         constructionBorder.style.display = DisplayStyle.Flex;
         itemList ??= uiRoot.Q("ItemList");
-        needItemListUpdate = true;
+
+        EntityManager.AddComponentData(GetSingletonEntity<LocalPlayer>(), new Constructor
+        {
+            LastTick = double.MaxValue,
+            DelayPerBuilding = 0.5f,
+            DelayPerItem = 0.1f
+        });
     }
 
     protected override void OnStopRunning()
@@ -49,31 +53,33 @@ public partial class ConstructionSystem : SystemBase
         base.OnStopRunning();
         uiRoot.style.display = DisplayStyle.None;
         constructionBorder.style.display = DisplayStyle.None;
+
+        EntityManager.RemoveComponent<Constructor>(GetSingletonEntity<LocalPlayer>());
     }
 
     protected override void OnUpdate()
     {
-        Entities
-            .WithNone<ConstructionInputBuffer>()
-            .WithAll<UnderConstruction>()
-            .ForEach((Entity e) =>
-            {
-                EntityManager.AddBuffer<ConstructionInputBuffer>(e);
-            }).WithStructuralChanges().WithoutBurst().Run();
-
-
-
         var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
-        needItemListUpdate |= target.Value != target.PreviousValue;
-        if (needItemListUpdate)
-            itemList.Clear();
-
-        if (!target.CanConstruct ||
-            target.Value == Entity.Null ||
-            !HasComponent<UnderConstruction>(target.Value) ||
-            !EntityManager.HasComponent<ConstructionInputBuffer>(target.Value))
+        if (!target.CanConstruct)
+        {
+            uiRoot.style.display = DisplayStyle.None;
             return;
+        }
+        uiRoot.style.display = DisplayStyle.Flex;
 
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            var constructor = GetComponent<Constructor>(GetSingletonEntity<LocalPlayer>());
+            constructor.LastTick = Time.ElapsedTime + constructor.DelayPerBuilding;
+            SetComponent(GetSingletonEntity<LocalPlayer>(), constructor);
+        } else if (Input.GetKeyUp(KeyCode.F))
+        {
+            var constructor = GetComponent<Constructor>(GetSingletonEntity<LocalPlayer>());
+            constructor.LastTick = double.MaxValue;
+            SetComponent(GetSingletonEntity<LocalPlayer>(), constructor);
+        }
+
+        itemList.Clear();
 
         var current = GetComponent<UnderConstruction>(target.Value);
         var progress = current.Progress;
@@ -87,22 +93,15 @@ public partial class ConstructionSystem : SystemBase
             maxProgress += parts[i].Amount;
             if (progress == ushort.MaxValue)
             {
-                if (needItemListUpdate)
-                {
-
-                    var label = new Label($"0/{parts[i].Amount}\t\t{GetComponent<Name>(IdentifiableMappingSystem.EntitiesById[parts[i].ItemId]).Value.Value}");
-                    itemList.Add(label);
-                }
+                var label = new Label($"0/{parts[i].Amount}\t\t{GetComponent<Name>(IdentifiableMappingSystem.EntitiesById[parts[i].ItemId]).Value.Value}");
+                itemList.Add(label);
             }
             else if (progress >= parts[i].Amount)
             {
                 progress -= parts[i].Amount;
-                if (needItemListUpdate)
-                {
-                    var label = new Label($"{parts[i].Amount}/{parts[i].Amount}\t\t{GetComponent<Name>(IdentifiableMappingSystem.EntitiesById[parts[i].ItemId]).Value.Value}");
-                    label.style.color = Color.grey;
-                    itemList.Add(label);
-                }
+                var label = new Label($"{parts[i].Amount}/{parts[i].Amount}\t\t{GetComponent<Name>(IdentifiableMappingSystem.EntitiesById[parts[i].ItemId]).Value.Value}");
+                label.style.color = Color.grey;
+                itemList.Add(label);
             }
             else
             {
@@ -113,32 +112,12 @@ public partial class ConstructionSystem : SystemBase
                         break;
                     }
 
-                if (needItemListUpdate)
-                {
-                    var label = new Label($"{progress}/{parts[i].Amount}\t\t{GetComponent<Name>(IdentifiableMappingSystem.EntitiesById[parts[i].ItemId]).Value.Value}");
-                    label.style.color = itemToConsume == Entity.Null ? Color.red : Color.green;
-                    itemList.Add(label);
-                }
+                var label = new Label($"{progress}/{parts[i].Amount}\t\t{GetComponent<Name>(IdentifiableMappingSystem.EntitiesById[parts[i].ItemId]).Value.Value}");
+                label.style.color = itemToConsume == Entity.Null ? Color.red : Color.green;
+                itemList.Add(label);
                 progress = ushort.MaxValue;
             }
         }
-
-        if (Input.GetKey(KeyCode.F) && Time.ElapsedTime - lastInputGiven > 0.1f && (itemToConsume != Entity.Null || maxProgress == 0))
-        {
-            if (itemToConsume != Entity.Null)
-                EntityManager.AddComponentData(itemToConsume, new RemoveItem {Quantity = 1});
-            current.Progress++;
-            if (current.Progress >= maxProgress)
-            {
-                EntityManager.AddComponent<FinishConstruction>(target.Value);
-            }
-            else
-                SetComponent(target.Value, current);
-            lastInputGiven = Time.ElapsedTime;
-            needItemListUpdate = true;
-        }
-        else needItemListUpdate = false;
-
 
         progressBar.style.width =
             new StyleLength(new Length(current.Progress * 100f / maxProgress, LengthUnit.Percent));

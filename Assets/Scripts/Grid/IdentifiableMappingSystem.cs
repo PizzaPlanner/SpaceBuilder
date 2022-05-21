@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
@@ -7,7 +8,8 @@ using UnityEngine;
 public partial class IdentifiableMappingSystem : SystemBase
 {
     public struct Loaded : IComponentData { }
-    public static NativeHashMap<long, Entity> EntitiesById;
+    public static NativeHashMap<ulong, Entity> EntitiesById;
+    public static Dictionary<ulong, Texture2D> IconById;
     private EntityQuery query;
 
     protected override void OnCreate()
@@ -29,29 +31,44 @@ public partial class IdentifiableMappingSystem : SystemBase
     protected override void OnUpdate()
     {
         var entities = query.ToEntityArray(Allocator.Temp);
-        var ids = query.ToComponentDataArray<Identifieable>(Allocator.Temp);
         Debug.Log($"Found {entities.Length} ID Prefabs");
-        EntitiesById = new NativeHashMap<long, Entity>(entities.Length, Allocator.Persistent);
-        for (int i = 0; i < entities.Length; i++)
-        {
-            var e = entities[i];
-            if (HasComponent<Parent>(e) && GetComponent<Parent>(e).Value != Entity.Null)
-                continue;
+        EntitiesById = new NativeHashMap<ulong, Entity>(entities.Length, Allocator.Persistent);
+        Entities
+            .WithEntityQueryOptions(EntityQueryOptions.IncludePrefab)
+            .WithAll<Prefab>()
+            .ForEach((Entity e, in Identifieable id) =>
+            {
+                if (HasComponent<Parent>(e) && GetComponent<Parent>(e).Value != Entity.Null)
+                    return;
 
+                if (EntitiesById.ContainsKey(id.ItemId))
+                {
 #if UNITY_EDITOR
-            if(HasComponent<Name>(entities[i]))
-                EntityManager.SetName(entities[i], GetComponent<Name>(e).Value.Value);
-#endif
-            var id = ids[i].ItemId;
-            if(EntitiesById.ContainsKey(id))
-#if UNITY_EDITOR
-                Debug.LogError($"ID {id} used by {EntityManager.GetName(e)} is already taken!");
+                    Debug.LogError($"ID {id.ItemId} used by {EntityManager.GetName(e)} is already taken!");
 #else
-                Debug.LogError($"ID {id} used by {entities[i]} is already taken!");
+                    Debug.LogError($"ID {id.ItemId} used by {e} is already taken!");
 #endif
-            else
-                EntitiesById.Add(id, e);
-        }
+                }
+                else
+                    EntitiesById.Add(id.ItemId, e);
+
+                // if (HasComponent<LocalToWorld>(e))
+                //     EntityManager.RemoveComponent<LocalToWorld>(e);
+                // if (HasComponent<Translation>(e))
+                //     EntityManager.RemoveComponent<Translation>(e);
+                // if (HasComponent<Rotation>(e))
+                //     EntityManager.RemoveComponent<Rotation>(e);
+            }).WithStructuralChanges().WithoutBurst().Run();
+
+        IconById = new Dictionary<ulong, Texture2D>();
+        Entities
+            .WithEntityQueryOptions(EntityQueryOptions.IncludePrefab)
+            .WithAll<Prefab>()
+            .ForEach((Entity iconEntity, in IconReference icon, in Identifieable id) =>
+        {
+            IconById[id.ItemId] = icon.Icon;
+            // EntityManager.RemoveComponent<IconReference>(iconEntity);
+        }).WithStructuralChanges().WithoutBurst().Run();
 
         Enabled = false;
     }

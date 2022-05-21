@@ -25,7 +25,7 @@ public partial class BuildingSystem : SystemBase
     public partial struct BuildJob : IJobEntity
     {
         public EntityCommandBuffer buffer;
-        [ReadOnly] public NativeHashMap<long, Entity> prefabMap;
+        [ReadOnly] public NativeHashMap<ulong, Entity> prefabMap;
         [ReadOnly] public ComponentDataFromEntity<Grid> grids;
         [ReadOnly] public ComponentDataFromEntity<GridItem> gridItems;
         [ReadOnly] public BufferFromEntity<OccupationBuffer> occupations;

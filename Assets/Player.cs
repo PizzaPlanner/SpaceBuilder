@@ -1,8 +1,8 @@
 using Rival;
 using Unity.Entities;
+using Unity.Entities.UniversalDelegates;
 using Unity.Mathematics;
 using Unity.Physics;
-using Unity.Physics.Extensions;
 using Unity.Physics.Systems;
 using Unity.Transforms;
 using UnityEngine;
@@ -16,7 +16,7 @@ public struct Player : IComponentData
 
 [UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
 [UpdateBefore(typeof(TransformSystemGroup))]
-public partial class MovePlayerSystem : SystemBase
+public unsafe partial class MovePlayerSystem : SystemBase
 {
     public const float MOVEMENT_SPEED_DEFAULT = 5;
     public const float MOVEMENT_SPEED_RUNNING = 15;
@@ -58,8 +58,6 @@ public partial class MovePlayerSystem : SystemBase
             camAnchor.XRotation = 0;
         SetSingleton(camAnchor);
 
-        var deltaTime = Time.DeltaTime;
-
         Entities
             .WithAll<Player>()
             .WithNone<Docked>()
@@ -71,41 +69,60 @@ public partial class MovePlayerSystem : SystemBase
 
         Entities
             .WithAll<Player>()
-            .ForEach((ref Docked docked, ref PhysicsVelocity velocity, in KinematicCharacterBody body) =>
+            .ForEach((ref Docked docked, ref PhysicsVelocity velocity, ref KinematicCharacterBody body) =>
             {
                 docked.Rotation = math.mul(docked.Rotation, quaternion.EulerXYZ(new float3(0, rotation.y, 0)));
                 velocity.Linear = movement;
             }).Schedule();
     }
 }
+//
+// [AlwaysUpdateSystem]
+// [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
+// [UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
+// public partial class MakeFixedGroupNotFixedSystem : SystemBase
+// {
+//     protected override void OnUpdate()
+//     {
+//         World.GetExistingSystem<FixedStepSimulationSystemGroup>().Timestep = Time.DeltaTime;
+//     }
+// }
 
-[UpdateAfter(typeof(MovePlayerSystem))]
-[UpdateBefore(typeof(TransformSystemGroup))]
+[UpdateInGroup(typeof(TransformSystemGroup))]
+[UpdateAfter(typeof(TRSToLocalToWorldSystem))]
+[UpdateBefore(typeof(LocalToParentSystem))]
 public partial class UpdateDockedCharacterPositionRotationSystem : SystemBase
 {
+
     protected override void OnUpdate()
     {
         Entities.ForEach((ref Docked docked) =>
         {
-            docked.TargetRotation = GetComponent<Rotation>(docked.Target).Value;
-        }).Run();
+            var parentLtw = GetComponent<LocalToWorld>(docked.Target);
+            docked.TargetRotation = parentLtw.Rotation;
+            // docked.TargetPosition = parentLtw.Position;
+        }).ScheduleParallel();
 
-        Entities.ForEach((ref Rotation r, in Translation t, in Docked docked) =>
+        Entities.ForEach((ref LocalToWorld ltw, in Docked docked) =>
         {
-            r.Value = math.mul(docked.TargetRotation, docked.Rotation);
-        }).Run();
+            ltw.Value = math.mul(float4x4.TRS(ltw.Position, docked.TargetRotation, 1), float4x4.TRS(0, docked.Rotation, 1));
+        }).ScheduleParallel();
 
-        Entities.ForEach((ref ThirdPersonCharacterComponent character, in Docked docked) =>
+        Entities
+            .WithAll<AlignUpVector>()
+            .ForEach((ref ThirdPersonCharacterComponent character, ref KinematicCharacterBody props, in Docked docked) =>
         {
-            character.Gravity = math.mul(docked.TargetRotation, math.up()) * -5;
+            // character.Gravity = math.mul(docked.TargetRotation, math.up()) * -5;
         }).Run();
 
         Entities
             .WithNone<Docked>()
-            .ForEach((ref ThirdPersonCharacterComponent character, ref StoredKinematicCharacterBodyProperties props) =>
+            .ForEach((ref ThirdPersonCharacterComponent character, ref KinematicCharacterBody props) =>
         {
             character.Gravity = 0;
-            props.RelativeVelocity = float3.zero;
+            props.RelativeVelocity *= 0.95f;
+            if (math.all(math.abs(props.RelativeVelocity) < 0.001f))
+                props.RelativeVelocity = 0;
         }).Run();
     }
 }

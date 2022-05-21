@@ -5,13 +5,13 @@ using UnityEngine;
 
 public struct Identifieable : IComponentData
 {
-    public long ItemId;
+    public ulong ItemId;
 }
 
 public class IdentifieableAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 {
-    [SerializeField][HideInInspector]long ItemId;
-    public long Id => ItemId;
+    [SerializeField][HideInInspector]ulong ItemId;
+    public ulong Id => ItemId;
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {
         dstManager.AddComponentData(entity, new Identifieable {ItemId = ItemId});
@@ -24,7 +24,7 @@ public class IdentifieableAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 
         var guid = UnityEditor.AssetDatabase.AssetPathToGUID(UnityEditor.AssetDatabase.GetAssetPath(gameObject));
         if (guid.Length < 16) return;
-        ItemId = long.Parse(guid.Substring(0,16),System.Globalization.NumberStyles.HexNumber);
+        ItemId = ulong.Parse(guid.Substring(0,16),System.Globalization.NumberStyles.HexNumber);
     }
 #endif
 }

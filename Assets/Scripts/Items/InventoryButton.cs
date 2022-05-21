@@ -12,7 +12,7 @@ public class InventoryElement : VisualElement
     public Action<InventoryButton, InventoryButton> OnDragDrop;
     public int2 Subset;
 
-    public void Update(BufferFromEntity<Inventory> inventories, ComponentDataFromEntity<Name> names, ComponentDataFromEntity<Stackable> stacks)
+    public void Update(BufferFromEntity<Inventory> inventories, ComponentDataFromEntity<Identifieable> ids, ComponentDataFromEntity<Name> names, ComponentDataFromEntity<Stackable> stacks)
     {
         if (!inventories.HasComponent(Container))
         {
@@ -64,6 +64,8 @@ public class InventoryElement : VisualElement
             x.Info = stacks.HasComponent(entity)
                 ? $"x{stacks[entity].Size}"
                 : "";
+
+            x.Image = IdentifiableMappingSystem.IconById.ContainsKey(ids[entity].ItemId) ? IdentifiableMappingSystem.IconById[ids[entity].ItemId] : null;
         });
     }
 
@@ -103,6 +105,11 @@ public class InventoryButton : VisualElement
     {
         get => this.Q<Label>(null, "stack").text;
         set { this.Q<Label>(null, "stack").text = value; }
+    }
+
+    public Texture2D Image
+    {
+        set => this.Q(null, "icon").style.backgroundImage = value ? value : new StyleBackground(StyleKeyword.Null);
     }
 
     public InventoryButton()
@@ -167,7 +174,7 @@ public class CraftingInputButton : VisualElement
 
 public class BuilderButton : VisualElement
 {
-    public long Id;
+    public ulong Id;
 
     public bool Selected
     {

@@ -22,6 +22,9 @@ public partial struct ConstructionJob : IJobEntity
         if (!target.CanConstruct)
             return;
 
+        if (!constructionBuffers.HasComponent(target.Value))
+            return;
+
         var parts = constructionBuffers[target.Value];
         var current = underConstructions[target.Value];
         var maxProgress = 0;
@@ -65,7 +68,7 @@ public partial struct ConstructionJob : IJobEntity
     }
 }
 
-public partial class SelfRepairPrinterSystem : SystemBase
+public partial class ProgressConstructionSystem : SystemBase
 {
     private EntityCommandBufferSystem bufferSystem;
     protected override void OnCreate()
@@ -88,10 +91,13 @@ public partial class SelfRepairPrinterSystem : SystemBase
     }
 }
 
+[UpdateBefore(typeof(ProgressConstructionSystem))]
 public partial class FinishConstructionSystem : SystemBase
 {
     protected override void OnUpdate()
     {
+        foreach (var entity in GetEntityQuery(typeof(Disabled), typeof(FinishConstruction)).ToEntityArray(Allocator.Temp))
+            EntityManager.DestroyEntity(entity);
         Entities.WithAll<FinishConstruction, UnderConstruction>().ForEach((Entity e) =>
         {
             ConstructBlueprint(e);
@@ -109,7 +115,7 @@ public partial class FinishConstructionSystem : SystemBase
             {
                 Id = GetComponent<Identifieable>(bp).ItemId,
                 Position = position,
-                Orientation = rotation,
+                Orientation = new RightAngleRotation(rotation),
                 BuildStatus = ushort.MaxValue
             },
             Grid = GetComponent<GridItem>(bp).Grid
@@ -125,6 +131,6 @@ public partial class FinishConstructionSystem : SystemBase
             IsFinishConstructionJob = true
         }.Run(ppquery);
         EntityManager.DestroyEntity(pp);
-        EntityManager.DestroyEntity(bp);
+        EntityManager.AddComponent<Disabled>(bp);
     }
 }

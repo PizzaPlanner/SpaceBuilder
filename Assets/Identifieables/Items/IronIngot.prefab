@@ -69,6 +69,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4037564657443737580, guid: 29155d667eb191940879755d96c4abe9,
         type: 3}
+      propertyPath: Icon
+      value: 
+      objectReference: {fileID: 2800000, guid: 7a519e1960f37d8498b2e5d91b34e65d, type: 3}
+    - target: {fileID: 4037564657443737580, guid: 29155d667eb191940879755d96c4abe9,
+        type: 3}
       propertyPath: MaxStackSize
       value: 250
       objectReference: {fileID: 0}

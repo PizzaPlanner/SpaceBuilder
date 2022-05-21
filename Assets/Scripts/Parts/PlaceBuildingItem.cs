@@ -3,7 +3,7 @@ using Unity.Entities;
 
 public struct BuildableBuffer : IBufferElementData
 {
-    public long PrefabId;
+    public ulong PrefabId;
 }
 
 public struct SelectedItem : IComponentData

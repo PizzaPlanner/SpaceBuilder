@@ -1,10 +1,6 @@
-using System.Collections;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
-using UnityEngine.tvOS;
 using UnityEngine.UIElements;
 
 public struct Inventory : IBufferElementData
@@ -14,7 +10,7 @@ public struct Inventory : IBufferElementData
 
 public static class InventoryHelper
 {
-    public static bool Contains(this DynamicBuffer<Inventory> buffer, ComponentDataFromEntity<Identifieable> idBuffer, ComponentDataFromEntity<Stackable> stackBuffer, long itemId, ushort amount)
+    public static bool Contains(this DynamicBuffer<Inventory> buffer, ComponentDataFromEntity<Identifieable> idBuffer, ComponentDataFromEntity<Stackable> stackBuffer, ulong itemId, ushort amount)
     {
         ushort has = 0;
         for(int i = 0; i < buffer.Length; i++)
@@ -167,8 +163,9 @@ public partial class InventoryUISystem : SystemBase
             var inventories = GetBufferFromEntity<Inventory>(true);
             var names = GetComponentDataFromEntity<Name>(true);
             var stacks = GetComponentDataFromEntity<Stackable>(true);
+            var ids = GetComponentDataFromEntity<Identifieable>(true);
             GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Query<InventoryElement>()
-                         .ForEach(c => c.Update(inventories, names, stacks));
+                         .ForEach(c => c.Update(inventories, ids, names, stacks));
             EntityManager.DestroyEntity(GetEntityQuery(typeof(InventoryChanged)));
             EntityManager.RemoveComponent<SelectedItem>(GetEntityQuery(typeof(SelectedItem)));
             CraftWindow.UpdateRecipes(EntityManager,
