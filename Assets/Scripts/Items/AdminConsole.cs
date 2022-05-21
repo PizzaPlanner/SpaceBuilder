@@ -55,7 +55,7 @@ public class AdminConsole : VisualElement
 
         var cmd = tokens[0].Content;
         tokens.RemoveAt(0);
-        Debug.Log($"Executing {cmd}({string.Join(", ", tokens.Select(x => $"'{x.Content}'"))})");
+        // Debug.Log($"Executing {cmd}({string.Join(", ", tokens.Select(x => $"'{x.Content}'"))})");
         commands[cmd].Execute(tokens.Select(x => x.Content).ToArray(), executor);
     }
 
@@ -138,6 +138,29 @@ public class ExecuteAdminScript : IComponentData
     public Entity Executor;
 }
 
+public struct MoveSectorCommand : AdminConsole.IConsoleCommand
+{
+    public EntityManager EntityManager;
+    public string BaseCommand => "warp";
+    public void Execute(string[] parameters, Entity executor)
+    {
+        if (parameters.Length != 3)
+            return;
+        if (!long.TryParse(parameters[0], out var x) ||
+            !long.TryParse(parameters[1], out var y) ||
+            !long.TryParse(parameters[2], out var z))
+            return;
+
+        var e = EntityManager.CreateEntity(typeof(SectorChange));
+        EntityManager.SetComponentData(e, new SectorChange
+        {
+            Entity = executor,
+            New = new LocalToGalaxy{XInTenKm = x, YInTenKm = y, ZInTenKm = z},
+            Previous = EntityManager.GetComponentData<LocalToGalaxy>(executor)
+        });
+    }
+}
+
 public struct GiveItemConsoleCommand : AdminConsole.IConsoleCommand
 {
     public Func<string, ulong> GetId;
@@ -209,6 +232,7 @@ public partial class AdminConsoleSystem : SystemBase
             uiRoot.Register(new GiveItemConsoleCommand{EntityManager = EntityManager, GetId = GetId});
             uiRoot.Register(new NoclipConsoleCommand{EntityManager = EntityManager});
             uiRoot.Register(new SpawnCommand(){EntityManager = EntityManager});
+            uiRoot.Register(new MoveSectorCommand{EntityManager = EntityManager});
         }
         uiRoot.style.display = DisplayStyle.None;
     }
@@ -238,7 +262,6 @@ public partial class AdminConsoleSystem : SystemBase
             if (uiRoot.style.display == DisplayStyle.Flex)
             {
                 World.GetExistingSystem<InputSystem>().SetCursor(InputSystem.CursorState.Default);
-                uiRoot.Q<TextField>().value = " ";
                 uiRoot.Q<TextField>().Focus();
             }
             else

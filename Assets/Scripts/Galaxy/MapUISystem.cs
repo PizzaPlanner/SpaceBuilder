@@ -26,11 +26,19 @@ public partial class MapUISystem : SystemBase
             .ForEach((in LocalToWorld ltw, in LocalToGalaxy ltg, in PhysicsVelocity v) =>
             {
                 uiRoot.Q<Label>("Sector").text =
-                    $"Sector: ({ltg.XInTenKm}, {ltg.YInTenKm})";
+                    $"Sector: ({ltg.XInTenKm}, {ltg.YInTenKm}, {ltg.ZInTenKm})";
                 uiRoot.Q<Label>("Coordinates").text =
                     $"Position: ({ltw.Position.x:F1}, {ltw.Position.y:F1}, {ltw.Position.z:F1})";
                 uiRoot.Q<Label>("Forward").text =
                     $"Speed: {math.length(v.Linear):F1}m/s";
             }).WithoutBurst().Run();
+        var myLtg = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
+        Entities.ForEach((in SectorData data, in LocalToGalaxy ltg) =>
+        {
+            if (ltg.XInTenKm != myLtg.XInTenKm || ltg.YInTenKm != myLtg.YInTenKm || ltg.ZInTenKm != myLtg.ZInTenKm)
+                return;
+
+            uiRoot.Q<Label>("Sector").text += $" | {data.Type}";
+        }).WithoutBurst().Run();
     }
 }

@@ -9,6 +9,10 @@ using UnityEngine;
 public class BlueprintLibrary : MonoBehaviour
 {
     public static string BaseFolder => Path.Combine(Application.persistentDataPath, "blueprints");
+    public static string POIFolder => Path.Combine(BaseFolder, "World", "POI");
+    public static string[] SpawnablePOIs => Directory
+        .EnumerateFiles(POIFolder, $"*{BlueprintFileExtension}", SearchOption.AllDirectories)
+        .Select(x => x.Substring(BaseFolder.Length + 1)).ToArray();
     private const string BlueprintFileExtension = ".txt";
     void Awake()
     {
@@ -19,9 +23,10 @@ public class BlueprintLibrary : MonoBehaviour
         foreach (var file in Directory.EnumerateFiles(Path.Combine(Application.dataPath, "Blueprints"), $"*{BlueprintFileExtension}",
                      SearchOption.AllDirectories))
         {
-            var toPath = Path.Combine(BaseFolder, file.Split('/', '\\').Last());
+            var relativeFile = file.Substring(Path.Combine(Application.dataPath, "Blueprints").Length + 1);
+            var toPath = Path.Combine(BaseFolder, relativeFile);
             if(!File.Exists(toPath))
-                File.Copy(file, Path.Combine(BaseFolder, file.Split('/', '\\').Last()));
+                File.Copy(file, toPath);
         }
 #endif
         foreach(var file in Directory.EnumerateFiles(BaseFolder, $"*{BlueprintFileExtension}", SearchOption.AllDirectories))

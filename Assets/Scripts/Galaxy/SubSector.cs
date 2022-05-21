@@ -108,6 +108,9 @@ public partial class SubSectorGeneratorSystem : SystemBase
                     case SectorType.AsteroidField:
                         buffer.AddComponent<GenerateAsteroidField>(nativeThreadIndex, e);
                         break;
+                    case SectorType.StarCompanion:
+                        buffer.AddComponent<GeneratePOI>(nativeThreadIndex, e);
+                        break;
                 }
             }).ScheduleParallel();
 

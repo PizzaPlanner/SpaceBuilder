@@ -467,6 +467,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   XInTenKm: 157
   YInTenKm: 119
+  ZInTenKm: 0
 --- !u!1 &1486386791
 GameObject:
   m_ObjectHideFlags: 0
@@ -499,6 +500,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   XInTenKm: 157
   YInTenKm: 119
+  ZInTenKm: 0
 --- !u!114 &1486386794
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -511,7 +513,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06913eaca2a8453bb9319793fa51e964, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FilePath: Grid 359
+  FilePath: TempThing
 --- !u!4 &1486386795
 Transform:
   m_ObjectHideFlags: 0

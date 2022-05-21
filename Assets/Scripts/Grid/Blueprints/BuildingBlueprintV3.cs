@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Properties;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -31,9 +32,8 @@ public struct BlueprintParserV3 : IBlueprintParser
 
         public void Deserialize(string data)
         {
-            Stack<object> CurrentToken = new Stack<object>();
+            Stack<(object Property, int Indent)> CurrentToken = new Stack<(object, int)>();
             var lines = data.Split('\n');
-            var lastIndent = 0;
             for(int i = 0; i < lines.Length; i++)
             {
                 var line = lines[i];
@@ -43,11 +43,17 @@ public struct BlueprintParserV3 : IBlueprintParser
                 var kvp = line.Split(new[]{':'}, 2, StringSplitOptions.None);
                 var key = kvp.Length >= 2 ? kvp[0].Trim(' ', '-') : null;
                 var value = kvp.Length >= 2 ? kvp[1].Trim() : null;
-                if (indent < lastIndent)
+                if(indent != 0 && CurrentToken.Count != 0)
+                    while (indent <= CurrentToken.Peek().Indent)
+                    {
+                        CurrentToken.Pop();
+                    }
+                else if ((indent == 0) != (CurrentToken.Count == 0))
                 {
-                    CurrentToken.Pop();
+                    Debug.LogError("Wrong indent detected in Line "+i);
+                    Parts = new Dictionary<ulong, List<PartData>>();
+                    return;
                 }
-                line = line.Substring(indent);
                 if (key == "Version")
                     int.TryParse(value, out Version);
                 else if (key == "Name")
@@ -55,15 +61,15 @@ public struct BlueprintParserV3 : IBlueprintParser
                 else if (key == "Parts")
                 {
                     Parts = new Dictionary<ulong, List<PartData>>();
-                    CurrentToken.Push(Parts);
+                    CurrentToken.Push((Parts, indent));
                 }
-                else if (CurrentToken.Peek() is Dictionary<ulong, List<PartData>> dict && key != null)
+                else if (CurrentToken.Peek().Property is Dictionary<ulong, List<PartData>> dict && key != null)
                 {
                     var id = ulong.Parse(key);
                     dict[id] = new List<PartData>();
-                    CurrentToken.Push(Parts[id]);
+                    CurrentToken.Push((Parts[id], indent));
                 }
-                else if (CurrentToken.Peek() is List<PartData> parts)
+                else if (CurrentToken.Peek().Property is List<PartData> parts)
                 {
                     if(lines[i].Substring(0, indent).Contains("-"))
                         parts.Add(new PartData{Status = ushort.MaxValue});
@@ -86,10 +92,10 @@ public struct BlueprintParserV3 : IBlueprintParser
                     else if (key == "Inventory")
                     {
                         current.Inventory = new List<ItemData>();
-                        CurrentToken.Push(current.Inventory);
+                        CurrentToken.Push((current.Inventory, indent));
                     }
                 }
-                else if (CurrentToken.Peek() is List<ItemData> inventory)
+                else if (CurrentToken.Peek().Property is List<ItemData> inventory)
                 {
                     if(lines[i].Substring(0, indent).Contains("-"))
                         inventory.Add(new ItemData());
@@ -100,8 +106,6 @@ public struct BlueprintParserV3 : IBlueprintParser
                     if (key == "Stack")
                         current.Stack = ushort.Parse(value);
                 }
-
-                lastIndent = indent;
             }
         }
     }

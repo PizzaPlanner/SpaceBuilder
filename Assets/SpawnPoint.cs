@@ -40,7 +40,7 @@ public partial class PlayerSpawnSystem : SystemBase
             buffer.AddComponent(update, new SectorChange
             {
                 Entity = player,
-                Previous = new LocalToGalaxy{XInTenKm = int.MinValue, YInTenKm = int.MinValue},
+                Previous = new LocalToGalaxy{XInTenKm = int.MinValue, YInTenKm = int.MinValue, ZInTenKm = int.MinValue},
                 New = ltg
             });
         }).Schedule();

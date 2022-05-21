@@ -18,6 +18,7 @@ public struct LocalToGalaxy : IComponentData
 {
     public long XInTenKm;
     public long YInTenKm;
+    public long ZInTenKm;
 }
 
 public struct SectorChange : IComponentData
@@ -76,9 +77,9 @@ public partial class LoadSectorSystem : SystemBase
                 Entity newSector = Entity.Null;
                 for (int i = 0; i < sectors.Length; i++)
                 {
-                    if (sectors[i].XInTenKm == sc.New.XInTenKm && sectors[i].YInTenKm == sc.New.YInTenKm)
+                    if (sectors[i].XInTenKm == sc.New.XInTenKm && sectors[i].YInTenKm == sc.New.YInTenKm && sectors[i].ZInTenKm == sc.New.ZInTenKm)
                         newSector = sectorEntities[i];
-                    if (sectors[i].XInTenKm == sc.Previous.XInTenKm && sectors[i].YInTenKm == sc.Previous.YInTenKm)
+                    if (sectors[i].XInTenKm == sc.Previous.XInTenKm && sectors[i].YInTenKm == sc.Previous.YInTenKm && sectors[i].ZInTenKm == sc.Previous.ZInTenKm)
                         oldSector = sectorEntities[i];
                 }
 
@@ -102,7 +103,7 @@ public partial class LoadSectorSystem : SystemBase
                         buffer.AddComponent<Disabled>(oldSector);
                 }
 
-                Debug.Log($"Entering {sc.New.XInTenKm}|{sc.New.YInTenKm}");
+                Debug.Log($"Entering {sc.New.XInTenKm}|{sc.New.YInTenKm}|{sc.New.ZInTenKm}");
                 SetComponent(sc.Entity, sc.New);
 
                 var newPlayerBuffer = GetBuffer<TravellerInSector>(newSector);
@@ -121,7 +122,7 @@ public partial class LoadSectorSystem : SystemBase
             {
                 var secToLoad = ltg;
                 var offset = float3.zero;
-                var planePosition = t.Value.xz;
+                var planePosition = t.Value.xyz;
                 if (planePosition.x < -MAX_POSITION_IN_SECTOR)
                 {
                     secToLoad.XInTenKm--;
@@ -135,15 +136,25 @@ public partial class LoadSectorSystem : SystemBase
                 if (planePosition.y < -MAX_POSITION_IN_SECTOR)
                 {
                     secToLoad.YInTenKm--;
-                    offset.z = 2 * MAX_POSITION_IN_SECTOR;
+                    offset.y = 2 * MAX_POSITION_IN_SECTOR;
                 }
                 else if (planePosition.y > MAX_POSITION_IN_SECTOR)
                 {
                     secToLoad.YInTenKm++;
+                    offset.y = -2 * MAX_POSITION_IN_SECTOR;
+                }
+                if (planePosition.z < -MAX_POSITION_IN_SECTOR)
+                {
+                    secToLoad.ZInTenKm--;
+                    offset.z = 2 * MAX_POSITION_IN_SECTOR;
+                }
+                else if (planePosition.z > MAX_POSITION_IN_SECTOR)
+                {
+                    secToLoad.ZInTenKm++;
                     offset.z = -2 * MAX_POSITION_IN_SECTOR;
                 }
 
-                if (ltg.XInTenKm == secToLoad.XInTenKm && ltg.YInTenKm == secToLoad.YInTenKm)
+                if (ltg.XInTenKm == secToLoad.XInTenKm && ltg.YInTenKm == secToLoad.YInTenKm && ltg.ZInTenKm == secToLoad.ZInTenKm)
                     return;
 
                 var update = buffer.CreateEntity();
