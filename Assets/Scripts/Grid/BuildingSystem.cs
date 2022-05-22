@@ -65,7 +65,10 @@ public partial class BuildingSystem : SystemBase
             buffer.SetComponent(entity, new Parent {Value = part.Grid});
             buffer.SetComponent(entity, new Rotation {Value = part.Data.Orientation});
             buffer.SetComponent(entity, new Translation {Value = Grid.PositionFromCell(originalGridItem.Type, part.Data.Position)});
-
+            if (part.Data.Color != default)
+            {
+                buffer.AddComponent(entity, new URPMaterialPropertyBaseColor{Value = new float4(part.Data.Color.r, part.Data.Color.g, part.Data.Color.b, 1) });
+            }
             if (part.Data.BuildStatus < ushort.MaxValue)
             {
                 buffer.AddComponent<Blueprinted>(entity);

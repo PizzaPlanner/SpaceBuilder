@@ -25,12 +25,9 @@ public class BlueprintLibrary : MonoBehaviour
         {
             var relativeFile = file.Substring(Path.Combine(Application.dataPath, "Blueprints").Length + 1);
             var toPath = Path.Combine(BaseFolder, relativeFile);
-            if(!File.Exists(toPath))
-                File.Copy(file, toPath);
+            File.Copy(file, toPath, true);
         }
 #endif
-        foreach(var file in Directory.EnumerateFiles(BaseFolder, $"*{BlueprintFileExtension}", SearchOption.AllDirectories))
-            Debug.Log("Found Blueprint "+file);
     }
 
     public static Entity Load(string relativePath, EntityManager manager)

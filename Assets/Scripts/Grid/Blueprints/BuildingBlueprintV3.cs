@@ -5,6 +5,7 @@ using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Properties;
+using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -20,6 +21,7 @@ public struct BlueprintParserV3 : IBlueprintParser
     {
         public int3 Position;
         public RightAngleRotation Orientation;
+        public int3 Color;
         public ushort Status;
         public List<ItemData> Inventory;
     }
@@ -77,6 +79,16 @@ public struct BlueprintParserV3 : IBlueprintParser
                     var current = parts.Last();
                     if (key == "Status")
                         current.Status = ushort.Parse(value);
+                    else if (key == "Color")
+                    {
+                        var color = value.Trim(' ', '[', ']').Split(',');
+                        if (color.Length != 3)
+                        {
+                            Debug.LogError($"Invalid syntax in Line {i}");
+                            continue;
+                        }
+                        current.Color = new int3(int.Parse(color[0]), int.Parse(color[1]), int.Parse(color[2]));
+                    }
                     else if (key == "LocalToGrid")
                     {
                         var pos = value.Trim(' ', '[', ']').Split(',');
@@ -149,6 +161,10 @@ public struct BlueprintParserV3 : IBlueprintParser
 
             if (!data.Parts.ContainsKey(identifieable.ItemId))
                 data.Parts[identifieable.ItemId] = new List<PartData>();
+            var color = em.HasComponent<URPMaterialPropertyBaseColor>(child.Value)
+                ? (int4) (em.GetComponentData<URPMaterialPropertyBaseColor>(child.Value).Value * 255)
+                : int4.zero;
+
             data.Parts[identifieable.ItemId].Add(new PartData
             {
                 Orientation = new RightAngleRotation(rotation.Value),
@@ -156,7 +172,8 @@ public struct BlueprintParserV3 : IBlueprintParser
                 Status = em.HasComponent<UnderConstruction>(child.Value)
                     ? em.GetComponentData<UnderConstruction>(child.Value).Progress
                     : ushort.MaxValue,
-                Inventory = inventory?.ToList()
+                Inventory = inventory?.ToList(),
+                Color = new int3(color.x, color.y, color.z)
             });
         }
 
@@ -166,6 +183,7 @@ Parts:
 {string.Join("\n", data.Parts[x].Select(y => $@"
   - LocalToGrid: [{y.Position.x},{y.Position.y},{y.Position.z},{y.Orientation}]
     {(y.Status != ushort.MaxValue ? $"Status: {y.Status}" : "")}
+    {(math.any(y.Color != int3.zero) ? $"Color: [{y.Color.x},{y.Color.y},{y.Color.z}]" : "")}
 {(y.Inventory == null || y.Inventory.Count == 0 ? "" : $@"    Inventory:
 {string.Join("\n", y.Inventory.Select(item => item == null ? $@"
     - null" : $@"
@@ -186,7 +204,14 @@ Parts:
         var parts = new List<BuildingPartInfo>();
         foreach (var id in ds.Parts.Keys)
         {
-            parts.AddRange(ds.Parts[id].Select(item => new BuildingPartInfo {Id = id, Orientation = item.Orientation, Position = item.Position, BuildStatus = item.Status}));
+            parts.AddRange(ds.Parts[id].Select(item => new BuildingPartInfo
+                {
+                    Id = id, Orientation =
+                    item.Orientation,
+                    Position = item.Position,
+                    BuildStatus = item.Status,
+                    Color = math.all(item.Color == int3.zero) ? default :  new Color(item.Color.x / 255f, item.Color.y / 255f, item.Color.z / 255f)
+                }));
         }
         return new BlueprintData {Name = ds.Name, Parts = parts};
     }

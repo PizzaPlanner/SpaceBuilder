@@ -95,6 +95,7 @@ public struct BuildingPartInfo
     public int3 Position;
     public RightAngleRotation Orientation;
     public ushort BuildStatus;
+    public Color Color;
 }
 
 public struct BlueprintData
