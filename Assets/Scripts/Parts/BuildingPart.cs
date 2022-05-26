@@ -23,6 +23,7 @@ public struct GridItem : IComponentData
     public Side Airtight;
     public BoundingBox Area;
     public Grid.Size Type;
+    public bool Scalable;
     public Entity Grid;
 }
 
@@ -50,7 +51,7 @@ public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
     [SerializeField] private int3 SizeInGrid;
     [SerializeField] private GridItem.Side Occupied;
     [SerializeField] private GridItem.Side Airtight;
-
+    [SerializeField] private bool Scalable;
     private void OnDrawGizmos()
     {
         Gizmos.DrawWireCube((float3)SizeInGrid * 0.5f * Grid.CellSize(Type), (float3)SizeInGrid * Grid.CellSize(Type));
@@ -63,7 +64,8 @@ public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
             Area = new BoundingBox{Origin = int3.zero, Extents = SizeInGrid - new int3(1)},
             Occupied = Occupied,
             Airtight = Airtight,
-            Type = Type
+            Type = Type,
+            Scalable = math.all(SizeInGrid == 1) && Scalable
         });
         dstManager.AddComponentData(entity, new RotationPivot {Value = Grid.CellSize(Type) * 0.5f});
         dstManager.AddComponent<CompositeRotation>(entity);
@@ -72,5 +74,11 @@ public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
         dstManager.AddComponent<Rotation>(entity);
         dstManager.AddComponent<Translation>(entity);
         dstManager.AddBuffer<ConnectionBuffer>(entity);
+    }
+
+    private void OnValidate()
+    {
+        if (!math.all(SizeInGrid == 1))
+            Scalable = false;
     }
 }

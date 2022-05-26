@@ -74,13 +74,13 @@ public struct RightAngleRotation
         var usign = (rar.Value & 0b1000_0000) != 0 ? -1 : 1;
         return quaternion.LookRotation(
             new float3(
-                (rar.Value & 0b0000_0001) * fsign,
-                (rar.Value & 0b0000_0010) * fsign,
-                (rar.Value & 0b0000_0100) * fsign),
+                math.sign((rar.Value & 0b0000_0001) * fsign),
+                math.sign((rar.Value & 0b0000_0010) * fsign),
+                math.sign((rar.Value & 0b0000_0100) * fsign)),
             new float3(
-                (rar.Value & 0b0001_0000) * usign,
-                (rar.Value & 0b0010_0000) * usign,
-                (rar.Value & 0b0100_0000) * usign));
+                math.sign((rar.Value & 0b0001_0000) * usign),
+                math.sign((rar.Value & 0b0010_0000) * usign),
+                math.sign((rar.Value & 0b0100_0000) * usign)));
     }
 
     public override string ToString()
@@ -93,6 +93,7 @@ public struct BuildingPartInfo
 {
     public ulong Id;
     public int3 Position;
+    public int3 Scale;
     public RightAngleRotation Orientation;
     public ushort BuildStatus;
     public Color Color;

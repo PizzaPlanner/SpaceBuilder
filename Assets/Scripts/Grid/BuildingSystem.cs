@@ -58,17 +58,32 @@ public partial class BuildingSystem : SystemBase
                     return;
             }
 
+
             // Create Part
             var entity = buffer.Instantiate(prefab);
+
+            if (originalGridItem.Scalable && IsCreateGhostJob)
+                buffer.AddComponent(entity, new NonUniformScale {Value = part.Data.Scale + 1});
+            else if (originalGridItem.Scalable && math.any(part.Data.Scale != 0))
+            {
+                if(part.Data.Scale.x == part.Data.Scale.y && part.Data.Scale.x == part.Data.Scale.z)
+                    buffer.AddComponent(entity, new Scale{Value = part.Data.Scale.x + 1});
+                else
+                    buffer.AddComponent(entity, new NonUniformScale{Value = part.Data.Scale + 1});
+                newGridItem.Area.Extents = part.Data.Scale;
+            }
+
             buffer.AddComponent(entity, new UpdateRotation {Value = part.Data.Orientation, ReferencePrefab = prefab});
-            buffer.SetComponent(entity, newGridItem);
             buffer.SetComponent(entity, new Parent {Value = part.Grid});
             buffer.SetComponent(entity, new Rotation {Value = part.Data.Orientation});
             buffer.SetComponent(entity, new Translation {Value = Grid.PositionFromCell(originalGridItem.Type, part.Data.Position)});
+            buffer.SetComponent(entity, newGridItem);
+
             if (part.Data.Color != default)
             {
                 buffer.AddComponent(entity, new URPMaterialPropertyBaseColor{Value = new float4(part.Data.Color.r, part.Data.Color.g, part.Data.Color.b, 1) });
             }
+
             if (part.Data.BuildStatus < ushort.MaxValue)
             {
                 buffer.AddComponent<Blueprinted>(entity);

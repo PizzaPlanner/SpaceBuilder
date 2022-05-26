@@ -154,23 +154,43 @@ public partial class GhostPlacementSystem : SystemBase
                     if (!ghost.Buildable)
                         return;
 
-                    for (int x = bgp.Area.Min.x; x <= bgp.Area.Max.x; x++)
-                    for (int y = bgp.Area.Min.y; y <= bgp.Area.Max.y; y++)
-                    for (int z = bgp.Area.Min.z; z <= bgp.Area.Max.z; z++)
+                    if (bgp.Original.Scalable)
                     {
                         var pendingBuild = new PendingPart
                         {
                             Data = new BuildingPartInfo
                             {
                                 Id = id.ItemId,
-                                Position = new int3(x,y,z),
+                                Position = bgp.Area.Min,
                                 Orientation = new RightAngleRotation(r.Value),
-                                BuildStatus = 0
+                                BuildStatus = 0,
+                                Scale = bgp.Area.Max - bgp.Area.Min
                             },
                             Grid = currentGrid
                         };
                         var part = EntityManager.CreateEntity(typeof(PendingPart));
                         EntityManager.SetComponentData(part, pendingBuild);
+                    }
+                    else
+                    {
+                        for (int x = bgp.Area.Min.x; x <= bgp.Area.Max.x; x++)
+                        for (int y = bgp.Area.Min.y; y <= bgp.Area.Max.y; y++)
+                        for (int z = bgp.Area.Min.z; z <= bgp.Area.Max.z; z++)
+                        {
+                            var pendingBuild = new PendingPart
+                            {
+                                Data = new BuildingPartInfo
+                                {
+                                    Id = id.ItemId,
+                                    Position = new int3(x,y,z),
+                                    Orientation = new RightAngleRotation(r.Value),
+                                    BuildStatus = 0
+                                },
+                                Grid = currentGrid
+                            };
+                            var part = EntityManager.CreateEntity(typeof(PendingPart));
+                            EntityManager.SetComponentData(part, pendingBuild);
+                        }
                     }
                     EntityManager.DestroyEntity(e);
             }).WithStructuralChanges().WithoutBurst().Run();

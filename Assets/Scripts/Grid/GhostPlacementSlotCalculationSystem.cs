@@ -56,6 +56,7 @@ public partial class CalculateBuildingSlotSystem : SystemBase
         else
             bgp.Area.Extents = int3.zero;
 
+
         if (Input.GetMouseButton(0) && math.any(targetCell != bgp.Area.Origin))
         {
             bgp.Area.RotatedExtents = (targetCell - bgp.Area.Origin) * bgp.Area.Extents;
@@ -65,7 +66,8 @@ public partial class CalculateBuildingSlotSystem : SystemBase
             bgp.Area.Origin  = targetCell;
             bgp.Area.RotatedExtents = int3.zero;
         }
-        // bgp.Area.RotatedExtents += bgp.Area.RotatedExtents % (math.abs(gridItem.Area.RotatedExtents) + 1);
+
+
         SetSingleton(bgp);
 
         gridItem.Area.Origin = bgp.Area.Origin;
@@ -75,6 +77,11 @@ public partial class CalculateBuildingSlotSystem : SystemBase
         foreach (var item in GetBuffer<OccupationBuffer>(bgp.TargetGrid))
             canBuild &= !(item.Size == gridItem.Type && gridItem.Area.Contains(item.Location) && (item.Value & gridItem.Occupied) > 0);
 
+        if (bgp.Original.Scalable)
+        {
+            SetComponent(ghost, new NonUniformScale{Value = bgp.Area.Max - bgp.Area.Min + 1});
+            gridItem.Area.Origin = gridItem.Area.Min;
+        }
         SetComponent(ghost, new Ghost{Buildable = canBuild});
         SetComponent(ghost, gridItem);
         SetComponent(ghost, newPos);

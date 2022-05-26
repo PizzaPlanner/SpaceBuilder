@@ -123,10 +123,15 @@ PrefabInstance:
       propertyPath: Occupied
       value: 64
       objectReference: {fileID: 0}
+    - target: {fileID: 1914526045730009540, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: Scalable
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3364769202363141643, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: m_Name
-      value: SolidBlock
+      value: HullCube
       objectReference: {fileID: 0}
     - target: {fileID: 4420211641780734995, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}

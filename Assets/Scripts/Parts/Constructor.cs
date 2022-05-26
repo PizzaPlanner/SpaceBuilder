@@ -1,5 +1,6 @@
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 
 [GenerateAuthoringComponent]
@@ -109,6 +110,11 @@ public partial class FinishConstructionSystem : SystemBase
         var pp = EntityManager.CreateEntity(typeof(PendingPart), typeof(UnderConstruction));
         var position = GetComponent<GridItem>(bp).Area.Origin;
         var rotation = GetComponent<Rotation>(bp).Value;
+        int3 scale = 1;
+        if (HasComponent<Scale>(bp))
+            scale = (int)math.round(GetComponent<Scale>(bp).Value);
+        else if (HasComponent<NonUniformScale>(bp))
+            scale = (int3)math.round(GetComponent<NonUniformScale>(bp).Value);
         SetComponent(pp, new PendingPart
         {
             Data = new BuildingPartInfo
@@ -116,7 +122,8 @@ public partial class FinishConstructionSystem : SystemBase
                 Id = GetComponent<Identifieable>(bp).ItemId,
                 Position = position,
                 Orientation = new RightAngleRotation(rotation),
-                BuildStatus = ushort.MaxValue
+                BuildStatus = ushort.MaxValue,
+                Scale = scale - 1
             },
             Grid = GetComponent<GridItem>(bp).Grid
         });
