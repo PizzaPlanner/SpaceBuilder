@@ -22,7 +22,6 @@ public struct GridItem : IComponentData
     public Side Occupied;
     public Side Airtight;
     public BoundingBox Area;
-    public Grid.Size Type;
     public bool Scalable;
     public Entity Grid;
 }
@@ -47,14 +46,13 @@ public struct BoundingBox
 [RequireComponent(typeof(IdentifieableAuthoring))]
 public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
 {
-    [SerializeField] private Grid.Size Type;
     [SerializeField] private int3 SizeInGrid;
     [SerializeField] private GridItem.Side Occupied;
     [SerializeField] private GridItem.Side Airtight;
     [SerializeField] private bool Scalable;
     private void OnDrawGizmos()
     {
-        Gizmos.DrawWireCube((float3)SizeInGrid * 0.5f * Grid.CellSize(Type), (float3)SizeInGrid * Grid.CellSize(Type));
+        Gizmos.DrawWireCube((float3)SizeInGrid * 0.5f * Grid.CELL_SIZE, (float3)SizeInGrid * Grid.CELL_SIZE);
     }
 
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
@@ -64,10 +62,9 @@ public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
             Area = new BoundingBox{Origin = int3.zero, Extents = SizeInGrid - new int3(1)},
             Occupied = Occupied,
             Airtight = Airtight,
-            Type = Type,
             Scalable = math.all(SizeInGrid == 1) && Scalable
         });
-        dstManager.AddComponentData(entity, new RotationPivot {Value = Grid.CellSize(Type) * 0.5f});
+        dstManager.AddComponentData(entity, new RotationPivot {Value = Grid.CELL_SIZE * 0.5f});
         dstManager.AddComponent<CompositeRotation>(entity);
         dstManager.AddComponent<LocalToParent>(entity);
         dstManager.AddComponent<Parent>(entity);

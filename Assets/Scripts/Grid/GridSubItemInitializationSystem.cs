@@ -56,12 +56,12 @@ public partial class GridSubItemInitializationSystem : SystemBase
             var parentRotation = new quaternion(GetComponent<LocalToParent>(parentGridItem).Value);
             var gridItem = GetComponent<GridItem>(parentGridItem);
             var parentCenter = (float3)(gridItem.Area.Max - gridItem.Area.Min + new int3(1)) * 0.5f;
-            var relativePos = (subItem.RelativeCell + new float3(0.5f)) * Grid.CellSize(subItem.Size) - parentCenter;
+            var relativePos = (subItem.RelativeCell + new float3(0.5f)) * Grid.CELL_SIZE - parentCenter;
             relativePos = math.mul(parentRotation, relativePos);
-            relativePos = (relativePos + parentCenter) / Grid.CellSize(subItem.Size) - new float3(0.5f);
+            relativePos = (relativePos + parentCenter) / Grid.CELL_SIZE - new float3(0.5f);
             var relativeCell = (int3)math.round(relativePos);
 
-            var offset = Grid.CellFromPosition(subItem.Size, Grid.PositionFromCell(gridItem.Type, gridItem.Area.Origin));
+            var offset = gridItem.Area.Origin;
             var position = offset + relativeCell;
 
             var prefab = Entity.Null;
@@ -74,14 +74,13 @@ public partial class GridSubItemInitializationSystem : SystemBase
             buffer.AddComponent(e, new GridItem
             {
                 Area = new BoundingBox{Origin = position},
-                Type = subItem.Size,
                 Occupied = (GridItem.Side)byte.MaxValue,
                 Grid = gridItem.Grid
             });
 
             // This only gets into effect at the end of next frame!
             buffer.SetComponent(e, new Parent{Value = gridItem.Grid});
-            buffer.SetComponent(e, new Translation{Value = Grid.PositionFromCell(subItem.Size, position)});
+            buffer.SetComponent(e, new Translation{Value = Grid.PositionFromCell(position)});
         }).Run();
 
         bufferSystem.AddJobHandleForProducer(Dependency);

@@ -25,6 +25,7 @@ public struct Blueprinted : IComponentData
 
 [UpdateBefore(typeof(TransformSystemGroup))]
 [UpdateBefore(typeof(BuildingSystem))]
+[UpdateAfter(typeof(PlayerTargetSystem))]
 public partial class GhostPlacementSystem : SystemBase
 {
     private int ghostId;

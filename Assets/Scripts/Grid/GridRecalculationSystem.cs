@@ -2,44 +2,28 @@ using System;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Networking;
+using MeshCollider = Unity.Physics.MeshCollider;
 
 public struct Grid : IComponentData
 {
-    public enum Size : byte
-    {
-        Tiny,
-        Small,
-        Normal,
-        Big
-    }
-
-    public Size MaxSize;
+    public const float CELL_SIZE = 0.25f;
     public int3 BoundsMin;
     public int3 BoundsMax;
 
-    public static int3 CellFromPosition(Size size, LocalToWorld ltw, float3 worldPosition) => (int3) math.floor(math.mul(math.inverse(ltw.Rotation), worldPosition - ltw.Position) / CellSize(size));
-    public static int3 CellFromPosition(Size size, float3 localPosition) => (int3) math.floor(localPosition / CellSize(size));
-    public static float3 PositionFromCell(Size size, LocalToWorld ltw, int3 cell) =>  math.mul(ltw.Rotation, (float3)cell * CellSize(size)) + ltw.Position;
-    public static float3 PositionFromCell(Size size, int3 cell) =>  (float3)cell * CellSize(size);
-
-    public static float CellSize(Grid.Size size) => size switch
-    {
-        Size.Tiny => 0.25f,
-        Size.Small => 1f,
-        Size.Normal => 2f,
-        Size.Big => 4f,
-        _ => 0
-    };
+    public static int3 CellFromPosition(LocalToWorld ltw, float3 worldPosition) => (int3) math.floor(math.mul(math.inverse(ltw.Rotation), worldPosition - ltw.Position) / CELL_SIZE);
+    public static int3 CellFromPosition(float3 localPosition) => (int3) math.floor(localPosition / CELL_SIZE);
+    public static float3 PositionFromCell(LocalToWorld ltw, int3 cell) =>  math.mul(ltw.Rotation, (float3)cell * CELL_SIZE) + ltw.Position;
+    public static float3 PositionFromCell(int3 cell) =>  (float3)cell * CELL_SIZE;
 }
 
 public struct OccupationBuffer : IBufferElementData
 {
     public GridItem.Side Value;
     public int3 Location;
-    public Grid.Size Size;
 }
 
 public struct AirtightBuffer : IBufferElementData
@@ -87,13 +71,44 @@ public struct GridNeedsUpdate : IComponentData { }
 public partial class GridRecalculationSystem : SystemBase
 {
     private EndInitializationEntityCommandBufferSystem bufferSystem;
+    private Mesh Cube;
     protected override void OnCreate()
     {
         bufferSystem = World.GetExistingSystem<EndInitializationEntityCommandBufferSystem>();
         RequireForUpdate(GetEntityQuery(typeof(GridNeedsUpdate)));
+
+        Cube = new Mesh();
+
+        Vector3[] vertices = {
+            new Vector3 (0, 0, 0) * Grid.CELL_SIZE,
+            new Vector3 (1, 0, 0) * Grid.CELL_SIZE,
+            new Vector3 (1, 1, 0) * Grid.CELL_SIZE,
+            new Vector3 (0, 1, 0) * Grid.CELL_SIZE,
+            new Vector3 (0, 1, 1) * Grid.CELL_SIZE,
+            new Vector3 (1, 1, 1) * Grid.CELL_SIZE,
+            new Vector3 (1, 0, 1) * Grid.CELL_SIZE,
+            new Vector3 (0, 0, 1) * Grid.CELL_SIZE,
+        };
+
+        int[] triangles = {
+            0, 2, 1, //face front
+            0, 3, 2,
+            2, 3, 4, //face top
+            2, 4, 5,
+            1, 2, 5, //face right
+            1, 5, 6,
+            0, 7, 4, //face left
+            0, 4, 3,
+            5, 4, 7, //face back
+            5, 7, 6,
+            0, 6, 7, //face bottom
+            0, 1, 6
+        };
+        Cube.vertices = vertices;
+        Cube.triangles = triangles;
     }
 
-    protected override void OnUpdate()
+    protected unsafe override void OnUpdate()
     {
         Debug.Log("Recalculating Grids!");
         Entities.WithAll<Grid>().ForEach((DynamicBuffer<OccupationBuffer> obuff) =>
@@ -120,7 +135,6 @@ public partial class GridRecalculationSystem : SystemBase
             for (int e2 = 0; e2 < entities.Length; e2++)
             {
                 if (gridItems[e1].Grid != gridItems[e2].Grid) continue;
-                if (gridItems[e1].Type != gridItems[e2].Type) continue;
                 if (e1 == e2) continue;
                 var distance = gridItems[e2].Area.Origin - gridItems[e1].Area.Origin;
                 if (math.dot(distance, distance) != 1) continue;
@@ -170,12 +184,12 @@ public partial class GridRecalculationSystem : SystemBase
                     {
                         if (math.all(b[i].Location == pos))
                         {
-                            b[i] = new OccupationBuffer { Location = pos, Value = b[i].Value | item.Occupied, Size = item.Type};
+                            b[i] = new OccupationBuffer { Location = pos, Value = b[i].Value | item.Occupied};
                             found = true;
                         }
                     }
                     if (!found)
-                        b.Add(new OccupationBuffer { Location = pos, Value = item.Occupied, Size = item.Type });
+                        b.Add(new OccupationBuffer { Location = pos, Value = item.Occupied});
                 }
             }
 
@@ -204,6 +218,7 @@ public partial class GridRecalculationSystem : SystemBase
                 }
             }
         }).Run();
+
         var buffer = bufferSystem.CreateCommandBuffer();
         buffer.DestroyEntitiesForEntityQuery(GetEntityQuery(typeof(GridNeedsUpdate)));
         bufferSystem.AddJobHandleForProducer(Dependency);

@@ -1,48 +1,29 @@
+using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics;
-using Unity.Physics.Systems;
 using Unity.Transforms;
 using UnityEngine;
 
 [UpdateBefore(typeof(TransformSystemGroup))]
+[UpdateAfter(typeof(PlayerTargetSystem))]
 public partial class CalculateBuildingSlotSystem : SystemBase
 {
-    BuildPhysicsWorld physicsWorld;
-    private CollisionFilter filter;
-
     protected override void OnCreate()
     {
         RequireSingletonForUpdate<GhostPlacementBuilder>();
         RequireSingletonForUpdate<CameraAnchor>();
-        physicsWorld = World.GetExistingSystem<BuildPhysicsWorld>();
-        filter = CollisionFilter.Default;
-        filter.CollidesWith = ~(1u << 3);
-        filter.BelongsTo = ~0u;
+        targetCell = int.MaxValue;
     }
+
+    private int3 targetCell;
 
     protected override void OnUpdate()
     {
         var ghost = GetSingletonEntity<GhostPlacementBuilder>();
         var gridItem = GetComponent<GridItem>(ghost);
         var bgp = EntityManager.GetComponentData<GhostPlacementBuilder>(ghost);
-        var gridLtw = GetComponent<LocalToWorld>(bgp.TargetGrid);
-
-        var collisionWorld = physicsWorld.PhysicsWorld.CollisionWorld;
-
-        var camera = Camera.main.transform;
-        float3 target = camera.position + camera.forward * bgp.Range;
-        var input = new RaycastInput
-        {
-            Start = camera.position,
-            End = target,
-            Filter = filter
-        };
-        if (collisionWorld.CastRay(input, out var hit))
-            target = hit.Position;
-
-        var targetCell = Grid.CellFromPosition(gridItem.Type, gridLtw, target);
+        var occupied = GetBuffer<OccupationBuffer>(bgp.TargetGrid, true);
 
         if (Input.GetMouseButton(0))
         {
@@ -57,34 +38,68 @@ public partial class CalculateBuildingSlotSystem : SystemBase
             bgp.Area.Extents = int3.zero;
 
 
-        if (Input.GetMouseButton(0) && math.any(targetCell != bgp.Area.Origin))
+        var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
+        if (target.Value != Entity.Null)
         {
-            bgp.Area.RotatedExtents = (targetCell - bgp.Area.Origin) * bgp.Area.Extents;
+            var cellPath = GetBuffer<CellPathBuffer>(GetSingletonEntity<CellPathBuffer>(), true);
+            if (cellPath.Length > 0)
+            {
+                var lastUnoccupied = 0;
+                for (int i = 0; i < cellPath.Length; i++)
+                {
+                    var targetIsOccupied = false;
+                    foreach (var item in occupied)
+                        targetIsOccupied |= math.all(item.Location == cellPath[i].Value);
+                    if (!targetIsOccupied)
+                    {
+                        lastUnoccupied = i;
+                    }
+                    else break;
+                }
+
+                targetCell = cellPath[lastUnoccupied].Value;
+            }
         }
         else
         {
-            bgp.Area.Origin  = targetCell;
-            bgp.Area.RotatedExtents = int3.zero;
+            targetCell = int.MaxValue;
         }
 
-
-        SetSingleton(bgp);
-
-        gridItem.Area.Origin = bgp.Area.Origin;
-
-        var newPos = new Translation { Value = Grid.PositionFromCell(gridItem.Type, new LocalToWorld(), gridItem.Area.Origin) };
-        var canBuild = true;
-        foreach (var item in GetBuffer<OccupationBuffer>(bgp.TargetGrid))
-            canBuild &= !(item.Size == gridItem.Type && gridItem.Area.Contains(item.Location) && (item.Value & gridItem.Occupied) > 0);
-
-        if (bgp.Original.Scalable)
+        if (targetCell.x != Int32.MaxValue)
         {
-            SetComponent(ghost, new NonUniformScale{Value = bgp.Area.Max - bgp.Area.Min + 1});
-            gridItem.Area.Origin = gridItem.Area.Min;
+            if (Input.GetMouseButton(0) && math.any(targetCell != bgp.Area.Origin))
+            {
+                bgp.Area.RotatedExtents = (targetCell - bgp.Area.Origin) * bgp.Area.Extents;
+            }
+            else
+            {
+                bgp.Area.Origin = targetCell;
+                bgp.Area.RotatedExtents = int3.zero;
+            }
+
+            SetSingleton(bgp);
+
+            gridItem.Area.Origin = bgp.Area.Min;
+            if (bgp.Original.Scalable)
+            {
+                SetComponent(ghost, new NonUniformScale {Value = bgp.Area.Max - bgp.Area.Min + 1});
+                gridItem.Area.RotatedExtents = bgp.Area.Max - bgp.Area.Min;
+            }
+            var newPos = new Translation { Value = Grid.PositionFromCell(gridItem.Area.Origin) };
+            var canBuild = true;
+            foreach (var item in occupied)
+                canBuild &= !(gridItem.Area.Contains(item.Location) && (item.Value & gridItem.Occupied) > 0);
+
+            SetComponent(ghost, new Ghost{Buildable = canBuild});
+            SetComponent(ghost, gridItem);
+            SetComponent(ghost, newPos);
         }
-        SetComponent(ghost, new Ghost{Buildable = canBuild});
-        SetComponent(ghost, gridItem);
-        SetComponent(ghost, newPos);
+        else
+        {
+            SetComponent(ghost, new Ghost{Buildable = false});
+            SetComponent(ghost, new Translation{Value = Camera.main.transform.position + Camera.main.transform.forward * 10});
+        }
+
     }
 }
 
@@ -124,9 +139,12 @@ public partial class BuildingWireframeDisplaySystem : SystemBase
         var ghost = GetComponent<Ghost>(e);
         var gridLtw = GetComponent<LocalToWorld>(gpb.TargetGrid);
         Transform wireframe = GhostBuilder.Wireframe.transform;
-        wireframe.position = Grid.PositionFromCell(gridItem.Type, gridLtw, gpb.Area.Min);
+        wireframe.position = Grid.PositionFromCell(gridLtw, gridItem.Area.Min);
         wireframe.rotation = gridLtw.Rotation;
-        wireframe.localScale = (float3)(gpb.Area.Max - gpb.Area.Min + gridItem.Area.RotatedExtents + 1) * Grid.CellSize(gridItem.Type);
+        var baseGrid = GhostBuilder.Wireframe.BaseGrid;
+        baseGrid.localScale = (float3)Grid.CELL_SIZE;
+        var objGrid = GhostBuilder.Wireframe.ObjectGrid;
+        objGrid.localScale = (float3)(gridItem.Area.Max - gridItem.Area.Min + 1) * Grid.CELL_SIZE;
         if (Input.GetMouseButton(0))
         {
             GhostBuilder.Wireframe.ShowAxes(false, wireframe.rotation);
@@ -136,9 +154,9 @@ public partial class BuildingWireframeDisplaySystem : SystemBase
         {
             GhostBuilder.Wireframe.ShowScaleAxes(false);
         }
-        foreach(var renderer in gridRenderers)
-            renderer.sharedMaterial = ghost.Buildable ? settings.GridBuildMaterial : settings.GridDestroyMaterial;
+        // foreach(var renderer in gridRenderers)
+        //     renderer.sharedMaterial = ghost.Buildable ? settings.GridBuildMaterial : settings.GridDestroyMaterial;
 
-        GhostBuilder.Wireframe.gameObject.SetActive(true);
+        GhostBuilder.Wireframe.gameObject.SetActive(ghost.Buildable);
     }
 }

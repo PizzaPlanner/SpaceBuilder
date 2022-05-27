@@ -10,6 +10,9 @@ public class WireframeDisplay : MonoBehaviour
     [SerializeField] GameObject AxisZ;
     [SerializeField] GameObject Rotation;
 
+    [SerializeField] public Transform BaseGrid;
+    [SerializeField] public Transform ObjectGrid;
+
     [SerializeField] GameObject ScaleAxisX;
     [SerializeField] GameObject ScaleAxisY;
     [SerializeField] GameObject ScaleAxisZ;

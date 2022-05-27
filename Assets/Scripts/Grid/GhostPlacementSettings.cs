@@ -9,4 +9,7 @@ public class GhostPlacementSettings : ScriptableObject
 
     public Material GridBuildMaterial;
     public Material GridDestroyMaterial;
+
+    public Material DebugOccupationMaterial;
+    public Material DebugGhostMaterial;
 }

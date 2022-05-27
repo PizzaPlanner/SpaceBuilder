@@ -22,6 +22,7 @@ public struct BlueprintParserV3 : IBlueprintParser
         public int3 Position;
         public RightAngleRotation Orientation;
         public int3 Color;
+        public int3 Scale;
         public ushort Status;
         public List<ItemData> Inventory;
     }
@@ -101,6 +102,16 @@ public struct BlueprintParserV3 : IBlueprintParser
                         current.Orientation =
                             new RightAngleRotation(byte.Parse(pos[3], NumberStyles.AllowHexSpecifier));
                     }
+                    else if (key == "Scale")
+                    {
+                        var scale = value.Trim(' ', '[', ']').Split(',');
+                        if (scale.Length != 3)
+                        {
+                            Debug.LogError($"Invalid syntax in Line {i}");
+                            continue;
+                        }
+                        current.Scale = new int3(int.Parse(scale[0]), int.Parse(scale[1]), int.Parse(scale[2]));
+                    }
                     else if (key == "Inventory")
                     {
                         current.Inventory = new List<ItemData>();
@@ -138,7 +149,11 @@ public struct BlueprintParserV3 : IBlueprintParser
             var gridItem = em.GetComponentData<GridItem>(child.Value);
             var identifieable = em.GetComponentData<Identifieable>(child.Value);
             var rotation = em.GetComponentData<Rotation>(child.Value);
-            var translation = em.GetComponentData<Translation>(child.Value);
+            var scale = int3.zero;
+            if (em.HasComponent<Scale>(child.Value))
+                scale = (int)math.round(em.GetComponentData<Scale>(child.Value).Value);
+            else if (em.HasComponent<NonUniformScale>(child.Value))
+                scale = (int3)math.round(em.GetComponentData<NonUniformScale>(child.Value).Value);
 
             ItemData[] inventory = null;
             if (em.HasComponent<Inventory>(child.Value))
@@ -173,7 +188,8 @@ public struct BlueprintParserV3 : IBlueprintParser
                     ? em.GetComponentData<UnderConstruction>(child.Value).Progress
                     : ushort.MaxValue,
                 Inventory = inventory?.ToList(),
-                Color = new int3(color.x, color.y, color.z)
+                Color = new int3(color.x, color.y, color.z),
+                Scale = scale
             });
         }
 
@@ -184,6 +200,7 @@ Parts:
   - LocalToGrid: [{y.Position.x},{y.Position.y},{y.Position.z},{y.Orientation}]
     {(y.Status != ushort.MaxValue ? $"Status: {y.Status}" : "")}
     {(math.any(y.Color != int3.zero) ? $"Color: [{y.Color.x},{y.Color.y},{y.Color.z}]" : "")}
+    {(math.any(y.Scale != int3.zero) ? $"Scale: [{y.Scale.x},{y.Scale.y},{y.Scale.z}]" : "")}
 {(y.Inventory == null || y.Inventory.Count == 0 ? "" : $@"    Inventory:
 {string.Join("\n", y.Inventory.Select(item => item == null ? $@"
     - null" : $@"

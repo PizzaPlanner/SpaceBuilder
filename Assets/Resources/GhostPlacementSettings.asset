@@ -18,5 +18,8 @@ MonoBehaviour:
     type: 2}
   GhostRemovalMaterial: {fileID: 2100000, guid: 55d7c742aa7972d4f9e3614e07908c19,
     type: 2}
-  GridBuildMaterial: {fileID: 2100000, guid: 5f30a45282d9924419e1ce2d071401dd, type: 2}
-  GridDestroyMaterial: {fileID: 2100000, guid: 9594d973283210e43afd10efe6a92398, type: 2}
+  GridBuildMaterial: {fileID: 0}
+  GridDestroyMaterial: {fileID: 0}
+  DebugOccupationMaterial: {fileID: 2100000, guid: 54c0f65dcadda154a8708571afe467d5,
+    type: 2}
+  DebugGhostMaterial: {fileID: 2100000, guid: 5a9c301ef0108bd47bf5023e9e1c599a, type: 2}

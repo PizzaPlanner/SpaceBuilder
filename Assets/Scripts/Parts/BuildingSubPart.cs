@@ -7,13 +7,11 @@ using UnityEngine;
 public struct GridSubItem : IComponentData
 {
     public int3 RelativeCell;
-    public Grid.Size Size;
 }
 
 [RequireComponent(typeof(IdentifieableAuthoring))]
 public class BuildingSubPart : MonoBehaviour, IConvertGameObjectToEntity
 {
-    public Grid.Size Size;
     public int3 Cell;
     private BuildingPart Parent;
 
@@ -21,10 +19,9 @@ public class BuildingSubPart : MonoBehaviour, IConvertGameObjectToEntity
     {
         dstManager.AddComponentData(entity, new GridSubItem
         {
-            Size = Size,
             RelativeCell = Cell
         });
-        dstManager.AddComponentData(entity, new RotationPivot {Value = Grid.CellSize(Size) * 0.5f});
+        dstManager.AddComponentData(entity, new RotationPivot {Value = Grid.CELL_SIZE * 0.5f});
         dstManager.AddComponent<CompositeRotation>(entity);
         dstManager.AddBuffer<ConnectionBuffer>(entity);
     }
@@ -36,12 +33,12 @@ public class BuildingSubPart : MonoBehaviour, IConvertGameObjectToEntity
 
     private void OnValidate()
     {
-        transform.position = Grid.PositionFromCell(Size, Cell);
+        transform.position = Grid.PositionFromCell(Cell);
     }
 
     private void OnDrawGizmos()
     {
-        var size = Grid.CellSize(Size);
+        var size = Grid.CELL_SIZE;
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireCube(new float3(0.5f * size) + (float3)Cell * size, new float3(size));
     }

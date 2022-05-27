@@ -52,7 +52,7 @@ public partial class BuildingSystem : SystemBase
             {
                 var canBuild = true;
                 foreach (var item in occupations[part.Grid])
-                    canBuild &= !(item.Size == newGridItem.Type && newGridItem.Area.Contains(item.Location) &&
+                    canBuild &= !(newGridItem.Area.Contains(item.Location) &&
                                   (item.Value & newGridItem.Occupied) > 0);
                 if (!canBuild)
                     return;
@@ -73,10 +73,12 @@ public partial class BuildingSystem : SystemBase
                 newGridItem.Area.Extents = part.Data.Scale;
             }
 
-            buffer.AddComponent(entity, new UpdateRotation {Value = part.Data.Orientation, ReferencePrefab = prefab});
+            // buffer.AddComponent(entity, new UpdateRotation {Value = part.Data.Orientation, ReferencePrefab = prefab});
+            newGridItem = RotateItem(newGridItem, part.Data.Orientation);
+
             buffer.SetComponent(entity, new Parent {Value = part.Grid});
             buffer.SetComponent(entity, new Rotation {Value = part.Data.Orientation});
-            buffer.SetComponent(entity, new Translation {Value = Grid.PositionFromCell(originalGridItem.Type, part.Data.Position)});
+            buffer.SetComponent(entity, new Translation {Value = Grid.PositionFromCell(part.Data.Position)});
             buffer.SetComponent(entity, newGridItem);
 
             if (part.Data.Color != default)
@@ -94,6 +96,7 @@ public partial class BuildingSystem : SystemBase
                 }
                 else
                 {
+                    buffer.RemoveComponent<Targetable>(entity);
                     buffer.AddComponent<Ghost>(entity);
                     buffer.AddComponent(entity, new GhostPlacementBuilder
                     {
@@ -134,98 +137,77 @@ public partial class BuildingSystem : SystemBase
     }
 }
 
-[UpdateAfter(typeof(TransformSystemGroup))]
-[UpdateBefore(typeof(LateSimulationSystemGroup))]
-public partial class GhostChildrenUpdateSystem : SystemBase
-{
-    private EntityCommandBufferSystem bufferSystem;
-    protected override void OnCreate()
-    {
-        bufferSystem = World.GetExistingSystem<BeginLateSimulationEntitiyCommandBufferSystem>();
-    }
-
-    protected override void OnUpdate()
-    {
-        var buffer = bufferSystem.CreateCommandBuffer();
-
-        Entities
-            .WithAll<Blueprinted, NeedsUpdate>()
-            .ForEach((Entity e, in DynamicBuffer<Child> childBuffer, in Ghost ghost) =>
-            {
-                for (int i = 0; i < childBuffer.Length; i++)
-                {
-                    var e2 = childBuffer[i].Value;
-                    if (HasComponent<Blueprinted>(e2))
-                        continue;
-
-                    if (HasComponent<Ghost>(e2))
-                        buffer.SetComponent(e2, ghost);
-                    else
-                        buffer.AddComponent(e2, ghost);
-
-                    buffer.AddComponent<Blueprinted>(e2);
-                    buffer.AddComponent<NeedsUpdate>(e2);
-                }
-            }).Schedule();
-
-        Entities
-            .WithAll<Blueprinted, NeedsUpdate>()
-            .WithNone<Ghost>()
-            .ForEach((Entity e, in DynamicBuffer<Child> childBuffer) =>
-            {
-                for (int i = 0; i < childBuffer.Length; i++)
-                {
-                    var e2 = childBuffer[i].Value;
-                    if (HasComponent<Blueprinted>(e2))
-                        continue;
-
-                    buffer.AddComponent<Blueprinted>(e2);
-                    buffer.AddComponent<NeedsUpdate>(e2);
-                }
-            }).Schedule();
-
-        bufferSystem.AddJobHandleForProducer(Dependency);
-    }
-}
-
 [UpdateInGroup(typeof(LateSimulationSystemGroup))]
-public partial class BlueprintedDataUpdateSystem : SystemBase
+public partial class BlueprintedChildrenUpdateSystem : SystemBase
 {
     private GhostPlacementSettings settings;
+    private EntityQuery ghostQuery;
 
     protected override void OnCreate()
     {
         base.OnCreate();
         settings = Resources.Load<GhostPlacementSettings>("GhostPlacementSettings");
+        ghostQuery = GetEntityQuery(typeof(Blueprinted), typeof(NeedsUpdate));
+        RequireForUpdate(ghostQuery);
     }
 
     protected override void OnUpdate()
     {
-        Entities
-            .WithAll<Blueprinted, NeedsUpdate, PhysicsCollider>()
-            .ForEach((Entity e) =>
-            {
-                if(EntityManager.HasComponent<PhysicsWorldIndex>(e))
-                    EntityManager.SetSharedComponentData(e, new PhysicsWorldIndex {Value = 2});
-                else
-                    EntityManager.AddSharedComponentData(e, new PhysicsWorldIndex {Value = 2});
-                // collider.Value.Value.Filter = new CollisionFilter{BelongsTo = 1 << 12, CollidesWith = 1<< 12};
-            }).WithStructuralChanges().WithoutBurst().Run();
-
-        Entities.WithAll<RenderMesh, Blueprinted, NeedsUpdate>().ForEach((Entity e) =>
+        while (ghostQuery.CalculateChunkCount() > 0)
         {
-            var renderMesh = EntityManager.GetSharedComponentData<RenderMesh>(e);
-            if (HasComponent<Ghost>(e))
-                renderMesh.material = GetComponent<Ghost>(e).Buildable
-                    ? settings.GhostPlacementMaterial
-                    : settings.GhostRemovalMaterial;
-            else
-                renderMesh.material = settings.GhostBlueprintedMaterial;
-            EntityManager.SetSharedComponentData(e, renderMesh);
-        }).WithoutBurst().WithStructuralChanges().Run();
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            var entities = ghostQuery.ToEntityArray(Allocator.Temp);
+            foreach (var entity in entities)
+            {
+                var isGhost = HasComponent<Ghost>(entity);
+                if (EntityManager.HasComponent<Child>(entity))
+                {
+                    var childBuffer = GetBuffer<Child>(entity);
+                    for (int i = 0; i < childBuffer.Length; i++)
+                    {
+                        var e2 = childBuffer[i].Value;
+                        if (HasComponent<Blueprinted>(e2))
+                            continue;
 
-        var buffer = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>().CreateCommandBuffer();
-        buffer.RemoveComponent<NeedsUpdate>(GetEntityQuery(typeof(Blueprinted), typeof(NeedsUpdate)).ToEntityArray(Allocator.Temp));
+                        if (isGhost)
+                        {
+                            var ghost = GetComponent<Ghost>(entity);
+                            if (HasComponent<Ghost>(e2))
+                                ecb.SetComponent(e2, ghost);
+                            else
+                                ecb.AddComponent(e2, ghost);
+                        }
+
+                        ecb.AddComponent<Blueprinted>(e2);
+                        ecb.AddComponent<NeedsUpdate>(e2);
+                    }
+                }
+
+                if (HasComponent<PhysicsCollider>(entity))
+                {
+                    if(EntityManager.HasComponent<PhysicsWorldIndex>(entity))
+                        EntityManager.SetSharedComponentData(entity, new PhysicsWorldIndex {Value = isGhost ? 215u : 2u});
+                    else
+                        EntityManager.AddSharedComponentData(entity, new PhysicsWorldIndex {Value = isGhost ? 215u : 2u});
+                }
+
+                if (EntityManager.HasComponent<RenderMesh>(entity))
+                {
+                    var renderMesh = EntityManager.GetSharedComponentData<RenderMesh>(entity);
+                    if (HasComponent<Ghost>(entity))
+                        renderMesh.material = GetComponent<Ghost>(entity).Buildable
+                            ? settings.GhostPlacementMaterial
+                            : settings.GhostRemovalMaterial;
+                    else
+                        renderMesh.material = settings.GhostBlueprintedMaterial;
+                    EntityManager.SetSharedComponentData(entity, renderMesh);
+                }
+                ecb.RemoveComponent<NeedsUpdate>(entity);
+            }
+            ecb.Playback(EntityManager);
+            ecb.Dispose();
+            entities.Dispose();
+        }
     }
 }
 

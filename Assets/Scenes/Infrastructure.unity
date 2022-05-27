@@ -242,9 +242,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb54ea4f67dc17342bcd49954c53502d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DrawColliders: 1
+  DrawColliders: 0
   DrawColliderEdges: 0
-  DrawColliderAabbs: 0
+  DrawColliderAabbs: 1
   DrawBroadphase: 0
   DrawMassProperties: 0
   DrawContacts: 0

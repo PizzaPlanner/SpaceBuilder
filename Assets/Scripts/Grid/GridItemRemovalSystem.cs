@@ -74,7 +74,7 @@ public partial class GridItemRemovalSystem : SystemBase
         var grid = GetComponent<Grid>(parent);
         var gridLtw = GetComponent<LocalToWorld>(parent);
         var wireframe = GhostBuilder.Wireframe.transform;
-        wireframe.localScale = new float3(Grid.CellSize(grid.MaxSize));
+        wireframe.localScale = new float3(Grid.CELL_SIZE);
         wireframe.rotation = gridLtw.Rotation;
         wireframe.transform.position = GetComponent<LocalToWorld>(GetSingletonEntity<LocalPlayer>()).Position;
 

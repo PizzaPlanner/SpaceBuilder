@@ -48,7 +48,7 @@ public class BlueprintLibrary : MonoBehaviour
         manager.AddBuffer<OccupationBuffer>(grid);
         
         manager.SetComponentData(grid, new Name {Value = data.Name});
-        manager.SetComponentData(grid, new Grid {MaxSize = Grid.Size.Normal});
+        manager.SetComponentData(grid, new Grid{});
         foreach (var part in data.Parts)
         {
             var e = manager.CreateEntity(typeof(PendingPart));
