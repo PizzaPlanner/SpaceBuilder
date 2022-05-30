@@ -24,7 +24,6 @@ public struct AlignUpVector : IComponentData
 [UpdateBefore(typeof(TransformSystemGroup))]
 public partial class DockingSystem : SystemBase
 {
-    struct OriginAnchor : IComponentData { }
     private VisualElement swapRoot;
     protected override void OnCreate()
     {
@@ -40,17 +39,19 @@ public partial class DockingSystem : SystemBase
     {
         var entity = GetSingletonEntity<LocalPlayer>();
         var grids = GetBuffer<CloseGrids>(entity);
+        var isDocked = HasComponent<Docked>(GetSingletonEntity<LocalPlayer>());
 
         if (grids.Length == 0)
         {
-            Dock(entity, Entity.Null);
+            if(isDocked)
+                Dock(entity, Entity.Null);
             swapRoot.Q("Station", "dockingbutton").Q<Label>().text = "<None>";
             swapRoot.Q("Station", "dockingbutton").SetEnabled(false);
             swapRoot.Q("Swap").SetEnabled(false);
         }
         else
         {
-            var gridToDisplay = HasComponent<Docked>(GetSingletonEntity<LocalPlayer>())
+            var gridToDisplay = isDocked
                 ? GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target
                 : grids[0].Grid;
             swapRoot.Q("Station", "dockingbutton").Q<Label>().text = GetComponent<Name>(gridToDisplay).Value.ToString();
@@ -70,9 +71,12 @@ public partial class DockingSystem : SystemBase
     {
         swapRoot.Q(newParent != Entity.Null ? "System" : "Station", "dockingbutton").RemoveFromClassList("dockingbutton-on");
         swapRoot.Q(newParent == Entity.Null ? "System" : "Station", "dockingbutton").AddToClassList("dockingbutton-on");
-        var body = GetComponent<KinematicCharacterBody>(entity);
-        body.ParentEntity = newParent;
-        SetComponent(entity, body);
+        if (HasComponent<KinematicCharacterBody>(entity))
+        {
+            var body = GetComponent<KinematicCharacterBody>(entity);
+            body.ParentEntity = newParent;
+            SetComponent(entity, body);
+        }
 
         if (newParent != Entity.Null && HasComponent<Grid>(newParent))
         {
@@ -104,23 +108,6 @@ public partial class DockingSystem : SystemBase
             SetComponent(entity, new Translation{Value = ltw.Position});
             SetComponent(entity, new Rotation{Value = ltw.Rotation});
         }
-    }
-}
-
-[GenerateAuthoringComponent]
-public struct AutoDock : IComponentData
-{
-    public Entity Parent;
-}
-
-public partial class AutoDockSystem : SystemBase
-{
-    protected override void OnUpdate()
-    {
-        Entities.ForEach((ref KinematicCharacterBody body, in AutoDock dock) =>
-        {
-            body.ParentEntity = dock.Parent;
-        }).Run();
     }
 }
 

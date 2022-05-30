@@ -227,7 +227,8 @@ Parts:
                     item.Orientation,
                     Position = item.Position,
                     BuildStatus = item.Status,
-                    Color = math.all(item.Color == int3.zero) ? default :  new Color(item.Color.x / 255f, item.Color.y / 255f, item.Color.z / 255f)
+                    Color = math.all(item.Color == int3.zero) ? default :  new Color(item.Color.x / 255f, item.Color.y / 255f, item.Color.z / 255f),
+                    Scale = item.Scale
                 }));
         }
         return new BlueprintData {Name = ds.Name, Parts = parts};

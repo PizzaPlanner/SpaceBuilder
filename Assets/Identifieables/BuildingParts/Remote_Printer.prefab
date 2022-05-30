@@ -127,12 +127,17 @@ PrefabInstance:
     - target: {fileID: 1914526045730009540, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: SizeInGrid.x
-      value: 2
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 1914526045730009540, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: SizeInGrid.y
-      value: 3
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1914526045730009540, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: SizeInGrid.z
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 3364769202363141643, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
@@ -242,6 +247,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Value: {fileID: 0}
   PreviousValue: {fileID: 0}
+  Hit:
+    x: 0
+    y: 0
+    z: 0
+  PreviousHit:
+    x: 0
+    y: 0
+    z: 0
   CanInteract: 0
   CanConstruct: 0
 --- !u!114 &3719799558941045176

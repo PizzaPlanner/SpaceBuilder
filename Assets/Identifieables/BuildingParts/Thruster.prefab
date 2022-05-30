@@ -5177,8 +5177,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1914526045730009540, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
+      propertyPath: SizeInGrid.x
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1914526045730009540, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: SizeInGrid.y
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1914526045730009540, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
       propertyPath: SizeInGrid.z
-      value: 1
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 3364769202363141643, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}

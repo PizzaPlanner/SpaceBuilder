@@ -158,6 +158,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 085f3b5d9a6948d4bdfd303e6c2acf19, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  MovementSpeedDefault: 5
+  MovementSpeedRun: 25
+  Running: 0
 --- !u!114 &7780807752270266388
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -340,6 +343,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Value: {fileID: 0}
   PreviousValue: {fileID: 0}
+  Hit:
+    x: 0
+    y: 0
+    z: 0
+  PreviousHit:
+    x: 0
+    y: 0
+    z: 0
   CanInteract: 0
   CanConstruct: 0
 --- !u!114 &3074412916961436309

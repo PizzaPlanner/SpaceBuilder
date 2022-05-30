@@ -35,6 +35,8 @@ public partial class BuildingSystem : SystemBase
 
         public void Execute(Entity e, in PendingPart part)
         {
+            buffer.DestroyEntity(e);
+
             if (!grids.HasComponent(part.Grid))
                 return;
 
@@ -63,13 +65,13 @@ public partial class BuildingSystem : SystemBase
             var entity = buffer.Instantiate(prefab);
 
             if (originalGridItem.Scalable && IsCreateGhostJob)
-                buffer.AddComponent(entity, new NonUniformScale {Value = part.Data.Scale + 1});
+                buffer.AddComponent(entity, new NonUniformScale {Value = math.min(1, part.Data.Scale)});
             else if (originalGridItem.Scalable && math.any(part.Data.Scale != 0))
             {
                 if(part.Data.Scale.x == part.Data.Scale.y && part.Data.Scale.x == part.Data.Scale.z)
-                    buffer.AddComponent(entity, new Scale{Value = part.Data.Scale.x + 1});
+                    buffer.AddComponent(entity, new Scale{Value = part.Data.Scale.x});
                 else
-                    buffer.AddComponent(entity, new NonUniformScale{Value = part.Data.Scale + 1});
+                    buffer.AddComponent(entity, new NonUniformScale{Value = part.Data.Scale});
                 newGridItem.Area.Extents = part.Data.Scale;
             }
 
@@ -106,8 +108,6 @@ public partial class BuildingSystem : SystemBase
                     });
                 }
             }
-
-            buffer.DestroyEntity(e);
         }
     }
 

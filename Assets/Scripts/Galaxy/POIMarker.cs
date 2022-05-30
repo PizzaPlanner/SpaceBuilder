@@ -1,0 +1,105 @@
+using Unity.Entities;
+using Unity.Mathematics;
+using Unity.Transforms;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+public class POIMarker : VisualElement
+{
+    public Entity Target;
+    private const int SIZE = 32;
+    public POIMarker()
+    {
+        AddToClassList("poi-marker");
+        style.width = SIZE;
+        style.height = SIZE;
+        Add(new Label());
+    }
+
+    public void Update(EntityManager em, Entity localPlayer)
+    {
+        if (!em.Exists(Target))
+        {
+            RemoveFromHierarchy();
+            return;
+        }
+
+        var playerLtw = em.GetComponentData<LocalToWorld>(localPlayer);
+
+        var playerLtg = em.GetComponentData<LocalToGalaxy>(localPlayer);
+        var targetLtg = em.GetComponentData<LocalToGalaxy>(Target);
+
+        var relativePosition = targetLtg.AbsolutePosition - playerLtg.AbsolutePosition;
+        var distance = math.length(relativePosition);
+        if (distance < 1000)
+            relativePosition = em.GetComponentData<Translation>(Target).Value - (float3)Camera.main.transform.position;
+        var direction = (float3)math.normalizesafe(relativePosition);
+
+
+
+        Vector2 position2D = Camera.main.WorldToScreenPoint((float3)Camera.main.transform.position + direction);
+        style.position = Position.Absolute;
+        style.left = math.clamp(position2D.x - SIZE / 2, -SIZE / 2, Screen.width + SIZE / 2);
+        style.bottom = math.clamp(position2D.y - SIZE / 2, -SIZE / 2, Screen.height + SIZE / 2);
+        var dot = math.dot(Camera.main.transform.forward, direction);
+        if (dot < 0.3f)
+        {
+            this.style.opacity = 0;
+            return;
+        }
+
+        this.style.opacity = math.min(0.9f, math.lerp(0f, 0.9f, math.min(((float)distance - 3) * 0.1f, 10)));
+
+        var name = "<?>";
+        var unit = "m";
+        if (distance > 1000_000_000)
+        {
+            distance *= 0.000_000_001f;
+            unit = "Gm";
+        }
+        else if (distance > 1000_000)
+        {
+            distance *= 0.000_001f;
+            unit = "Mm";
+        }
+        else if (distance > 1000)
+        {
+            distance *= 0.001f;
+            unit = "km";
+        }
+
+        if (em.HasComponent<Name>(Target))
+            name = em.GetComponentData<Name>(Target).Value.Value;
+        this.Q<Label>().text = @$"{name}
+{distance:F1}{unit}";
+
+    }
+}
+
+[UpdateInGroup(typeof(PresentationSystemGroup))]
+public partial class POIMarkerSystem : SystemBase
+{
+    private VisualElement uiRoot;
+
+    public struct TrackedPOI : IComponentData { }
+
+    protected override void OnStartRunning()
+    {
+        uiRoot ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("POIMarkers");
+        RequireSingletonForUpdate<LocalPlayer>();
+    }
+
+    protected override void OnUpdate()
+    {
+        Entities
+            .WithNone<TrackedPOI>()
+            .ForEach((Entity e, Grid grid) =>
+            {
+                EntityManager.AddComponent<TrackedPOI>(e);
+                uiRoot.Add(new POIMarker{Target = e});
+            }).WithoutBurst().WithStructuralChanges().Run();
+
+        var localPlayer = GetSingletonEntity<LocalPlayer>();
+        uiRoot.Query<POIMarker>().ForEach(x => x.Update(EntityManager, localPlayer));
+    }
+}

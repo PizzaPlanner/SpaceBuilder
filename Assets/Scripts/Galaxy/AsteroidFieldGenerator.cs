@@ -1,5 +1,6 @@
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
@@ -32,7 +33,11 @@ public partial class GenerateAsteroidFieldSystem : SystemBase
             {
                 var random = new Unity.Mathematics.Random(data.Seed);
                 var field = buffer.CreateEntity(nativeThreadIndex);
-                buffer.AddComponent(nativeThreadIndex, field, new Translation{Value = random.NextFloat3(new float3(-2000), new float3(2000))});
+                var position = random.NextFloat3(new float3(-2000), new float3(2000));
+                var fieldLtg = ltg;
+                fieldLtg.PositionInSector = position;
+                buffer.AddComponent(nativeThreadIndex, field, fieldLtg);
+                buffer.AddComponent(nativeThreadIndex, field, new Translation{Value = position});
                 buffer.AddComponent(nativeThreadIndex, field, new AsteroidFieldData
                 {
                     Seed = random.NextUInt(),
@@ -45,10 +50,10 @@ public partial class GenerateAsteroidFieldSystem : SystemBase
 
         var prefabs = GetEntityQuery(typeof(Prefab), typeof(AsteroidData), typeof(RenderMesh)).ToEntityArray(Allocator.TempJob);
         Entities
-            .WithAll<ToGenerate>()
+            .WithAll<ToGenerate, LocalToGalaxy>()
             .WithReadOnly(prefabs)
             .WithDisposeOnCompletion(prefabs)
-            .ForEach((Entity e, int nativeThreadIndex, ref AsteroidFieldData data, in Translation t) =>
+            .ForEach((Entity e, int nativeThreadIndex, ref AsteroidFieldData data) =>
             {
                 var random = new Unity.Mathematics.Random {state = data.Seed};
                 var spawned = 0;
@@ -60,7 +65,9 @@ public partial class GenerateAsteroidFieldSystem : SystemBase
                     {
                         Seed = random.NextUInt()
                     });
-                    buffer.SetComponent(nativeThreadIndex, asteroid, new Translation {Value = t.Value + location});
+                    var asteroidLtg = GetComponent<LocalToGalaxy>(e);
+                    asteroidLtg.PositionInSector += location;
+                    buffer.SetComponent(nativeThreadIndex, asteroid, asteroidLtg);
                     // buffer.AddComponent(nativeThreadIndex, asteroid, new ToGenerate());
                     spawned++;
                     data.Spawned++;
@@ -69,6 +76,7 @@ public partial class GenerateAsteroidFieldSystem : SystemBase
                 if(data.Spawned >= data.AsteroidCount)
                     buffer.RemoveComponent<ToGenerate>(nativeThreadIndex, e);
             }).ScheduleParallel();
+
         bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }
