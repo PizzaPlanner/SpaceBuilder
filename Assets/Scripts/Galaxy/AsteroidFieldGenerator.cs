@@ -48,7 +48,7 @@ public partial class GenerateAsteroidFieldSystem : SystemBase
                 buffer.RemoveComponent<GenerateAsteroidField>(nativeThreadIndex, e);
         }).ScheduleParallel();
 
-        var prefabs = GetEntityQuery(typeof(Prefab), typeof(AsteroidData), typeof(RenderMesh)).ToEntityArray(Allocator.TempJob);
+        var prefabs = GetEntityQuery(typeof(Prefab), typeof(AsteroidData)).ToEntityArray(Allocator.TempJob);
         Entities
             .WithAll<ToGenerate, LocalToGalaxy>()
             .WithReadOnly(prefabs)

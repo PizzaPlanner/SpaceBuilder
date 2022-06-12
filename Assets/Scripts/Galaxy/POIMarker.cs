@@ -6,6 +6,16 @@ using UnityEngine.UIElements;
 
 public class POIMarker : VisualElement
 {
+    public enum POIType
+    {
+        Ship,
+        Player,
+        Station,
+        Star,
+        Other
+    }
+
+    public POIType Type;
     public Entity Target;
     private const int SIZE = 32;
     public POIMarker()
@@ -93,10 +103,21 @@ public partial class POIMarkerSystem : SystemBase
     {
         Entities
             .WithNone<TrackedPOI>()
-            .ForEach((Entity e, Grid grid) =>
+            .WithAll<LocalToGalaxy>()
+            .WithAny<Grid, Star>()
+            .ForEach((Entity e) =>
             {
                 EntityManager.AddComponent<TrackedPOI>(e);
-                uiRoot.Add(new POIMarker{Target = e});
+                var hasGrid = HasComponent<Grid>(e);
+                var isShip = hasGrid && HasComponent<Flyable>(e);
+
+                var type = POIMarker.POIType.Other;
+                if (hasGrid)
+                    type = isShip ? POIMarker.POIType.Ship : POIMarker.POIType.Station;
+                else
+                    type = POIMarker.POIType.Star;
+
+                uiRoot.Add(new POIMarker{Target = e, Type = type});
             }).WithoutBurst().WithStructuralChanges().Run();
 
         var localPlayer = GetSingletonEntity<LocalPlayer>();

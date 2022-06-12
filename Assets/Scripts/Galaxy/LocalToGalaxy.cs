@@ -65,26 +65,12 @@ public partial class TRSToLocalToGalaxySystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var ecb = bufferSystem.CreateCommandBuffer().AsParallelWriter();
-
-        var playerPosition = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
-        Entities
-            .WithNone<LocalPlayer>()
-            .WithNone<CanTravelSectors>()
-            .ForEach((ref Translation t, in LocalToGalaxy ltg) =>
-            {
-                int3 sectorDifference = new int3(
-                    (int) (ltg.XInTenKm - playerPosition.XInTenKm),
-                    (int) (ltg.YInTenKm - playerPosition.YInTenKm),
-                    (int) (ltg.ZInTenKm - playerPosition.ZInTenKm)
-                );
-                t.Value = ltg.PositionInSector + (float3)sectorDifference * MAX_POSITION_IN_SECTOR;
-            }).ScheduleParallel();
+        var ecb = bufferSystem.CreateCommandBuffer();
 
         Entities
             .WithAll<CanTravelSectors>()
             .WithNone<Parent>()
-            .ForEach((Entity e, int entityInQueryIndex , ref LocalToGalaxy ltg, ref Translation t) =>
+            .ForEach((Entity e, ref LocalToGalaxy ltg, ref LocalToWorld ltw, ref Translation t) =>
             {
                 var secToLoad = ltg;
                 var offset = float3.zero;
@@ -124,10 +110,31 @@ public partial class TRSToLocalToGalaxySystem : SystemBase
                 if (ltg.XInTenKm == secToLoad.XInTenKm && ltg.YInTenKm == secToLoad.YInTenKm && ltg.ZInTenKm == secToLoad.ZInTenKm)
                     return;
 
-                var update = ecb.CreateEntity(entityInQueryIndex);
-                ecb.AddComponent(entityInQueryIndex, update, new SectorChange{Entity = e, Previous = ltg, New = secToLoad});
+                var update = ecb.CreateEntity();
+                ecb.AddComponent(update, new SectorChange{Entity = e, Previous = ltg, New = secToLoad});
                 t.Value += offset;
                 ltg.PositionInSector = t.Value;
+                ltg.XInTenKm = secToLoad.XInTenKm;
+                ltg.YInTenKm = secToLoad.YInTenKm;
+                ltg.ZInTenKm = secToLoad.ZInTenKm;
+                Debug.Log($"Enter {ltg.XInTenKm}|{ltg.YInTenKm}|{ltg.ZInTenKm}");
+            }).Run();
+
+        var playerPosition = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
+        Entities
+            .WithNone<LocalPlayer>()
+            .WithNone<CanTravelSectors>()
+            .WithNone<Parent>()
+            .ForEach((Entity e, ref Translation t, ref LocalToWorld ltw, in LocalToGalaxy ltg) =>
+            {
+                int3 sectorDifference = new int3(
+                    (int) (ltg.XInTenKm - playerPosition.XInTenKm),
+                    (int) (ltg.YInTenKm - playerPosition.YInTenKm),
+                    (int) (ltg.ZInTenKm - playerPosition.ZInTenKm)
+                );
+                t.Value = ltg.PositionInSector + (float3)sectorDifference * 2 * MAX_POSITION_IN_SECTOR;
+                if(HasComponent<Star>(e))
+                    Debug.Log($"Star at {t.Value}; Player at {playerPosition.PositionInSector}");
             }).ScheduleParallel();
 
         bufferSystem.AddJobHandleForProducer(Dependency);
@@ -202,9 +209,6 @@ public partial class LoadSectorSystem : SystemBase
                     newPlayerBuffer.Add(new TravellerInSector {Player = sc.Entity});
                     buffer.DestroyEntity(e);
                 }
-
-                Debug.Log($"Entering {sc.New.XInTenKm}|{sc.New.YInTenKm}|{sc.New.ZInTenKm}");
-                SetComponent(sc.Entity, sc.New);
             }).Run();
 
         List<LocalToGalaxy> added = new List<LocalToGalaxy>();
