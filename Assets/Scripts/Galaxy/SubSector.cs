@@ -1,8 +1,7 @@
-using System;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
 using UnityEngine;
+using Random = Unity.Mathematics.Random;
 
 public struct SubSector : IComponentData { }
 
@@ -19,66 +18,50 @@ public enum SectorType
 public struct SectorData : IComponentData
 {
     public SectorType Type;
-    public float Perlin;
     public uint Seed;
-    public LocalToGalaxy ClosestStar;
 }
 
 public static class GalaxyTools
 {
+    private const float PERLIN_SECTOR_RESOLUTION = 0.01f;
+    public static float Perlin3D(float3 xyz)
+    {
+        var (x,y,z) = (xyz.x, xyz.y, xyz.z);
+        float xy = noise.cnoise(xyz.xy);
+        float xz = noise.cnoise(xyz.xz);
+        float yz = noise.cnoise(xyz.xz);
+        float yx = noise.cnoise(xyz.yx);
+        float zx = noise.cnoise(xyz.zx);
+        float zy = noise.cnoise(xyz.zy);
+
+        return (xy + xz + yz + yx + zx + zy) / 6;
+    }
+
     public static SectorData GetSectorData(LocalToGalaxy ltg)
     {
         var data = new SectorData();
-        var perlinPosition = new float2(ltg.XInTenKm / 100f, ltg.YInTenKm / 100f);
-        var perlin = noise.cnoise(perlinPosition);
-        data.Perlin = perlin;
-        if (perlin < 0.3f)
-            data.Type = SectorType.Nebula;
-        else if (perlin < 0.5f)
-            data.Type = SectorType.Empty;
-        else
+        // data is parent sector data
+        var shash = math.hash(ltg.Sector);
+        var srandom = new Random(shash);
+        var nextType = srandom.NextInt(0, 10000);
+        data.Type =
+            nextType < 10 ? SectorType.Star :
+            nextType == 10 ? SectorType.AsteroidField :
+            SectorType.Empty;
+        data.Seed = srandom.NextUInt();
+
+        if(math.any(ltg.SubSector != int3.zero) && data.Type != SectorType.Empty)
         {
-            var currentMax = perlin;
-            var (cX, cY) = (ltg.XInTenKm, ltg.YInTenKm);
-            var lastMax = float.MinValue;
-            while (lastMax < currentMax)
-            {
-                lastMax = currentMax;
-                var (pX, pY) = (cX, cY);
-                for(long x = cX - 1; x <= cX + 1; x++)
-                for (long y = cY - 1; y <= cY + 1; y++)
-                {
-                    var pRelative = noise.cnoise(new float2(x / 100f, y / 100f));
-                    if (pRelative <= lastMax) continue;
-
-                    currentMax = pRelative;
-                    pX = x;
-                    pY = y;
-                }
-
-                cX = pX;
-                cY = pY;
-            }
-
-            var xhash = math.hash(new uint2((uint)( (ulong)ltg.XInTenKm & 0x0000_0000_FFFF_FFFF),
-                (uint)(((ulong) ltg.XInTenKm & 0xFFFF_FFFF_0000_0000) >> 16)));
-            var yhash = math.hash(new uint2((uint) ((ulong) ltg.YInTenKm & 0x0000_0000_FFFF_FFFF),
-                (uint) (((ulong)ltg.YInTenKm & 0xFFFF_FFFF_0000_0000) >> 16)));
-
-            var random = new Unity.Mathematics.Random(math.hash(new uint2(xhash, yhash)));
-
-            var distancesq = math.distancesq(new double2(cX, cY), new double2(ltg.XInTenKm, ltg.YInTenKm));
-            var multistarSystem = random.NextFloat() < 0.02f;
-            if (distancesq < 1)
-                data.Type = multistarSystem ? SectorType.SubStar : SectorType.Star;
-            else if (distancesq > (multistarSystem ? 25 : 16) && distancesq < 100 && random.NextFloat() < 0.4f)
-                data.Type = random.NextFloat() < 0.2f ? SectorType.StarCompanion : SectorType.AsteroidField;
-            else if (distancesq >= 100 && random.NextFloat() < 0.1f)
-                data.Type = SectorType.AsteroidField;
-
-            data.ClosestStar = new LocalToGalaxy {XInTenKm = cX, YInTenKm = cY};
+            var hash = math.hash(new uint2(math.hash(ltg.SubSector), math.hash(ltg.Sector)));
+            var random = new Random(hash);
+            nextType = random.NextInt(0, 10000);
+            data.Type =
+                nextType < 10 ? SectorType.AsteroidField :
+                nextType < 15 ? SectorType.StarCompanion :
+                SectorType.Empty;
             data.Seed = random.NextUInt();
         }
+
 
         return data;
     }
@@ -103,8 +86,14 @@ public partial class SubSectorGeneratorSystem : SystemBase
             {
                 var sectorData = GalaxyTools.GetSectorData(ltg);
                 buffer.AddComponent(nativeThreadIndex, e, sectorData);
+                // var random = new Random(sectorData.Seed);
+                Debug.Log($"Generating {ltg.Sector}:{ltg.SubSector}");
                 switch (sectorData.Type)
                 {
+                    case SectorType.Star:
+                        if(math.all(ltg.SubSector == int3.zero))
+                           buffer.AddComponent<GenerateStar>(nativeThreadIndex, e);
+                        break;
                     case SectorType.AsteroidField:
                         buffer.AddComponent<GenerateAsteroidField>(nativeThreadIndex, e);
                         break;

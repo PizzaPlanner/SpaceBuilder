@@ -21,6 +21,7 @@ namespace Galaxy
     public class GalaxyMap : MonoBehaviour
     {
         public int2 Start, End;
+        public int Y;
         public Texture2D texture;
         public void Generate()
         {
@@ -29,24 +30,23 @@ namespace Galaxy
             texture.wrapMode = TextureWrapMode.Clamp;
             var colors = new Color[texture.width * texture.height];
             for(int x = Start.x; x < End.x; x++)
-            for (int y = Start.y; y < End.y; y++)
+            for (int z = Start.y; z < End.y; z++)
             {
-
-                var current = (x - Start.x) * texture.height + (y - Start.y);
-                var data = GalaxyTools.GetSectorData(new LocalToGalaxy{XInTenKm = x, YInTenKm = y});
+                var current = (x - Start.x) * texture.height + (z - Start.y);
+                var data = GalaxyTools.GetSectorData(new LocalToGalaxy{Sector = new int3(x, Y, z)});
                 colors[current] =
                     (data.Type == SectorType.Star ? Color.red :
                     data.Type == SectorType.Nebula ? Color.blue :
                     data.Type == SectorType.SubStar ? Color.yellow :
                     data.Type == SectorType.AsteroidField ? Color.cyan :
-                    data.Type == SectorType.StarCompanion ? Color.green : Color.black) * new Color(1,1,1, data.Perlin);
-                if (x == 1 && ((y >= 2 && y <= 7) || y == 11))
-                    colors[current] = Color.black;
-                else if (x == 2 && (y == 10 || y == 12))
-                    colors[current] = Color.black;
-                else if(x == 0 && y == 11)
-                    colors[current] = Color.black;
-                if(y % 500 == 0)
+                    data.Type == SectorType.StarCompanion ? Color.green : Color.clear);
+                if (x == 0 && z == 0)
+                    colors[current] += new Color(0,0,0,0.3f);
+                else if (x == 0 && z >= 2 && z <= 7)
+                    colors[current] = new Color(0,0,1,0.3f);
+                else if (z == 0 && x >= 2 && x <= 7)
+                    colors[current] = new Color(1,0,0,0.3f);
+                if(current % 5000 == 0)
                     EditorUtility.DisplayProgressBar("Generating Map...",
                         $"{current}/{texture.width * texture.height}",
                         current * 1f / (texture.width * texture.height));

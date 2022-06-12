@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
@@ -144,18 +145,30 @@ public struct MoveSectorCommand : AdminConsole.IConsoleCommand
     public string BaseCommand => "warp";
     public void Execute(string[] parameters, Entity executor)
     {
-        if (parameters.Length != 3)
-            return;
-        if (!long.TryParse(parameters[0], out var x) ||
-            !long.TryParse(parameters[1], out var y) ||
-            !long.TryParse(parameters[2], out var z))
+        if (parameters.Length != 3 && parameters.Length != 6)
             return;
 
+        int ssx = 0;
+        int ssy = 0;
+        int ssz = 0;
+
+        if (!int.TryParse(parameters[0], out var x) ||
+            !int.TryParse(parameters[1], out var y) ||
+            !int.TryParse(parameters[2], out var z))
+            return;
+        if(parameters.Length == 6)
+            if (!int.TryParse(parameters[3], out ssx) ||
+                !int.TryParse(parameters[4], out ssy) ||
+                !int.TryParse(parameters[5], out ssz))
+                return;
+
+        var ltg2 = new LocalToGalaxy{Sector = new int3(x, y, z), SubSector = new int3(ssx, ssy, ssz)};
+        EntityManager.SetComponentData(executor, ltg2);
         var e = EntityManager.CreateEntity(typeof(SectorChange));
         EntityManager.SetComponentData(e, new SectorChange
         {
             Entity = executor,
-            New = new LocalToGalaxy{XInTenKm = x, YInTenKm = y, ZInTenKm = z},
+            New = ltg2,
             Previous = EntityManager.GetComponentData<LocalToGalaxy>(executor)
         });
     }
@@ -210,7 +223,7 @@ public struct SpawnCommand : AdminConsole.IConsoleCommand
             return;
         var pos = EntityManager.GetComponentData<Translation>(executor);
         var ltg = EntityManager.GetComponentData<LocalToGalaxy>(executor);
-        ltg.PositionInSector = pos.Value;
+        ltg.LocalPosition = pos.Value;
         EntityManager.SetComponentData(e, EntityManager.GetComponentData<Rotation>(executor));
         EntityManager.SetComponentData(e, pos);
         EntityManager.SetComponentData(e, ltg);

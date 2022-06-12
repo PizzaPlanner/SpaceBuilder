@@ -13,15 +13,14 @@ public struct TravellerInSector : IBufferElementData
 [GenerateAuthoringComponent]
 public struct LocalToGalaxy : IComponentData
 {
-    public long XInTenKm;
-    public long YInTenKm;
-    public long ZInTenKm;
-
-    public float3 PositionInSector;
+    public int3 Sector;
+    public int3 SubSector;
+    public float3 LocalPosition;
 
     public double3 AbsolutePosition =>
-        new double3(TRSToLocalToGalaxySystem.MAX_POSITION_IN_SECTOR * 2) * new double3(XInTenKm, YInTenKm, ZInTenKm) +
-        PositionInSector;
+        new double3(TRSToLocalToGalaxySystem.MAX_SUBSECTOR_IN_SECTOR) * 2 * TRSToLocalToGalaxySystem.MAX_POSITION_IN_SECTOR * 2 * Sector +
+        new double3(TRSToLocalToGalaxySystem.MAX_POSITION_IN_SECTOR)  * 2 * SubSector +
+        LocalPosition;
 }
 
 public struct SectorChange : IComponentData
@@ -55,7 +54,8 @@ public partial class MakeTravellerSystem : SystemBase
 public partial class TRSToLocalToGalaxySystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem bufferSystem;
-    public const float MAX_POSITION_IN_SECTOR = 5000f;
+    public const int MAX_POSITION_IN_SECTOR = 5000;
+    public const int MAX_SUBSECTOR_IN_SECTOR = 0x7FFF_0000;
 
     protected override void OnCreate()
     {
@@ -70,54 +70,33 @@ public partial class TRSToLocalToGalaxySystem : SystemBase
         Entities
             .WithAll<CanTravelSectors>()
             .WithNone<Parent>()
-            .ForEach((Entity e, ref LocalToGalaxy ltg, ref LocalToWorld ltw, ref Translation t) =>
+            .ForEach((Entity e, ref LocalToGalaxy ltg, ref Translation t) =>
             {
                 var secToLoad = ltg;
-                var offset = float3.zero;
-                var planePosition = t.Value;
-                ltg.PositionInSector = t.Value;
-                if (planePosition.x < -MAX_POSITION_IN_SECTOR)
-                {
-                    secToLoad.XInTenKm--;
-                    offset.x = 2 * MAX_POSITION_IN_SECTOR;
-                }
-                else if (planePosition.x > MAX_POSITION_IN_SECTOR)
-                {
-                    secToLoad.XInTenKm++;
-                    offset.x = -2 * MAX_POSITION_IN_SECTOR;
-                }
-                if (planePosition.y < -MAX_POSITION_IN_SECTOR)
-                {
-                    secToLoad.YInTenKm--;
-                    offset.y = 2 * MAX_POSITION_IN_SECTOR;
-                }
-                else if (planePosition.y > MAX_POSITION_IN_SECTOR)
-                {
-                    secToLoad.YInTenKm++;
-                    offset.y = -2 * MAX_POSITION_IN_SECTOR;
-                }
-                if (planePosition.z < -MAX_POSITION_IN_SECTOR)
-                {
-                    secToLoad.ZInTenKm--;
-                    offset.z = 2 * MAX_POSITION_IN_SECTOR;
-                }
-                else if (planePosition.z > MAX_POSITION_IN_SECTOR)
-                {
-                    secToLoad.ZInTenKm++;
-                    offset.z = -2 * MAX_POSITION_IN_SECTOR;
-                }
+                var relativePos = t.Value % MAX_POSITION_IN_SECTOR;
+                var ssDiff = (int3)(t.Value / MAX_POSITION_IN_SECTOR);
+                var edge = MAX_POSITION_IN_SECTOR * -math.sign(ssDiff);
 
-                if (ltg.XInTenKm == secToLoad.XInTenKm && ltg.YInTenKm == secToLoad.YInTenKm && ltg.ZInTenKm == secToLoad.ZInTenKm)
+                var newPos = relativePos + edge;
+                newPos = math.select(newPos, newPos + MAX_POSITION_IN_SECTOR * 0.000001f, newPos == MAX_POSITION_IN_SECTOR);
+                ltg.LocalPosition = newPos;
+                t.Value = newPos;
+
+                if (math.all(ssDiff == int3.zero))
                     return;
+
+                var sX = (long)ltg.SubSector.x + ssDiff.x;
+                var sY = (long)ltg.SubSector.y + ssDiff.y;
+                var sZ = (long)ltg.SubSector.z + ssDiff.z;
+
+                ltg.SubSector += ssDiff;
+                ltg.Sector += new int3(
+                    math.abs(sX) > MAX_SUBSECTOR_IN_SECTOR ? (int)math.sign(sX) : 0,
+                    math.abs(sY) > MAX_SUBSECTOR_IN_SECTOR ? (int)math.sign(sY) : 0,
+                    math.abs(sZ) > MAX_SUBSECTOR_IN_SECTOR ? (int)math.sign(sZ) : 0);
 
                 var update = ecb.CreateEntity();
                 ecb.AddComponent(update, new SectorChange{Entity = e, Previous = ltg, New = secToLoad});
-                t.Value += offset;
-                ltg.PositionInSector = t.Value;
-                ltg.XInTenKm = secToLoad.XInTenKm;
-                ltg.YInTenKm = secToLoad.YInTenKm;
-                ltg.ZInTenKm = secToLoad.ZInTenKm;
-                Debug.Log($"Enter {ltg.XInTenKm}|{ltg.YInTenKm}|{ltg.ZInTenKm}");
             }).Run();
 
         var playerPosition = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
@@ -125,16 +104,10 @@ public partial class TRSToLocalToGalaxySystem : SystemBase
             .WithNone<LocalPlayer>()
             .WithNone<CanTravelSectors>()
             .WithNone<Parent>()
-            .ForEach((Entity e, ref Translation t, ref LocalToWorld ltw, in LocalToGalaxy ltg) =>
+            .ForEach((Entity e, ref Translation t, in LocalToGalaxy ltg) =>
             {
-                int3 sectorDifference = new int3(
-                    (int) (ltg.XInTenKm - playerPosition.XInTenKm),
-                    (int) (ltg.YInTenKm - playerPosition.YInTenKm),
-                    (int) (ltg.ZInTenKm - playerPosition.ZInTenKm)
-                );
-                t.Value = ltg.PositionInSector + (float3)sectorDifference * 2 * MAX_POSITION_IN_SECTOR;
-                if(HasComponent<Star>(e))
-                    Debug.Log($"Star at {t.Value}; Player at {playerPosition.PositionInSector}");
+
+                t.Value = (float3)(ltg.AbsolutePosition - playerPosition.AbsolutePosition);
             }).ScheduleParallel();
 
         bufferSystem.AddJobHandleForProducer(Dependency);
@@ -173,9 +146,9 @@ public partial class LoadSectorSystem : SystemBase
                 Entity newSector = Entity.Null;
                 for (int i = 0; i < sectors.Length; i++)
                 {
-                    if (sectors[i].XInTenKm == sc.New.XInTenKm && sectors[i].YInTenKm == sc.New.YInTenKm && sectors[i].ZInTenKm == sc.New.ZInTenKm)
+                    if (math.all(sectors[i].Sector == sc.New.Sector) && math.all(sectors[i].SubSector == sc.New.SubSector))
                         newSector = sectorEntities[i];
-                    if (sectors[i].XInTenKm == sc.Previous.XInTenKm && sectors[i].YInTenKm == sc.Previous.YInTenKm && sectors[i].ZInTenKm == sc.Previous.ZInTenKm)
+                    if (math.all(sectors[i].Sector == sc.Previous.Sector) && math.all(sectors[i].SubSector == sc.Previous.SubSector))
                         oldSector = sectorEntities[i];
                 }
 
@@ -184,6 +157,17 @@ public partial class LoadSectorSystem : SystemBase
                     if (newSector == Entity.Null)
                     {
                         sectorsToLoad.Add(sc.New);
+                        if (math.any(sc.New.Sector != sc.Previous.Sector))
+                        {
+                            for (int x = -15; x <= 15; x++)
+                            for (int y = -15; y <= 15; y++)
+                            for (int z = -15; z <= 15; z++)
+                            {
+                                var potLtg = new LocalToGalaxy {Sector = sc.New.Sector + new int3(x, y, z)};
+                                if(GalaxyTools.GetSectorData(potLtg).Type != SectorType.Empty)
+                                    sectorsToLoad.Add(potLtg);
+                            }
+                        }
                         return;
                     }
 

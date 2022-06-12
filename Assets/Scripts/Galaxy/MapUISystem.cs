@@ -23,22 +23,14 @@ public partial class MapUISystem : SystemBase
     {
         Entities
             .WithAll<LocalPlayer>()
-            .ForEach((in LocalToWorld ltw, in LocalToGalaxy ltg, in PhysicsVelocity v) =>
+            .ForEach((in LocalToGalaxy ltg, in PhysicsVelocity v) =>
             {
                 uiRoot.Q<Label>("Sector").text =
-                    $"Sector: ({ltg.XInTenKm}, {ltg.YInTenKm}, {ltg.ZInTenKm})";
+                    $"Sector: ({ltg.Sector.x}.{ltg.SubSector.x}, {ltg.Sector.y}.{ltg.SubSector.y}, {ltg.Sector.z}.{ltg.SubSector.z})";
                 uiRoot.Q<Label>("Coordinates").text =
-                    $"Position: ({ltw.Position.x:F1}, {ltw.Position.y:F1}, {ltw.Position.z:F1})";
+                    $"Position: ({ltg.AbsolutePosition.x:F1}, {ltg.AbsolutePosition.y:F1}, {ltg.AbsolutePosition.z:F1})";
                 uiRoot.Q<Label>("Forward").text =
                     $"Speed: {math.length(v.Linear):F1}m/s";
             }).WithoutBurst().Run();
-        var myLtg = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
-        Entities.ForEach((in SectorData data, in LocalToGalaxy ltg) =>
-        {
-            if (ltg.XInTenKm != myLtg.XInTenKm || ltg.YInTenKm != myLtg.YInTenKm || ltg.ZInTenKm != myLtg.ZInTenKm)
-                return;
-
-            uiRoot.Q<Label>("Sector").text += $" | {data.Type}";
-        }).WithoutBurst().Run();
     }
 }

@@ -208,21 +208,8 @@ public struct MarchingCubesSphericalGenerator
     public static float GetRadialHeightAt(float3 xyz, float3 seed)
     {
         var len = math.length(new float3(0.5f) - xyz) * 2;
-        var lower = math.all(seed > 0) ? Perlin3D(xyz * seed) : 1;
+        var lower = math.all(seed > 0) ? GalaxyTools.Perlin3D(xyz * seed) : 1;
         return len < lower ? 0 : 1;
-    }
-
-    static float Perlin3D(float3 xyz)
-    {
-        var (x,y,z) = (xyz.x, xyz.y, xyz.z);
-        float xy = Mathf.PerlinNoise(x, y);
-        float xz = Mathf.PerlinNoise(x, z);
-        float yz = Mathf.PerlinNoise(y, z);
-        float yx = Mathf.PerlinNoise(y, x);
-        float zx = Mathf.PerlinNoise(z, x);
-        float zy = Mathf.PerlinNoise(z, y);
-
-        return (xy + xz + yz + yx + zx + zy) / 6;
     }
 
     static readonly int3[] Corners = new int3[8] {

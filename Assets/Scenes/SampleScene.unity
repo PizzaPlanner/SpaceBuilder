@@ -422,10 +422,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d326895bb1045bdbc669d3caa9aa44c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  XInTenKm: 157
-  YInTenKm: 119
-  ZInTenKm: 0
-  PositionInSector:
+  Sector:
+    x: 19
+    y: 0
+    z: 13
+  SubSector:
+    x: 0
+    y: 0
+    z: 0
+  LocalPosition:
     x: 0
     y: 0
     z: 0
