@@ -27,7 +27,7 @@ public partial class StarLightingSystem : SystemBase
         Entities.ForEach((in Star star, in LocalToGalaxy ltg) =>
         {
             var light = EntityManager.GetComponentObject<Light>(star.LightEntity);
-            var relativePosition = playerLtg.AbsolutePosition - ltg.AbsolutePosition;
+            var relativePosition = LocalToGalaxy.RelativePosition(playerLtg, ltg);
             var relativePosNormal = (float3)math.normalize(relativePosition);
             SetComponent(star.LightEntity, new Rotation{Value = quaternion.LookRotation(relativePosNormal, math.up())});
             light.color = star.Color * star.Brightness * math.clamp((float)(1.0 - math.log10(math.length(relativePosition) - GenerateStarSystem.STAR_SIZE_BASE) * 0.1f), 0, 1);

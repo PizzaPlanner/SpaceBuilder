@@ -28,7 +28,7 @@ public partial class MapUISystem : SystemBase
                 uiRoot.Q<Label>("Sector").text =
                     $"Sector: ({ltg.Sector.x}.{ltg.SubSector.x}, {ltg.Sector.y}.{ltg.SubSector.y}, {ltg.Sector.z}.{ltg.SubSector.z})";
                 uiRoot.Q<Label>("Coordinates").text =
-                    $"Position: ({ltg.AbsolutePosition.x:F1}, {ltg.AbsolutePosition.y:F1}, {ltg.AbsolutePosition.z:F1})";
+                    $"Position: ({ltg.LocalPosition.x:F1}, {ltg.LocalPosition.y:F1}, {ltg.LocalPosition.z:F1})";
                 uiRoot.Q<Label>("Forward").text =
                     $"Speed: {math.length(v.Linear):F1}m/s";
             }).WithoutBurst().Run();

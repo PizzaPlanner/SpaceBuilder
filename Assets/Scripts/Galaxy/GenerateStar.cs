@@ -46,7 +46,7 @@ public partial class GenerateStarSystem : SystemBase
                 {
                     Value = new float4(starData.Color.a, starData.Color.g, starData.Color.b, 0) * starData.Brightness
                 });
-                EntityManager.AddComponentData(e, new Scale {Value = starData.Size * STAR_SIZE_BASE});
+                EntityManager.AddComponentData(star, new Scale {Value = starData.Size * STAR_SIZE_BASE});
                 EntityManager.RemoveComponent<GenerateStar>(e);
             }).WithStructuralChanges().WithoutBurst().Run();
 

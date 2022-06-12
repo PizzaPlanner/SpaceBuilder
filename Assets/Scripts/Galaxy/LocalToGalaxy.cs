@@ -17,10 +17,14 @@ public struct LocalToGalaxy : IComponentData
     public int3 SubSector;
     public float3 LocalPosition;
 
-    public double3 AbsolutePosition =>
-        new double3(TRSToLocalToGalaxySystem.MAX_SUBSECTOR_IN_SECTOR) * 2 * TRSToLocalToGalaxySystem.MAX_POSITION_IN_SECTOR * 2 * Sector +
-        new double3(TRSToLocalToGalaxySystem.MAX_POSITION_IN_SECTOR)  * 2 * SubSector +
-        LocalPosition;
+    public static double3 RelativePosition(LocalToGalaxy origin, LocalToGalaxy target)
+    {
+        var sector = target.Sector - origin.Sector;
+        var subsector = target.SubSector - origin.SubSector;
+        return new double3(TRSToLocalToGalaxySystem.MAX_SUBSECTOR_IN_SECTOR) * 2 *
+               TRSToLocalToGalaxySystem.MAX_POSITION_IN_SECTOR * 2 * sector +
+               new double3(TRSToLocalToGalaxySystem.MAX_POSITION_IN_SECTOR) * 2 * subsector;
+    }
 }
 
 public struct SectorChange : IComponentData
@@ -54,8 +58,8 @@ public partial class MakeTravellerSystem : SystemBase
 public partial class TRSToLocalToGalaxySystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem bufferSystem;
-    public const int MAX_POSITION_IN_SECTOR = 5000;
-    public const int MAX_SUBSECTOR_IN_SECTOR = 0x7FFF_0000;
+    public const int MAX_POSITION_IN_SECTOR = 0x0FFF;
+    public const int MAX_SUBSECTOR_IN_SECTOR = 0x7FFF_FFFF;
 
     protected override void OnCreate()
     {
@@ -107,7 +111,7 @@ public partial class TRSToLocalToGalaxySystem : SystemBase
             .ForEach((Entity e, ref Translation t, in LocalToGalaxy ltg) =>
             {
 
-                t.Value = (float3)(ltg.AbsolutePosition - playerPosition.AbsolutePosition);
+                t.Value = (float3)LocalToGalaxy.RelativePosition(playerPosition, ltg);
             }).ScheduleParallel();
 
         bufferSystem.AddJobHandleForProducer(Dependency);

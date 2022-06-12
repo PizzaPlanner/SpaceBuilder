@@ -39,7 +39,7 @@ public class POIMarker : VisualElement
         var playerLtg = em.GetComponentData<LocalToGalaxy>(localPlayer);
         var targetLtg = em.GetComponentData<LocalToGalaxy>(Target);
 
-        var relativePosition = targetLtg.AbsolutePosition - playerLtg.AbsolutePosition;
+        var relativePosition = LocalToGalaxy.RelativePosition(playerLtg, targetLtg);
         var distance = math.length(relativePosition);
         if (distance < 1000)
             relativePosition = em.GetComponentData<Translation>(Target).Value - (float3)Camera.main.transform.position;
