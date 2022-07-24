@@ -165,7 +165,7 @@ public partial class GhostPlacementSystem : SystemBase
                                 Position = bgp.Area.Min,
                                 Orientation = new RightAngleRotation(r.Value),
                                 BuildStatus = 0,
-                                Scale = bgp.Area.Max - bgp.Area.Min
+                                Scale = bgp.Area.Max - bgp.Area.Min + 1
                             },
                             Grid = currentGrid
                         };

@@ -25,7 +25,7 @@ public partial class BuildingSystem : SystemBase
     public partial struct BuildJob : IJobEntity
     {
         public EntityCommandBuffer buffer;
-        [ReadOnly] public NativeHashMap<ulong, Entity> prefabMap;
+        [ReadOnly] public NativeParallelHashMap<ulong, Entity> prefabMap;
         [ReadOnly] public ComponentDataFromEntity<Grid> grids;
         [ReadOnly] public ComponentDataFromEntity<GridItem> gridItems;
         [ReadOnly] public BufferFromEntity<OccupationBuffer> occupations;
@@ -38,11 +38,17 @@ public partial class BuildingSystem : SystemBase
             buffer.DestroyEntity(e);
 
             if (!grids.HasComponent(part.Grid))
+            {
+                Debug.Log($"Discarded pending part for invalid grid {part.Grid}");
                 return;
+            }
 
             // Get prefab from id
             if (!prefabMap.TryGetValue(part.Data.Id, out var prefab))
+            {
+                Debug.Log($"Discarded pending part with invalid prefab ID {part.Data.Id}");
                 return;
+            }
 
             var originalGridItem = gridItems[prefab];
             var newGridItem = RotateItem(originalGridItem, part.Data.Orientation);
@@ -57,22 +63,31 @@ public partial class BuildingSystem : SystemBase
                     canBuild &= !(newGridItem.Area.Contains(item.Location) &&
                                   (item.Value & newGridItem.Occupied) > 0);
                 if (!canBuild)
+                {
+                    Debug.Log($"Discarded pending part on occupied area {newGridItem.Area}");
                     return;
+                }
             }
 
 
             // Create Part
             var entity = buffer.Instantiate(prefab);
 
-            if (originalGridItem.Scalable && IsCreateGhostJob)
-                buffer.AddComponent(entity, new NonUniformScale {Value = math.min(1, part.Data.Scale)});
-            else if (originalGridItem.Scalable && math.any(part.Data.Scale != 0))
+            switch (originalGridItem.Scalable)
             {
-                if(part.Data.Scale.x == part.Data.Scale.y && part.Data.Scale.x == part.Data.Scale.z)
-                    buffer.AddComponent(entity, new Scale{Value = part.Data.Scale.x});
-                else
+                // Scalable Ghosts always have NonUniformScale to make checks easier. Performance doesn't matter since there is only one Ghost at once.
+                case true when IsCreateGhostJob:
                     buffer.AddComponent(entity, new NonUniformScale{Value = part.Data.Scale});
-                newGridItem.Area.Extents = part.Data.Scale;
+                    break;
+                case true when math.any(part.Data.Scale != 1):
+                {
+                    if(part.Data.Scale.x == part.Data.Scale.y && part.Data.Scale.x == part.Data.Scale.z)
+                        buffer.AddComponent(entity, new Scale{Value = part.Data.Scale.x});
+                    else
+                        buffer.AddComponent(entity, new NonUniformScale{Value = part.Data.Scale});
+                    newGridItem.Area.Extents = part.Data.Scale - 1;
+                    break;
+                }
             }
 
             // buffer.AddComponent(entity, new UpdateRotation {Value = part.Data.Orientation, ReferencePrefab = prefab});
@@ -125,7 +140,7 @@ public partial class BuildingSystem : SystemBase
         }.Schedule(query);
 
         bufferSystem.AddJobHandleForProducer(Dependency);
-        EntityManager.CreateEntity(typeof(GridNeedsUpdate));
+        var e = EntityManager.CreateEntity(typeof(GridNeedsUpdate));
     }
 
     public static GridItem RotateItem(GridItem original, quaternion rotation)
@@ -166,7 +181,9 @@ public partial class BlueprintedChildrenUpdateSystem : SystemBase
                     for (int i = 0; i < childBuffer.Length; i++)
                     {
                         var e2 = childBuffer[i].Value;
-                        if (HasComponent<Blueprinted>(e2))
+                        if (!HasComponent<Blueprinted>(e2))
+                            ecb.AddComponent<Blueprinted>(e2);
+                        else if(!isGhost)
                             continue;
 
                         if (isGhost)
@@ -178,7 +195,6 @@ public partial class BlueprintedChildrenUpdateSystem : SystemBase
                                 ecb.AddComponent(e2, ghost);
                         }
 
-                        ecb.AddComponent<Blueprinted>(e2);
                         ecb.AddComponent<NeedsUpdate>(e2);
                     }
                 }
@@ -194,10 +210,12 @@ public partial class BlueprintedChildrenUpdateSystem : SystemBase
                 if (EntityManager.HasComponent<RenderMesh>(entity))
                 {
                     var renderMesh = EntityManager.GetSharedComponentData<RenderMesh>(entity);
-                    if (HasComponent<Ghost>(entity))
+                    if (isGhost)
+                    {
                         renderMesh.material = GetComponent<Ghost>(entity).Buildable
                             ? settings.GhostPlacementMaterial
                             : settings.GhostRemovalMaterial;
+                    }
                     else
                         renderMesh.material = settings.GhostBlueprintedMaterial;
                     EntityManager.SetSharedComponentData(entity, renderMesh);

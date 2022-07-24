@@ -123,7 +123,7 @@ public partial class FinishConstructionSystem : SystemBase
                 Position = position,
                 Orientation = new RightAngleRotation(rotation),
                 BuildStatus = ushort.MaxValue,
-                Scale = scale - 1
+                Scale = scale
             },
             Grid = GetComponent<GridItem>(bp).Grid
         });

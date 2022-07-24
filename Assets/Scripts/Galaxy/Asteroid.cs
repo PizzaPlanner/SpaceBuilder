@@ -1,6 +1,7 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Rendering;
+using Unity.Transforms;
 
 [GenerateAuthoringComponent]
 public struct AsteroidData : IComponentData

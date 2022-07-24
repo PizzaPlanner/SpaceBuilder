@@ -19,7 +19,7 @@ public partial class ApplyMassSystem : SystemBase
     protected override void OnUpdate()
     {
         var grids = GetEntityQuery(typeof(Grid)).ToEntityArray(Allocator.Temp);
-        NativeHashMap<Entity, float> gridMasses = new NativeHashMap<Entity, float>(grids.Length, Allocator.Temp);
+        NativeParallelHashMap<Entity, float> gridMasses = new NativeParallelHashMap<Entity, float>(grids.Length, Allocator.Temp);
         foreach(var item in grids)
             gridMasses.Add(item, 0);
         Entities

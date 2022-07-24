@@ -21,9 +21,10 @@ public struct LocalToGalaxy : IComponentData
     {
         var sector = target.Sector - origin.Sector;
         var subsector = target.SubSector - origin.SubSector;
+        var relativePosition = target.LocalPosition - origin.LocalPosition;
         return new double3(TRSToLocalToGalaxySystem.MAX_SUBSECTOR_IN_SECTOR) * 2 *
                TRSToLocalToGalaxySystem.MAX_POSITION_IN_SECTOR * 2 * sector +
-               new double3(TRSToLocalToGalaxySystem.MAX_POSITION_IN_SECTOR) * 2 * subsector;
+               new double3(TRSToLocalToGalaxySystem.MAX_POSITION_IN_SECTOR) * 2 * subsector + relativePosition;
     }
 }
 
@@ -106,7 +107,6 @@ public partial class TRSToLocalToGalaxySystem : SystemBase
         var playerPosition = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
         Entities
             .WithNone<LocalPlayer>()
-            .WithNone<CanTravelSectors>()
             .WithNone<Parent>()
             .ForEach((Entity e, ref Translation t, in LocalToGalaxy ltg) =>
             {
@@ -156,25 +156,14 @@ public partial class LoadSectorSystem : SystemBase
                         oldSector = sectorEntities[i];
                 }
 
+                if (newSector == Entity.Null)
+                {
+                    sectorsToLoad.Add(sc.New);
+                    return;
+                }
+
                 if (sc.Entity == localPlayer)
                 {
-                    if (newSector == Entity.Null)
-                    {
-                        sectorsToLoad.Add(sc.New);
-                        if (math.any(sc.New.Sector != sc.Previous.Sector))
-                        {
-                            for (int x = -15; x <= 15; x++)
-                            for (int y = -15; y <= 15; y++)
-                            for (int z = -15; z <= 15; z++)
-                            {
-                                var potLtg = new LocalToGalaxy {Sector = sc.New.Sector + new int3(x, y, z)};
-                                if(GalaxyTools.GetSectorData(potLtg).Type != SectorType.Empty)
-                                    sectorsToLoad.Add(potLtg);
-                            }
-                        }
-                        return;
-                    }
-
                     if (oldSector != Entity.Null && !HasComponent<Disabled>(oldSector))
                     {
                         var oldPlayerBuffer = GetBuffer<TravellerInSector>(oldSector);
@@ -195,8 +184,8 @@ public partial class LoadSectorSystem : SystemBase
                         buffer.RemoveComponent<Disabled>(newSector);
                     }
                     newPlayerBuffer.Add(new TravellerInSector {Player = sc.Entity});
-                    buffer.DestroyEntity(e);
                 }
+                buffer.DestroyEntity(e);
             }).Run();
 
         List<LocalToGalaxy> added = new List<LocalToGalaxy>();
@@ -206,6 +195,8 @@ public partial class LoadSectorSystem : SystemBase
             var e = EntityManager.CreateEntity(typeof(SubSector), typeof(LocalToGalaxy), typeof(TravellerInSector), typeof(Disabled), typeof(ToGenerate));
             added.Add(newSector);
             SetComponent(e, newSector);
+            if (math.all(newSector.SubSector == int3.zero))
+                EntityManager.RemoveComponent<Disabled>(e);
         }
 
         bufferSystem.AddJobHandleForProducer(Dependency);

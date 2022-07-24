@@ -1,9 +1,11 @@
+using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
+using Random = Unity.Mathematics.Random;
 
 public struct GenerateStar : IComponentData { }
 
@@ -19,19 +21,16 @@ public partial class GenerateStarSystem : SystemBase
         bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
     }
 
-    protected override void OnStartRunning()
+    protected override void OnUpdate()
     {
         if(prefab == Entity.Null)
             prefab = GetEntityQuery(typeof(Prefab), typeof(Star)).GetSingletonEntity();
-    }
 
-    protected override void OnUpdate()
-    {
         Entities
             .WithAll<GenerateStar, ToGenerate>()
             .ForEach((Entity e, in LocalToGalaxy ltg, in SectorData data) =>
             {
-                var random = new Unity.Mathematics.Random(data.Seed);
+                var random = new Random(data.Seed);
                 var star = EntityManager.Instantiate(prefab);
                 var starData = GetComponent<Star>(star);
                 starData.Brightness = random.NextFloat(3, 9);
@@ -53,3 +52,49 @@ public partial class GenerateStarSystem : SystemBase
         bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }
+//
+// public partial class StarScannerSystem : SystemBase
+// {
+//     private NativeList<LocalToGalaxy> scannedLtgs;
+//     private int3 nextScanSector;
+//     private int3 packageSize;
+//     private byte direction;
+//     protected override void OnCreate()
+//     {
+//         scannedLtgs = new NativeList<LocalToGalaxy>(Allocator.Persistent);
+//         RequireSingletonForUpdate<LocalPlayer>();
+//     }
+//
+//     protected override void OnDestroy()
+//     {
+//         scannedLtgs.Dispose();
+//     }
+//
+//     protected override void OnStartRunning()
+//     {
+//         nextScanSector = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>()).Sector;
+//         packageSize = new int3(3, 3, 3);
+//         direction = 0;
+//     }
+//
+//     protected override void OnUpdate()
+//     {
+//         var random = new Random(GlobalSystemVersion + 176231482u);
+//         var startSector = nextScanSector + random.NextInt3(-1000, 1000);
+//         for (int x = startSector.x; x < startSector.x + packageSize.x; x++)
+//         for (int y = startSector.y; y < startSector.y + packageSize.y; y++)
+//         for (int z = startSector.z; z < startSector.z + packageSize.z; z++)
+//         {
+//             var ltg = new LocalToGalaxy {Sector = new int3(x, y, z)};
+//             var sector = GalaxyTools.GetSectorData(ltg);
+//             if (sector.Type != SectorType.Empty)
+//             {
+//                 var e = EntityManager.CreateEntity(typeof(SectorChange));
+//                 SetComponent(e, new SectorChange{New = ltg});
+//
+//             }
+//         }
+//
+//         nextScanSector += new int3(packageSize.x, 0, 0);
+//     }
+// }

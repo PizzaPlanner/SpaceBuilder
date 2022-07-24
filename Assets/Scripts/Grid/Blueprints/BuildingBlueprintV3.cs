@@ -75,7 +75,7 @@ public struct BlueprintParserV3 : IBlueprintParser
                 else if (CurrentToken.Peek().Property is List<PartData> parts)
                 {
                     if(lines[i].Substring(0, indent).Contains("-"))
-                        parts.Add(new PartData{Status = ushort.MaxValue});
+                        parts.Add(new PartData{Status = ushort.MaxValue, Scale = 1});
 
                     var current = parts.Last();
                     if (key == "Status")
@@ -200,7 +200,7 @@ Parts:
   - LocalToGrid: [{y.Position.x},{y.Position.y},{y.Position.z},{y.Orientation}]
     {(y.Status != ushort.MaxValue ? $"Status: {y.Status}" : "")}
     {(math.any(y.Color != int3.zero) ? $"Color: [{y.Color.x},{y.Color.y},{y.Color.z}]" : "")}
-    {(math.any(y.Scale != int3.zero) ? $"Scale: [{y.Scale.x},{y.Scale.y},{y.Scale.z}]" : "")}
+    {(math.any(y.Scale != 1) ? $"Scale: [{y.Scale.x},{y.Scale.y},{y.Scale.z}]" : "")}
 {(y.Inventory == null || y.Inventory.Count == 0 ? "" : $@"    Inventory:
 {string.Join("\n", y.Inventory.Select(item => item == null ? $@"
     - null" : $@"

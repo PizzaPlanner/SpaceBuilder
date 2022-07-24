@@ -8,7 +8,7 @@ using UnityEngine;
 public partial class IdentifiableMappingSystem : SystemBase
 {
     public struct Loaded : IComponentData { }
-    public static NativeHashMap<ulong, Entity> EntitiesById;
+    public static NativeParallelHashMap<ulong, Entity> EntitiesById;
     public static Dictionary<ulong, Texture2D> IconById;
     private EntityQuery query;
 
@@ -32,7 +32,7 @@ public partial class IdentifiableMappingSystem : SystemBase
     {
         var entities = query.ToEntityArray(Allocator.Temp);
         Debug.Log($"Found {entities.Length} ID Prefabs");
-        EntitiesById = new NativeHashMap<ulong, Entity>(entities.Length, Allocator.Persistent);
+        EntitiesById = new NativeParallelHashMap<ulong, Entity>(entities.Length, Allocator.Persistent);
         Entities
             .WithEntityQueryOptions(EntityQueryOptions.IncludePrefab)
             .WithAll<Prefab>()

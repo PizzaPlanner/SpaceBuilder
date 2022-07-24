@@ -26,7 +26,6 @@ public static class GalaxyTools
     private const float PERLIN_SECTOR_RESOLUTION = 0.01f;
     public static float Perlin3D(float3 xyz)
     {
-        var (x,y,z) = (xyz.x, xyz.y, xyz.z);
         float xy = noise.cnoise(xyz.xy);
         float xz = noise.cnoise(xyz.xz);
         float yz = noise.cnoise(xyz.xz);
@@ -62,7 +61,6 @@ public static class GalaxyTools
             data.Seed = random.NextUInt();
         }
 
-
         return data;
     }
 }
@@ -87,7 +85,6 @@ public partial class SubSectorGeneratorSystem : SystemBase
                 var sectorData = GalaxyTools.GetSectorData(ltg);
                 buffer.AddComponent(nativeThreadIndex, e, sectorData);
                 // var random = new Random(sectorData.Seed);
-                Debug.Log($"Generating {ltg.Sector}:{ltg.SubSector}");
                 switch (sectorData.Type)
                 {
                     case SectorType.Star:

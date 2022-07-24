@@ -22,7 +22,7 @@ public partial class CalculateBuildingSlotSystem : SystemBase
     {
         var ghost = GetSingletonEntity<GhostPlacementBuilder>();
         var gridItem = GetComponent<GridItem>(ghost);
-        var bgp = EntityManager.GetComponentData<GhostPlacementBuilder>(ghost);
+        var bgp = GetComponent<GhostPlacementBuilder>(ghost);
         var occupied = GetBuffer<OccupationBuffer>(bgp.TargetGrid, true);
 
         if (Input.GetMouseButton(0))
@@ -100,6 +100,8 @@ public partial class CalculateBuildingSlotSystem : SystemBase
             SetComponent(ghost, new Translation{Value = Camera.main.transform.position + Camera.main.transform.forward * 10});
         }
 
+        if (!HasComponent<NeedsUpdate>(ghost))
+            EntityManager.AddComponent<NeedsUpdate>(ghost);
     }
 }
 
