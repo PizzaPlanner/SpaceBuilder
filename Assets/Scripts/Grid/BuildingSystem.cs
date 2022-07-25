@@ -32,6 +32,7 @@ public partial class BuildingSystem : SystemBase
 
         public bool IsCreateGhostJob;
         public bool IsFinishConstructionJob;
+        public bool RenderBlueprint;
 
         public void Execute(Entity e, in PendingPart part)
         {
@@ -110,6 +111,8 @@ public partial class BuildingSystem : SystemBase
                 if(!IsCreateGhostJob)
                 {
                     buffer.AddComponent(entity, new UnderConstruction{Progress = part.Data.BuildStatus});
+                    if(!RenderBlueprint)
+                        buffer.AddComponent<DisableRendering>(entity);
                 }
                 else
                 {
@@ -136,7 +139,8 @@ public partial class BuildingSystem : SystemBase
             gridItems = GetComponentDataFromEntity<GridItem>(true),
             occupations = GetBufferFromEntity<OccupationBuffer>(true),
             prefabMap = IdentifiableMappingSystem.EntitiesById,
-            IsCreateGhostJob = false
+            IsCreateGhostJob = false,
+            RenderBlueprint = HasSingleton<BuilderMode_Blueprint>() || HasSingleton<BuilderMode_Build>() || HasSingleton<BuilderMode_Destroy>()
         }.Schedule(query);
 
         bufferSystem.AddJobHandleForProducer(Dependency);
@@ -237,7 +241,8 @@ public partial class BlueprintedVisualsUpdateSystem : SystemBase
         RequireForUpdate(GetEntityQuery(new EntityQueryDesc{Any = new[]
         {
             ComponentType.ReadOnly<BuilderMode_Blueprint>(),
-            ComponentType.ReadOnly<BuilderMode_Build>()
+            ComponentType.ReadOnly<BuilderMode_Build>(),
+            ComponentType.ReadOnly<BuilderMode_Destroy>()
         }}));
     }
 

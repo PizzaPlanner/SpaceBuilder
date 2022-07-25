@@ -221,11 +221,8 @@ public struct SpawnCommand : AdminConsole.IConsoleCommand
         var e = BlueprintLibrary.Load(path, EntityManager);
         if (e == Entity.Null)
             return;
-        var pos = EntityManager.GetComponentData<Translation>(executor);
         var ltg = EntityManager.GetComponentData<LocalToGalaxy>(executor);
-        ltg.LocalPosition = pos.Value;
         EntityManager.SetComponentData(e, EntityManager.GetComponentData<Rotation>(executor));
-        EntityManager.SetComponentData(e, pos);
         EntityManager.SetComponentData(e, ltg);
     }
 }

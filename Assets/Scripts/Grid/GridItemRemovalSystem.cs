@@ -8,6 +8,7 @@ using Unity.Physics.Systems;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.UIElements;
 using Material = UnityEngine.Material;
 
 public struct TargetForRemoval : IComponentData
@@ -31,6 +32,8 @@ public partial class GridItemRemovalSystem : SystemBase
 
     private NativeList<Entity> modifiedEntities;
 
+    private VisualElement border;
+
     protected override void OnCreate()
     {
         RequireSingletonForUpdate<BuilderMode_Destroy>();
@@ -46,10 +49,12 @@ public partial class GridItemRemovalSystem : SystemBase
 
     protected override void OnStartRunning()
     {
-        foreach(var renderer in GhostBuilder.Wireframe.gameObject.GetComponentsInChildren<MeshRenderer>())
-            if (renderer.gameObject.layer == LayerMask.NameToLayer("Grid"))
-                renderer.sharedMaterial = settings.GridDestroyMaterial;
-        GhostBuilder.Wireframe.gameObject.SetActive(true);
+        // foreach(var renderer in GhostBuilder.Wireframe.gameObject.GetComponentsInChildren<MeshRenderer>())
+        //     if (renderer.gameObject.layer == LayerMask.NameToLayer("Grid"))
+        //         renderer.sharedMaterial = settings.GridDestroyMaterial;
+        // GhostBuilder.Wireframe.gameObject.SetActive(true);
+        border ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("DestructionBorder");
+        border.style.display = DisplayStyle.Flex;
     }
 
     protected override void OnStopRunning()
@@ -64,19 +69,20 @@ public partial class GridItemRemovalSystem : SystemBase
         }).WithoutBurst().Run();
         bufferSystem.AddJobHandleForProducer(Dependency);
         modifiedEntities.Clear();
-        if(GhostBuilder.Wireframe)
-            GhostBuilder.Wireframe.gameObject.SetActive(false);
+        // if(GhostBuilder.Wireframe)
+        //     GhostBuilder.Wireframe.gameObject.SetActive(false);
+        border.style.display = DisplayStyle.None;
     }
 
     protected override void OnUpdate()
     {
-        var parent = GetSingleton<BuilderMode_Destroy>().Grid;
-        var grid = GetComponent<Grid>(parent);
-        var gridLtw = GetComponent<LocalToWorld>(parent);
-        var wireframe = GhostBuilder.Wireframe.transform;
-        wireframe.localScale = new float3(Grid.CELL_SIZE);
-        wireframe.rotation = gridLtw.Rotation;
-        wireframe.transform.position = GetComponent<LocalToWorld>(GetSingletonEntity<LocalPlayer>()).Position;
+        // var parent = GetSingleton<BuilderMode_Destroy>().Grid;
+        // var grid = GetComponent<Grid>(parent);
+        // var gridLtw = GetComponent<LocalToWorld>(parent);
+        // var wireframe = GhostBuilder.Wireframe.transform;
+        // wireframe.localScale = new float3(Grid.CELL_SIZE);
+        // wireframe.rotation = gridLtw.Rotation;
+        // wireframe.transform.position = GetComponent<LocalToWorld>(GetSingletonEntity<LocalPlayer>()).Position;
 
         var buffer = bufferSystem.CreateCommandBuffer();
         var childBuffer = GetBufferFromEntity<Child>();

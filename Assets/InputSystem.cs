@@ -10,15 +10,9 @@ using Debug = UnityEngine.Debug;
 
 public struct BuilderMode_Build : ISystemStateComponentData { }
 
-public struct BuilderMode_Blueprint : ISystemStateComponentData
-{
-    public Entity Grid;
-}
+public struct BuilderMode_Blueprint : ISystemStateComponentData { }
 
-public struct BuilderMode_Destroy : ISystemStateComponentData
-{
-    public Entity Grid;
-}
+public struct BuilderMode_Destroy : ISystemStateComponentData { }
 
 public static class ControlScheme
 {
@@ -125,12 +119,9 @@ public partial class InputSystem : SystemBase
                 {
                     input.CurrentAction = ActionState.None;
                 }
-                else if (input.CurrentAction == ActionState.None &&
-                         HasComponent<Docked>(GetSingletonEntity<LocalPlayer>()))
+                else if (input.CurrentAction == ActionState.None)
                 {
-                    EntityManager.AddComponentData(entity,
-                        new BuilderMode_Blueprint
-                            {Grid = GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target});
+                    EntityManager.AddComponentData(entity, new BuilderMode_Blueprint());
                     input.CurrentAction = ActionState.Blueprint;
                 }
             }
@@ -154,12 +145,9 @@ public partial class InputSystem : SystemBase
                 {
                     input.CurrentAction = ActionState.None;
                 }
-                else if (input.CurrentAction == ActionState.None &&
-                         HasComponent<Docked>(GetSingletonEntity<LocalPlayer>()))
+                else if (input.CurrentAction == ActionState.None)
                 {
-                    EntityManager.AddComponentData(entity,
-                        new BuilderMode_Destroy
-                            {Grid = GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target});
+                    EntityManager.AddComponentData(entity, new BuilderMode_Destroy());
                     input.CurrentAction = ActionState.Deconstruct;
                 }
             }

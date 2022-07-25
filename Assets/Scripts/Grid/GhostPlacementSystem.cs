@@ -23,76 +23,30 @@ public struct Blueprinted : IComponentData
 {
 }
 
-[UpdateBefore(typeof(TransformSystemGroup))]
-[UpdateBefore(typeof(BuildingSystem))]
-[UpdateAfter(typeof(PlayerTargetSystem))]
-public partial class GhostPlacementSystem : SystemBase
+[UpdateInGroup(typeof(PresentationSystemGroup))]
+public partial class BuildingUISystem : SystemBase
 {
-    private int ghostId;
-    private bool rotating;
-    private bool wantSwitchGhost;
-    public quaternion currentRotation;
     private VisualElement buildMenu, constructionBorder;
-    private Entity currentGrid;
-    private Entity buildables;
-
+    private GhostPlacementSystem placementSystem;
     protected override void OnCreate()
     {
-        currentRotation = quaternion.identity;
-
         RequireSingletonForUpdate<BuilderMode_Blueprint>();
         RequireSingletonForUpdate<LocalPlayer>();
-        RequireForUpdate(GetEntityQuery(typeof(LocalPlayer), typeof(Docked)));
         RequireSingletonForUpdate<IdentifiableMappingSystem.Loaded>();
-    }
-
-    protected override void OnStartRunning()
-    {
-        currentGrid = GetSingleton<BuilderMode_Blueprint>().Grid;
-        ghostId = 0;
-
-        buildMenu ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BuildMenu");
-        buildMenu.style.display = DisplayStyle.None;
-        constructionBorder ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BlueprintBorder");
-        constructionBorder.style.display = DisplayStyle.Flex;
-        buildMenu.Clear();
-
-        buildables = EntityManager.CreateEntity(typeof(BuildableBuffer));
-        var buffer = GetBuffer<BuildableBuffer>(buildables);
-
-        var query = GetEntityQuery(typeof(Prefab), typeof(GridItem), typeof(Identifieable), typeof(Name));
-        var names = query.ToComponentDataArray<Name>(Allocator.Temp);
-        var ids = query.ToComponentDataArray<Identifieable>(Allocator.Temp);
-        for (int i = 0; i < ids.Length; i++)
-        {
-            buffer.Add(new BuildableBuffer {PrefabId = ids[i].ItemId});
-            var button = new BuilderButton {Id = ids[i].ItemId};
-            button.Q<Label>().text = names[i].Value.Value;
-            var tempId = i;
-            button.RegisterCallback<MouseEnterEvent>(_ =>
-            {
-                ghostId = tempId;
-                wantSwitchGhost = true;
-            });
-            buildMenu.Add(button);
-        }
-    }
-
-    protected override void OnStopRunning()
-    {
-        constructionBorder.style.display = DisplayStyle.None;
-        buildMenu.style.display = DisplayStyle.None;
-        if(HasSingleton<InputSystem.ControlHotMenu>())
-            World.GetExistingSystem<InputSystem>().SetCursor(InputSystem.CursorState.Disabled);
-
-        // DONT destroy with query as parameter, it will throw errors when not all children are marked as ghost as well
-        foreach(var entity in GetEntityQuery(typeof(Ghost)).ToEntityArray(Allocator.Temp))
-            if(EntityManager.Exists(entity))
-                EntityManager.DestroyEntity(entity);
+        placementSystem = World.GetExistingSystem<GhostPlacementSystem>();
     }
 
     protected override void OnUpdate()
     {
+        if (placementSystem.currentPrefabId == 0)
+            constructionBorder.Q<Label>().text = "<Press T to select a Part>";
+        else if (HasSingleton<GhostPlacementBuilder>() && GetSingleton<GhostPlacementBuilder>().TargetGrid != Entity.Null)
+        {
+            constructionBorder.Q<Label>().text =
+                GetComponent<Name>(GetSingleton<GhostPlacementBuilder>().TargetGrid).Value.Value;
+        }
+        else
+            constructionBorder.Q<Label>().text = "<No Target>";
 
         if (Input.GetKeyDown(KeyCode.T))
         {
@@ -104,32 +58,104 @@ public partial class GhostPlacementSystem : SystemBase
             buildMenu.style.display = DisplayStyle.None;
             World.GetExistingSystem<InputSystem>().SetCursor(InputSystem.CursorState.Disabled);
         }
+    }
 
+    protected override void OnStartRunning()
+    {
+        buildMenu ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BuildMenu");
+        buildMenu.style.display = DisplayStyle.None;
+        constructionBorder ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BlueprintBorder");
+        constructionBorder.style.display = DisplayStyle.Flex;
+        buildMenu.Clear();
+
+        var query = GetEntityQuery(typeof(Prefab), typeof(GridItem), typeof(Identifieable), typeof(Name));
+        var names = query.ToComponentDataArray<Name>(Allocator.Temp);
+        var ids = query.ToComponentDataArray<Identifieable>(Allocator.Temp);
+        for (int i = 0; i < ids.Length; i++)
+        {
+            var button = new BuilderButton {Id = ids[i].ItemId};
+            button.Q<Label>().text = names[i].Value.Value;
+            button.RegisterCallback<MouseEnterEvent>(_ =>
+            {
+                SetSelectedPrefab(button.Id);
+            });
+            buildMenu.Add(button);
+        }
+    }
+
+    protected override void OnStopRunning()
+    {
+        constructionBorder.style.display = DisplayStyle.None;
+        buildMenu.style.display = DisplayStyle.None;
+        if(HasSingleton<InputSystem.ControlHotMenu>())
+            World.GetExistingSystem<InputSystem>().SetCursor(InputSystem.CursorState.Disabled);
+    }
+
+    void SetSelectedPrefab(ulong prefabId)
+    {
+        buildMenu.Query<BuilderButton>().ForEach(x => x.Selected = x.Id == prefabId);
+        placementSystem.currentPrefabId = prefabId;
+        placementSystem.wantSwitchGhost = true;
+    }
+}
+
+[UpdateBefore(typeof(TransformSystemGroup))]
+[UpdateBefore(typeof(BuildingSystem))]
+[UpdateAfter(typeof(PlayerTargetSystem))]
+public partial class GhostPlacementSystem : SystemBase
+{
+    public ulong currentPrefabId;
+    public bool wantSwitchGhost;
+    public quaternion currentRotation;
+    private Entity currentGrid;
+
+    protected override void OnCreate()
+    {
+        currentRotation = quaternion.identity;
+
+        RequireSingletonForUpdate<BuilderMode_Blueprint>();
+        RequireSingletonForUpdate<LocalPlayer>();
+        RequireSingletonForUpdate<IdentifiableMappingSystem.Loaded>();
+    }
+
+    protected override void OnStopRunning()
+    {
+        // DONT destroy with query as parameter, it will throw errors when not all children are marked as ghost as well
+        foreach(var entity in GetEntityQuery(typeof(Ghost)).ToEntityArray(Allocator.Temp))
+            if(EntityManager.Exists(entity))
+                EntityManager.DestroyEntity(entity);
+    }
+
+    protected override void OnUpdate()
+    {
         var query = GetEntityQuery(typeof(GhostPlacementBuilder));
         var placers = query.CalculateEntityCount();
         if (wantSwitchGhost || placers > 1)
         {
             EntityManager.DestroyEntity(query.ToEntityArray(Allocator.Temp));
             wantSwitchGhost = false;
-            return;
         }
 
         if (!HasSingleton<GhostPlacementBuilder>())
         {
-            var buffer = GetBuffer<BuildableBuffer>(buildables);
-            var prefabId = buffer[ghostId].PrefabId;
-            buildMenu.Query<BuilderButton>().ForEach(x => x.Selected = x.Id == prefabId);
+            if (currentPrefabId == 0)
+                return;
+
+            var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
+            if (target.Value == Entity.Null || !HasComponent<GridItem>(target.Value))
+                return;
+
             var pp = EntityManager.CreateEntity(typeof(PendingPart), typeof(Ghost));
             SetComponent(pp, new PendingPart
             {
                 Data = new BuildingPartInfo
                 {
-                    Id = prefabId,
+                    Id = currentPrefabId,
                     Position = int3.zero,
                     Orientation = new RightAngleRotation(currentRotation),
                     BuildStatus = 0
                 },
-                Grid = currentGrid
+                Grid = GetComponent<GridItem>(target.Value).Grid
             });
             var ppquery = GetEntityQuery(typeof(Ghost), typeof(PendingPart));
             new BuildingSystem.BuildJob
@@ -152,7 +178,7 @@ public partial class GhostPlacementSystem : SystemBase
             Entities
                 .ForEach((Entity e, in GridItem item, in Rotation r, in Identifieable id, in Ghost ghost) =>
                 {
-                    if (!ghost.Buildable)
+                    if (!ghost.Buildable || bgp.TargetGrid == Entity.Null)
                         return;
 
                     if (bgp.Original.Scalable)
@@ -167,7 +193,7 @@ public partial class GhostPlacementSystem : SystemBase
                                 BuildStatus = 0,
                                 Scale = bgp.Area.Max - bgp.Area.Min + 1
                             },
-                            Grid = currentGrid
+                            Grid = bgp.TargetGrid
                         };
                         var part = EntityManager.CreateEntity(typeof(PendingPart));
                         EntityManager.SetComponentData(part, pendingBuild);
@@ -187,7 +213,7 @@ public partial class GhostPlacementSystem : SystemBase
                                     Orientation = new RightAngleRotation(r.Value),
                                     BuildStatus = 0
                                 },
-                                Grid = currentGrid
+                                Grid = bgp.TargetGrid
                             };
                             var part = EntityManager.CreateEntity(typeof(PendingPart));
                             EntityManager.SetComponentData(part, pendingBuild);

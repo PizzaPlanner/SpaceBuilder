@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEditorInternal;
 using UnityEngine;
 
 [UpdateBefore(typeof(TransformSystemGroup))]
@@ -23,7 +24,6 @@ public partial class CalculateBuildingSlotSystem : SystemBase
         var ghost = GetSingletonEntity<GhostPlacementBuilder>();
         var gridItem = GetComponent<GridItem>(ghost);
         var bgp = GetComponent<GhostPlacementBuilder>(ghost);
-        var occupied = GetBuffer<OccupationBuffer>(bgp.TargetGrid, true);
 
         if (Input.GetMouseButton(0))
         {
@@ -35,12 +35,18 @@ public partial class CalculateBuildingSlotSystem : SystemBase
                 bgp.Area.Extents.z = bgp.Area.Extents.z > 0 ? 0 : (math.abs(gridItem.Area.RotatedExtents.z) + 1);
         }
         else
+        {
             bgp.Area.Extents = int3.zero;
-
+            bgp.TargetGrid = Entity.Null;
+        }
 
         var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
-        if (target.Value != Entity.Null)
+        if (target.Value != Entity.Null && HasComponent<GridItem>(target.Value))
+            bgp.TargetGrid = GetComponent<GridItem>(target.Value).Grid;
+
+        if(bgp.TargetGrid != Entity.Null)
         {
+            var occupied = GetBuffer<OccupationBuffer>(bgp.TargetGrid, true);
             var cellPath = GetBuffer<CellPathBuffer>(GetSingletonEntity<CellPathBuffer>(), true);
             if (cellPath.Length > 0)
             {
@@ -58,50 +64,41 @@ public partial class CalculateBuildingSlotSystem : SystemBase
                 }
 
                 targetCell = cellPath[lastUnoccupied].Value;
+
+                if (Input.GetMouseButton(0) && math.any(targetCell != bgp.Area.Origin))
+                {
+                    bgp.Area.RotatedExtents = (targetCell - bgp.Area.Origin) * bgp.Area.Extents;
+                }
+                else
+                {
+                    bgp.Area.Origin = targetCell;
+                    bgp.Area.RotatedExtents = int3.zero;
+                }
+
+                gridItem.Area.Origin = bgp.Area.Min;
+                if (bgp.Original.Scalable)
+                {
+                    SetComponent(ghost, new NonUniformScale {Value = bgp.Area.Max - bgp.Area.Min + 1});
+                    gridItem.Area.RotatedExtents = bgp.Area.Max - bgp.Area.Min;
+                }
+                var newPos = new Translation { Value = Grid.PositionFromCell(gridItem.Area.Origin) };
+                var canBuild = true;
+                foreach (var item in occupied)
+                    canBuild &= !(gridItem.Area.Contains(item.Location) && (item.Value & gridItem.Occupied) > 0);
+
+                SetComponent(ghost, new Ghost{Buildable = canBuild});
+                SetComponent(ghost, gridItem);
+                SetComponent(ghost, newPos);
+                SetSingleton(bgp);
+                if (!HasComponent<NeedsUpdate>(ghost))
+                    EntityManager.AddComponent<NeedsUpdate>(ghost);
             }
         }
         else
         {
-            targetCell = int.MaxValue;
+            EntityManager.DestroyEntity(ghost);
         }
 
-        if (targetCell.x != Int32.MaxValue)
-        {
-            if (Input.GetMouseButton(0) && math.any(targetCell != bgp.Area.Origin))
-            {
-                bgp.Area.RotatedExtents = (targetCell - bgp.Area.Origin) * bgp.Area.Extents;
-            }
-            else
-            {
-                bgp.Area.Origin = targetCell;
-                bgp.Area.RotatedExtents = int3.zero;
-            }
-
-            SetSingleton(bgp);
-
-            gridItem.Area.Origin = bgp.Area.Min;
-            if (bgp.Original.Scalable)
-            {
-                SetComponent(ghost, new NonUniformScale {Value = bgp.Area.Max - bgp.Area.Min + 1});
-                gridItem.Area.RotatedExtents = bgp.Area.Max - bgp.Area.Min;
-            }
-            var newPos = new Translation { Value = Grid.PositionFromCell(gridItem.Area.Origin) };
-            var canBuild = true;
-            foreach (var item in occupied)
-                canBuild &= !(gridItem.Area.Contains(item.Location) && (item.Value & gridItem.Occupied) > 0);
-
-            SetComponent(ghost, new Ghost{Buildable = canBuild});
-            SetComponent(ghost, gridItem);
-            SetComponent(ghost, newPos);
-        }
-        else
-        {
-            SetComponent(ghost, new Ghost{Buildable = false});
-            SetComponent(ghost, new Translation{Value = Camera.main.transform.position + Camera.main.transform.forward * 10});
-        }
-
-        if (!HasComponent<NeedsUpdate>(ghost))
-            EntityManager.AddComponent<NeedsUpdate>(ghost);
     }
 }
 
@@ -137,6 +134,11 @@ public partial class BuildingWireframeDisplaySystem : SystemBase
     {
         var e = GetSingletonEntity<GhostPlacementBuilder>();
         var gpb = GetSingleton<GhostPlacementBuilder>();
+        if (gpb.TargetGrid == Entity.Null)
+        {
+            GhostBuilder.Wireframe.gameObject.SetActive(false);
+            return;
+        }
         var gridItem = GetComponent<GridItem>(e);
         var ghost = GetComponent<Ghost>(e);
         var gridLtw = GetComponent<LocalToWorld>(gpb.TargetGrid);

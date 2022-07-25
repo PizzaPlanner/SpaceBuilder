@@ -62,6 +62,9 @@ public partial class ConstructionSystem : SystemBase
         var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
         if (!target.CanConstruct)
         {
+            var constructor = GetComponent<Constructor>(GetSingletonEntity<LocalPlayer>());
+            constructor.LastTick = double.MaxValue;
+            SetComponent(GetSingletonEntity<LocalPlayer>(), constructor);
             uiRoot.style.display = DisplayStyle.None;
             return;
         }
