@@ -6,6 +6,12 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
+public struct GridChangedEvent : IComponentData
+{
+    public Entity Grid;
+    public int3 Position;
+}
+
 [ExecuteAlways]
 [UpdateInGroup(typeof(TransformSystemGroup), OrderFirst = true)]
 public class BeforeReparentingEntitiyCommandBufferSystem : EntityCommandBufferSystem { }
@@ -52,7 +58,7 @@ public partial class BuildingSystem : SystemBase
             }
 
             var originalGridItem = gridItems[prefab];
-            var newGridItem = RotateItem(originalGridItem, part.Data.Orientation);
+            var newGridItem = originalGridItem.Rotated(part.Data.Orientation);
             newGridItem.Grid = part.Grid;
             newGridItem.Area.Origin = part.Data.Position;
 
@@ -91,8 +97,7 @@ public partial class BuildingSystem : SystemBase
                 }
             }
 
-            // buffer.AddComponent(entity, new UpdateRotation {Value = part.Data.Orientation, ReferencePrefab = prefab});
-            newGridItem = RotateItem(newGridItem, part.Data.Orientation);
+            newGridItem = newGridItem.Rotated(part.Data.Orientation);
 
             buffer.SetComponent(entity, new Parent {Value = part.Grid});
             buffer.SetComponent(entity, new Rotation {Value = part.Data.Orientation});
@@ -121,9 +126,18 @@ public partial class BuildingSystem : SystemBase
                     buffer.AddComponent(entity, new GhostPlacementBuilder
                     {
                         Original = originalGridItem,
-                        Range = 10,
                         TargetGrid = part.Grid
                     });
+                }
+            }
+            else
+            {
+                for (int x = newGridItem.Area.Min.x; x <= newGridItem.Area.Max.x; x++)
+                for (int y = newGridItem.Area.Min.y; y <= newGridItem.Area.Max.y; y++)
+                for (int z = newGridItem.Area.Min.z; z <= newGridItem.Area.Max.z; z++)
+                {
+                    var eChange = buffer.CreateEntity();
+                    buffer.AddComponent(eChange, new GridChangedEvent{Grid = part.Grid, Position = new int3(x,y,z)});
                 }
             }
         }
@@ -145,14 +159,6 @@ public partial class BuildingSystem : SystemBase
 
         bufferSystem.AddJobHandleForProducer(Dependency);
         var e = EntityManager.CreateEntity(typeof(GridNeedsUpdate));
-    }
-
-    public static GridItem RotateItem(GridItem original, quaternion rotation)
-    {
-        original.Airtight = original.Airtight.Rotate(rotation);
-        original.Occupied = original.Occupied.Rotate(rotation);
-        original.Area.RotatedExtents = (int3)math.round(math.mul(rotation, original.Area.Extents));
-        return original;
     }
 }
 

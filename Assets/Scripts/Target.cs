@@ -29,7 +29,9 @@ public partial class PlayerTargetSystem : SystemBase
     public struct PhysicsWorld2Singleton : IComponentData { }
 
     BuildPhysicsWorld physicsWorld;
-    private const float TARGET_MAX_RANGE = 4;
+    private const float TARGET_MAX_RANGE = 100;
+    private const float TARGET_MAX_RANGE_CONSTRUCTABLE = 15;
+    private const float TARGET_MAX_RANGE_INTERACTABLE = 7;
     private CollisionFilter filterInteractable, filterConstructable;
 
     private PhysicsWorldData bpWorld;
@@ -75,7 +77,7 @@ public partial class PlayerTargetSystem : SystemBase
         var input2 = new RaycastInput
         {
             Start = camPosition,
-            End = camPosition + camForward * TARGET_MAX_RANGE,
+            End = camPosition + camForward * TARGET_MAX_RANGE_CONSTRUCTABLE,
             Filter = filterConstructable
         };
         bpWorld.PhysicsWorld.CollisionWorld.CastRay(input2, out var constructableHit);
@@ -112,8 +114,12 @@ public partial class PlayerTargetSystem : SystemBase
         Entities.ForEach((ref Target t) =>
         {
             var isGhost = t.Value != Entity.Null && HasComponent<Ghost>(t.Value);
-            t.CanConstruct = !isGhost && t.Value != Entity.Null && HasComponent<UnderConstruction>(t.Value);
-            t.CanInteract = !t.CanConstruct && !isGhost && t.Value != Entity.Null && HasComponent<Interactable>(t.Value);
+            t.CanConstruct = !isGhost && t.Value != Entity.Null &&
+                             HasComponent<UnderConstruction>(t.Value);
+            t.CanInteract = !t.CanConstruct && !isGhost &&
+                            t.Value != Entity.Null &&
+                            HasComponent<Interactable>(t.Value) &&
+                            math.distancesq(hitLocation, camPosition) <= TARGET_MAX_RANGE_INTERACTABLE * TARGET_MAX_RANGE_INTERACTABLE;
         }).Run();
 
         if (target.Value != target.PreviousValue || math.any(target.Hit != target.PreviousHit))

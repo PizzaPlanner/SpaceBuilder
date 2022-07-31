@@ -1,5 +1,6 @@
 using System;
-using Unity.Collections;
+using System.Collections;
+using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -29,11 +30,13 @@ public struct GridItem : IComponentData
 public struct BoundingBox
 {
     public int3 Origin;
+
     public int3 Extents;
 
-    public int3 RotatedExtents;
-    public readonly int3 Min => math.min(Origin, Origin + RotatedExtents);
-    public readonly int3 Max => math.max(Origin, Origin + RotatedExtents);
+    public readonly int3 Scale => Max - Min + 1;
+    public readonly int3 Min => math.min(Origin, Origin + Extents);
+    public readonly int3 Max => math.max(Origin, Origin + Extents);
+    public readonly float3 Center => math.lerp(Min, Max, 0.5f);
 
     public readonly bool Contains(int3 value)
     {
@@ -46,7 +49,7 @@ public struct BoundingBox
 [RequireComponent(typeof(IdentifieableAuthoring))]
 public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
 {
-    [SerializeField] private int3 SizeInGrid;
+    [SerializeField] private uint3 SizeInGrid;
     [SerializeField] private GridItem.Side Occupied;
     [SerializeField] private GridItem.Side Airtight;
     [SerializeField] private bool Scalable;
@@ -59,7 +62,7 @@ public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
     {
         dstManager.AddComponentData(entity, new GridItem
         {
-            Area = new BoundingBox{Origin = int3.zero, Extents = SizeInGrid - new int3(1)},
+            Area = new BoundingBox{Origin = int3.zero, Extents = (int3)SizeInGrid - 1},
             Occupied = Occupied,
             Airtight = Airtight,
             Scalable = math.all(SizeInGrid == 1) && Scalable

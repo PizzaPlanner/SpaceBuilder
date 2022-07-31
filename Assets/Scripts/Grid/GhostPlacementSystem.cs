@@ -9,9 +9,9 @@ using UnityEngine.UIElements;
 public struct GhostPlacementBuilder : IComponentData
 {
     public Entity TargetGrid;
-    public float Range;
     public GridItem Original;
     public BoundingBox Area;
+    public bool3 Scaling;
 }
 
 public struct Ghost : IComponentData
@@ -101,6 +101,7 @@ public partial class BuildingUISystem : SystemBase
 
 [UpdateBefore(typeof(TransformSystemGroup))]
 [UpdateBefore(typeof(BuildingSystem))]
+[UpdateBefore(typeof(CalculateBuildingSlotSystem))]
 [UpdateAfter(typeof(PlayerTargetSystem))]
 public partial class GhostPlacementSystem : SystemBase
 {
@@ -188,10 +189,10 @@ public partial class GhostPlacementSystem : SystemBase
                             Data = new BuildingPartInfo
                             {
                                 Id = id.ItemId,
-                                Position = bgp.Area.Min,
+                                Position = item.Area.Origin,
                                 Orientation = new RightAngleRotation(r.Value),
                                 BuildStatus = 0,
-                                Scale = bgp.Area.Max - bgp.Area.Min + 1
+                                Scale = item.Area.Scale
                             },
                             Grid = bgp.TargetGrid
                         };
@@ -235,7 +236,7 @@ public partial class GhostPlacementSystem : SystemBase
             if (Input.GetKey(KeyCode.Alpha3))
                 currentRotation = math.mul(currentRotation, quaternion.RotateZ(math.PI * sign * 0.5f));
 
-            SetComponent(placement, BuildingSystem.RotateItem(bgp.Original, currentRotation));
+            SetComponent(placement, bgp.Original.Rotated(currentRotation));
             EntityManager.SetComponentData(GetSingletonEntity<GhostPlacementBuilder>(), new Rotation{Value = currentRotation});
         }
     }

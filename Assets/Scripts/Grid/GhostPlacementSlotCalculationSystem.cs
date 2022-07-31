@@ -1,9 +1,8 @@
-using System;
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEditorInternal;
 using UnityEngine;
 
 [UpdateBefore(typeof(TransformSystemGroup))]
@@ -25,84 +24,99 @@ public partial class CalculateBuildingSlotSystem : SystemBase
         var gridItem = GetComponent<GridItem>(ghost);
         var bgp = GetComponent<GhostPlacementBuilder>(ghost);
 
-        if (Input.GetMouseButton(0))
+        var inScalingMode = gridItem.Scalable && Input.GetMouseButton(0);
+        if (inScalingMode)
         {
-            if (Input.GetKeyDown(KeyCode.Alpha1))
-                bgp.Area.Extents.x = bgp.Area.Extents.x > 0 ? 0 : (math.abs(gridItem.Area.RotatedExtents.x) + 1);
-            if (Input.GetKeyDown(KeyCode.Alpha2))
-                bgp.Area.Extents.y = bgp.Area.Extents.y > 0 ? 0 : (math.abs(gridItem.Area.RotatedExtents.y) + 1);
-            if (Input.GetKeyDown(KeyCode.Alpha3))
-                bgp.Area.Extents.z = bgp.Area.Extents.z > 0 ? 0 : (math.abs(gridItem.Area.RotatedExtents.z) + 1);
-        }
-        else
-        {
-            bgp.Area.Extents = int3.zero;
-            bgp.TargetGrid = Entity.Null;
+            // In which directions do we want to scale?
+            bgp.Scaling ^= new bool3(
+                Input.GetKeyDown(KeyCode.Alpha1),
+                Input.GetKeyDown(KeyCode.Alpha2),
+                Input.GetKeyDown(KeyCode.Alpha3));
         }
 
-        var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
-        if (target.Value != Entity.Null && HasComponent<GridItem>(target.Value))
-            bgp.TargetGrid = GetComponent<GridItem>(target.Value).Grid;
-
-        if(bgp.TargetGrid != Entity.Null)
+        if (!inScalingMode)
         {
-            var occupied = GetBuffer<OccupationBuffer>(bgp.TargetGrid, true);
-            var cellPath = GetBuffer<CellPathBuffer>(GetSingletonEntity<CellPathBuffer>(), true);
-            if (cellPath.Length > 0)
+            var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
+            if (target.Value != Entity.Null && HasComponent<GridItem>(target.Value))
+                bgp.TargetGrid = GetComponent<GridItem>(target.Value).Grid;
+            else
+                bgp.TargetGrid = Entity.Null;
+            SetSingleton(bgp);
+        }
+
+        if (bgp.TargetGrid == Entity.Null)
+            return;
+
+        var occupied = GetBuffer<OccupationBuffer>(bgp.TargetGrid, true);
+        var cellPath = GetBuffer<CellPathBuffer>(GetSingletonEntity<CellPathBuffer>(), true);
+        var cellPathLocal = new NativeList<CellPathBuffer>(cellPath.Length, Allocator.Temp);
+        cellPathLocal.CopyFrom(cellPath.AsNativeArray());
+        if (cellPathLocal.Length == 0 && inScalingMode)
+        {
+            var cameraLtw = GetComponent<LocalToWorld>(GetSingletonEntity<CameraAnchor>());
+            var gridLtw = GetComponent<LocalToWorld>(bgp.TargetGrid);
+            if (GridTools.GetLookedAtPointOnPlanesFromObject(cameraLtw, gridLtw, gridItem.Area.Origin, 5000,
+                    out var position))
             {
-                var lastUnoccupied = 0;
-                for (int i = 0; i < cellPath.Length; i++)
-                {
-                    var targetIsOccupied = false;
-                    foreach (var item in occupied)
-                        targetIsOccupied |= math.all(item.Location == cellPath[i].Value);
-                    if (!targetIsOccupied)
-                    {
-                        lastUnoccupied = i;
-                    }
-                    else break;
-                }
-
-                targetCell = cellPath[lastUnoccupied].Value;
-
-                if (Input.GetMouseButton(0) && math.any(targetCell != bgp.Area.Origin))
-                {
-                    bgp.Area.RotatedExtents = (targetCell - bgp.Area.Origin) * bgp.Area.Extents;
-                }
-                else
-                {
-                    bgp.Area.Origin = targetCell;
-                    bgp.Area.RotatedExtents = int3.zero;
-                }
-
-                gridItem.Area.Origin = bgp.Area.Min;
-                if (bgp.Original.Scalable)
-                {
-                    SetComponent(ghost, new NonUniformScale {Value = bgp.Area.Max - bgp.Area.Min + 1});
-                    gridItem.Area.RotatedExtents = bgp.Area.Max - bgp.Area.Min;
-                }
-                var newPos = new Translation { Value = Grid.PositionFromCell(gridItem.Area.Origin) };
-                var canBuild = true;
-                foreach (var item in occupied)
-                    canBuild &= !(gridItem.Area.Contains(item.Location) && (item.Value & gridItem.Occupied) > 0);
-
-                SetComponent(ghost, new Ghost{Buildable = canBuild});
-                SetComponent(ghost, gridItem);
-                SetComponent(ghost, newPos);
-                SetSingleton(bgp);
-                if (!HasComponent<NeedsUpdate>(ghost))
-                    EntityManager.AddComponent<NeedsUpdate>(ghost);
+                cellPathLocal.Add(new CellPathBuffer{Value = position});
             }
         }
+
+        if (cellPathLocal.Length == 0)
+        {
+            return;
+        }
+
+        var lastUnoccupied = 0;
+        for (int i = 0; i < cellPathLocal.Length; i++)
+        {
+            var targetIsOccupied = false;
+            foreach (var item in occupied)
+                targetIsOccupied |= math.all(item.Location == cellPathLocal[i].Value);
+            if (!targetIsOccupied)
+            {
+                lastUnoccupied = i;
+            }
+            else break;
+        }
+
+        targetCell = cellPathLocal[lastUnoccupied].Value;
+
+        var rotation = GetComponent<Rotation>(ghost).Value;
+        if (inScalingMode)
+        {
+            var selector = math.select(int3.zero, 1, bgp.Scaling);//.Rotated(math.inverse(rotation));
+            bgp.Area.Extents = math.select(0, targetCell - bgp.Area.Origin, selector != 0);
+            Debug.Log("Scaling in "+(selector != 0));
+        }
         else
         {
-            EntityManager.DestroyEntity(ghost);
+            bgp.Area.Origin = targetCell;
+            bgp.Area.Extents = 0;
         }
+
+        gridItem.Area.Origin = bgp.Area.Min;
+        gridItem.Area.Extents = bgp.Area.Max - bgp.Area.Min;
+        gridItem.Area = gridItem.Area.Rotated(math.inverse(rotation));
+        if(bgp.Original.Scalable)
+            SetComponent(ghost, new NonUniformScale {Value = bgp.Area.Scale});
+
+        var newPos = new Translation {Value = Grid.PositionFromCell(gridItem.Area.Origin)};
+        var canBuild = true;
+        foreach (var item in occupied)
+            canBuild &= !(gridItem.Area.Contains(item.Location) && (item.Value & gridItem.Occupied) > 0);
+
+        SetComponent(ghost, new Ghost {Buildable = canBuild});
+        SetComponent(ghost, gridItem);
+        SetComponent(ghost, newPos);
+        SetSingleton(bgp);
+        if (!HasComponent<NeedsUpdate>(ghost))
+            EntityManager.AddComponent<NeedsUpdate>(ghost);
 
     }
 }
 
-[UpdateInGroup(typeof(LateSimulationSystemGroup))]
+[UpdateInGroup(typeof(PresentationSystemGroup))]
 public partial class BuildingWireframeDisplaySystem : SystemBase
 {
     private List<MeshRenderer> gridRenderers;
@@ -148,11 +162,11 @@ public partial class BuildingWireframeDisplaySystem : SystemBase
         var baseGrid = GhostBuilder.Wireframe.BaseGrid;
         baseGrid.localScale = (float3)Grid.CELL_SIZE;
         var objGrid = GhostBuilder.Wireframe.ObjectGrid;
-        objGrid.localScale = (float3)(gridItem.Area.Max - gridItem.Area.Min + 1) * Grid.CELL_SIZE;
+        objGrid.localScale = (float3)gridItem.Area.Scale * Grid.CELL_SIZE;
         if (Input.GetMouseButton(0))
         {
             GhostBuilder.Wireframe.ShowAxes(false, wireframe.rotation);
-            GhostBuilder.Wireframe.ShowScaleAxes(gpb.Area.Extents == 1);
+            GhostBuilder.Wireframe.ShowScaleAxes(gpb.Scaling);
         }
         else
         {

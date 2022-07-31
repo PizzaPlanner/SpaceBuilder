@@ -1,0 +1,28 @@
+{
+    "name": "Main",
+    "rootNamespace": "",
+    "references": [
+        "Unity.Entities",
+        "Unity.Collections",
+        "Unity.Entities.Hybrid",
+        "Unity.Mathematics",
+        "Unity.Physics",
+        "Unity.Physics.Hybrid",
+        "Unity.Transforms",
+        "Rival.Runtime",
+        "Unity.Rendering.Hybrid",
+        "YamlDotNet",
+        "Unity.Burst",
+        "Unity.Properties",
+        "Unity.Mathematics.Extensions"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -26,6 +26,12 @@ public struct OccupationBuffer : IBufferElementData
     public int3 Location;
 }
 
+public struct RoomBuffer : IBufferElementData
+{
+    public int3 Location;
+    public uint Room;
+}
+
 public struct AirtightBuffer : IBufferElementData
 {
     public GridItem.Side Value;
@@ -65,47 +71,17 @@ public struct ConnectionBufferSided : IBufferElementData
     public GridItem.Side Side;
 }
 
+public struct NeedsUpdate : IComponentData { }
 public struct GridNeedsUpdate : IComponentData { }
 
 [UpdateInGroup(typeof(GridRecalculationSystemGroup), OrderFirst = true)]
 public partial class GridRecalculationSystem : SystemBase
 {
     private EndInitializationEntityCommandBufferSystem bufferSystem;
-    private Mesh Cube;
     protected override void OnCreate()
     {
         bufferSystem = World.GetExistingSystem<EndInitializationEntityCommandBufferSystem>();
         RequireForUpdate(GetEntityQuery(typeof(GridNeedsUpdate)));
-
-        Cube = new Mesh();
-
-        Vector3[] vertices = {
-            new Vector3 (0, 0, 0) * Grid.CELL_SIZE,
-            new Vector3 (1, 0, 0) * Grid.CELL_SIZE,
-            new Vector3 (1, 1, 0) * Grid.CELL_SIZE,
-            new Vector3 (0, 1, 0) * Grid.CELL_SIZE,
-            new Vector3 (0, 1, 1) * Grid.CELL_SIZE,
-            new Vector3 (1, 1, 1) * Grid.CELL_SIZE,
-            new Vector3 (1, 0, 1) * Grid.CELL_SIZE,
-            new Vector3 (0, 0, 1) * Grid.CELL_SIZE,
-        };
-
-        int[] triangles = {
-            0, 2, 1, //face front
-            0, 3, 2,
-            2, 3, 4, //face top
-            2, 4, 5,
-            1, 2, 5, //face right
-            1, 5, 6,
-            0, 7, 4, //face left
-            0, 4, 3,
-            5, 4, 7, //face back
-            5, 7, 6,
-            0, 6, 7, //face bottom
-            0, 1, 6
-        };
-        Cube.vertices = vertices;
-        Cube.triangles = triangles;
     }
 
     protected unsafe override void OnUpdate()
@@ -119,6 +95,11 @@ public partial class GridRecalculationSystem : SystemBase
         Entities.WithAll<Grid>().ForEach((DynamicBuffer<AirtightBuffer> abuff) =>
         {
             abuff.Clear();
+        }).Run();
+
+        Entities.WithAll<Grid>().ForEach((DynamicBuffer<RoomBuffer> rbuff) =>
+        {
+            rbuff.Clear();
         }).Run();
 
         var gridItemEntities = GetEntityQuery(
@@ -158,8 +139,8 @@ public partial class GridRecalculationSystem : SystemBase
                 if (!grids.HasComponent(item.Grid))
                     return;
                 var grid = grids[item.Grid];
-                grid.BoundsMin = math.min(grid.BoundsMin, item.Area.Origin);
-                grid.BoundsMax = math.max(grid.BoundsMax, item.Area.Origin);
+                grid.BoundsMin = math.min(grid.BoundsMin, item.Area.Min);
+                grid.BoundsMax = math.max(grid.BoundsMax, item.Area.Max);
                 grids[item.Grid] = grid;
             }).Run();
 
