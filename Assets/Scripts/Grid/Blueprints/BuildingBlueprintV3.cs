@@ -149,7 +149,7 @@ public struct BlueprintParserV3 : IBlueprintParser
             var gridItem = em.GetComponentData<GridItem>(child.Value);
             var identifieable = em.GetComponentData<Identifieable>(child.Value);
             var rotation = em.GetComponentData<Rotation>(child.Value);
-            var scale = int3.zero;
+            var scale = (int3)1;
             if (em.HasComponent<Scale>(child.Value))
                 scale = (int)math.round(em.GetComponentData<Scale>(child.Value).Value);
             else if (em.HasComponent<NonUniformScale>(child.Value))
@@ -225,10 +225,9 @@ Parts:
                 {
                     Id = id, Orientation =
                     item.Orientation,
-                    Position = item.Position,
+                    Area = new BoundingBox{Origin = item.Position, Extents = item.Scale - 1},
                     BuildStatus = item.Status,
-                    Color = math.all(item.Color == int3.zero) ? default :  new Color(item.Color.x / 255f, item.Color.y / 255f, item.Color.z / 255f),
-                    Scale = item.Scale
+                    Color = math.all(item.Color == int3.zero) ? default :  new Color(item.Color.x / 255f, item.Color.y / 255f, item.Color.z / 255f)
                 }));
         }
         return new BlueprintData {Name = ds.Name, Parts = parts};

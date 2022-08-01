@@ -60,7 +60,7 @@ public partial class BuildingSystem : SystemBase
             var originalGridItem = gridItems[prefab];
             var newGridItem = originalGridItem.Rotated(part.Data.Orientation);
             newGridItem.Grid = part.Grid;
-            newGridItem.Area.Origin = part.Data.Position;
+            newGridItem.Area = part.Data.Area;
 
             // Check if space is already occupied
             if (!IsCreateGhostJob && !IsFinishConstructionJob)
@@ -84,24 +84,22 @@ public partial class BuildingSystem : SystemBase
             {
                 // Scalable Ghosts always have NonUniformScale to make checks easier. Performance doesn't matter since there is only one Ghost at once.
                 case true when IsCreateGhostJob:
-                    buffer.AddComponent(entity, new NonUniformScale{Value = part.Data.Scale});
+                    buffer.AddComponent(entity, newGridItem.Area.ToScale(part.Data.Orientation));
                     break;
-                case true when math.any(part.Data.Scale != 1):
+                case true when math.any(part.Data.Area.Extents != 0):
                 {
-                    if(part.Data.Scale.x == part.Data.Scale.y && part.Data.Scale.x == part.Data.Scale.z)
-                        buffer.AddComponent(entity, new Scale{Value = part.Data.Scale.x});
+                    if(part.Data.Area.Size.x == part.Data.Area.Size.y && part.Data.Area.Size.x == part.Data.Area.Size.z)
+                        buffer.AddComponent(entity, new Scale{Value = part.Data.Area.Size.x});
                     else
-                        buffer.AddComponent(entity, new NonUniformScale{Value = part.Data.Scale});
-                    newGridItem.Area.Extents = part.Data.Scale - 1;
+                        buffer.AddComponent(entity, newGridItem.Area.ToScale(part.Data.Orientation));
+                    newGridItem.Area.Extents = part.Data.Area.Extents;
                     break;
                 }
             }
 
-            newGridItem = newGridItem.Rotated(part.Data.Orientation);
-
             buffer.SetComponent(entity, new Parent {Value = part.Grid});
             buffer.SetComponent(entity, new Rotation {Value = part.Data.Orientation});
-            buffer.SetComponent(entity, new Translation {Value = Grid.PositionFromCell(part.Data.Position)});
+            buffer.SetComponent(entity, new Translation {Value = Grid.PositionFromCell(newGridItem.Area.Origin)});
             buffer.SetComponent(entity, newGridItem);
 
             if (part.Data.Color != default)

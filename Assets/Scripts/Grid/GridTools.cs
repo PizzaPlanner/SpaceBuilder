@@ -1,5 +1,6 @@
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 public static class GridTools
 {
@@ -13,7 +14,6 @@ public static class GridTools
     {
         original.Airtight = original.Airtight.Rotate(rotation);
         original.Occupied = original.Occupied.Rotate(rotation);
-        original.Area.Extents.Rotate(rotation);
         return original;
     }
 

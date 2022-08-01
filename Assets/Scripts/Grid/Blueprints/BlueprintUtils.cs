@@ -92,8 +92,7 @@ public struct RightAngleRotation
 public struct BuildingPartInfo
 {
     public ulong Id;
-    public int3 Position;
-    public int3 Scale;
+    public BoundingBox Area;
     public RightAngleRotation Orientation;
     public ushort BuildStatus;
     public Color Color;

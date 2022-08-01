@@ -33,10 +33,21 @@ public struct BoundingBox
 
     public int3 Extents;
 
-    public readonly int3 Scale => Max - Min + 1;
+    public readonly int3 Size => Max - Min + 1;
+    public readonly NonUniformScale ToScale(quaternion objectRotation) => new() {Value = math.abs(Size.Rotated(math.inverse(objectRotation)))};
+
+    public readonly BoundingBox AdjustedToObjectRotation(quaternion objectRotation)
+    {
+        var unitRotation = ((int3)1).Rotated(objectRotation);
+        var bbox = this;
+        bbox.Origin = math.select(Min, Max, unitRotation != 1);
+        bbox.Extents *=
+            math.select(1, -1, bbox.Min != Min | bbox.Max != Max);
+        return bbox;
+    }
     public readonly int3 Min => math.min(Origin, Origin + Extents);
     public readonly int3 Max => math.max(Origin, Origin + Extents);
-    public readonly float3 Center => math.lerp(Min, Max, 0.5f);
+    public readonly int3 Center => (int3)math.floor(math.lerp(Min, Max, 0.5f));
 
     public readonly bool Contains(int3 value)
     {

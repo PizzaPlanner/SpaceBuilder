@@ -108,22 +108,15 @@ public partial class FinishConstructionSystem : SystemBase
     private void ConstructBlueprint(Entity bp)
     {
         var pp = EntityManager.CreateEntity(typeof(PendingPart), typeof(UnderConstruction));
-        var position = GetComponent<GridItem>(bp).Area.Origin;
         var rotation = GetComponent<Rotation>(bp).Value;
-        int3 scale = 1;
-        if (HasComponent<Scale>(bp))
-            scale = (int)math.round(GetComponent<Scale>(bp).Value);
-        else if (HasComponent<NonUniformScale>(bp))
-            scale = (int3)math.round(GetComponent<NonUniformScale>(bp).Value);
         SetComponent(pp, new PendingPart
         {
             Data = new BuildingPartInfo
             {
                 Id = GetComponent<Identifieable>(bp).ItemId,
-                Position = position,
+                Area = GetComponent<GridItem>(bp).Area,
                 Orientation = new RightAngleRotation(rotation),
-                BuildStatus = ushort.MaxValue,
-                Scale = scale
+                BuildStatus = ushort.MaxValue
             },
             Grid = GetComponent<GridItem>(bp).Grid
         });

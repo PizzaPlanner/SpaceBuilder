@@ -85,9 +85,7 @@ public partial class CalculateBuildingSlotSystem : SystemBase
         var rotation = GetComponent<Rotation>(ghost).Value;
         if (inScalingMode)
         {
-            var selector = math.select(int3.zero, 1, bgp.Scaling);//.Rotated(math.inverse(rotation));
-            bgp.Area.Extents = math.select(0, targetCell - bgp.Area.Origin, selector != 0);
-            Debug.Log("Scaling in "+(selector != 0));
+            bgp.Area.Extents = math.select(0, targetCell - bgp.Area.Origin, bgp.Scaling);
         }
         else
         {
@@ -95,11 +93,9 @@ public partial class CalculateBuildingSlotSystem : SystemBase
             bgp.Area.Extents = 0;
         }
 
-        gridItem.Area.Origin = bgp.Area.Min;
-        gridItem.Area.Extents = bgp.Area.Max - bgp.Area.Min;
-        gridItem.Area = gridItem.Area.Rotated(math.inverse(rotation));
+        gridItem.Area = bgp.Area.AdjustedToObjectRotation(rotation);
         if(bgp.Original.Scalable)
-            SetComponent(ghost, new NonUniformScale {Value = bgp.Area.Scale});
+            SetComponent(ghost, gridItem.Area.ToScale(rotation));
 
         var newPos = new Translation {Value = Grid.PositionFromCell(gridItem.Area.Origin)};
         var canBuild = true;
@@ -157,12 +153,12 @@ public partial class BuildingWireframeDisplaySystem : SystemBase
         var ghost = GetComponent<Ghost>(e);
         var gridLtw = GetComponent<LocalToWorld>(gpb.TargetGrid);
         Transform wireframe = GhostBuilder.Wireframe.transform;
-        wireframe.position = Grid.PositionFromCell(gridLtw, gridItem.Area.Min);
+        wireframe.position = Grid.PositionFromCell(gridLtw, gpb.Area.Min);
         wireframe.rotation = gridLtw.Rotation;
         var baseGrid = GhostBuilder.Wireframe.BaseGrid;
         baseGrid.localScale = (float3)Grid.CELL_SIZE;
         var objGrid = GhostBuilder.Wireframe.ObjectGrid;
-        objGrid.localScale = (float3)gridItem.Area.Scale * Grid.CELL_SIZE;
+        objGrid.localScale = (float3)gpb.Area.Size * Grid.CELL_SIZE;
         if (Input.GetMouseButton(0))
         {
             GhostBuilder.Wireframe.ShowAxes(false, wireframe.rotation);

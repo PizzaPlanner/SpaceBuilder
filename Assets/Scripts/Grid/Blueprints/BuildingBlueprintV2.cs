@@ -31,14 +31,14 @@ public struct BlueprintParserV2 : IBlueprintParser
             {
                 Id = identifieable.ItemId,
                 Orientation = new RightAngleRotation(rotation.Value),
-                Position = gridItem.Area.Origin,
+                Area = gridItem.Area,
                 BuildStatus = em.HasComponent<UnderConstruction>(child.Value) ? em.GetComponentData<UnderConstruction>(child.Value).Progress : ushort.MaxValue
             });
         }
 
         return $@"Name:{name}
 Parts:{RInt}\|int3\({RInt}, {RInt}, {RInt}\)\|quaternion\({RFloat}, {RFloat}, {RFloat}, {RFloat}\)\|{RUInt}
-{string.Join("\n", parts.Select(x => $"- Part:{x.Id}|{x.Position}|{x.Orientation.ToString()}|{x.BuildStatus.ToString()}"))}
+{string.Join("\n", parts.Select(x => $"- Part:{x.Id}|{x.Area.Origin}|{x.Orientation.ToString()}|{x.BuildStatus.ToString()}"))}
 ";
     }
 
@@ -74,10 +74,10 @@ Parts:{RInt}\|int3\({RInt}, {RInt}, {RInt}\)\|quaternion\({RFloat}, {RFloat}, {R
                     var part = new BuildingPartInfo
                     {
                         Id = unchecked((ulong)long.Parse(match.Groups[1].Value)),
-                        Position = new int3(
+                        Area = new BoundingBox(){Origin = new int3(
                             int.Parse(match.Groups[2].Value),
                             int.Parse(match.Groups[3].Value),
-                            int.Parse(match.Groups[4].Value)),
+                            int.Parse(match.Groups[4].Value))},
                         Orientation = new RightAngleRotation(new quaternion(
                             float.Parse(match.Groups[5].Value, CultureInfo.InvariantCulture),
                             float.Parse(match.Groups[6].Value, CultureInfo.InvariantCulture),

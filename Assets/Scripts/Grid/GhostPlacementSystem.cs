@@ -152,7 +152,6 @@ public partial class GhostPlacementSystem : SystemBase
                 Data = new BuildingPartInfo
                 {
                     Id = currentPrefabId,
-                    Position = int3.zero,
                     Orientation = new RightAngleRotation(currentRotation),
                     BuildStatus = 0
                 },
@@ -189,10 +188,9 @@ public partial class GhostPlacementSystem : SystemBase
                             Data = new BuildingPartInfo
                             {
                                 Id = id.ItemId,
-                                Position = item.Area.Origin,
+                                Area = item.Area,
                                 Orientation = new RightAngleRotation(r.Value),
                                 BuildStatus = 0,
-                                Scale = item.Area.Scale
                             },
                             Grid = bgp.TargetGrid
                         };
@@ -210,7 +208,7 @@ public partial class GhostPlacementSystem : SystemBase
                                 Data = new BuildingPartInfo
                                 {
                                     Id = id.ItemId,
-                                    Position = new int3(x,y,z),
+                                    Area = new BoundingBox{Origin = new int3(x,y,z)},
                                     Orientation = new RightAngleRotation(r.Value),
                                     BuildStatus = 0
                                 },

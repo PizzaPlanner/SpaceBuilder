@@ -72,6 +72,9 @@ public partial class DebugOccupationSystem : SystemBase
         matrices.Clear();
         Entities.ForEach((in Ghost ghost, in GridItem item) =>
         {
+            if (item.Grid == Entity.Null)
+                return;
+
             var parentLtw = GetComponent<LocalToWorld>(item.Grid);
             for(int x = item.Area.Min.x; x <= item.Area.Max.x; x++)
             for(int y = item.Area.Min.y; y <= item.Area.Max.y; y++)
