@@ -122,16 +122,24 @@ public struct ForceLoadSector : IComponentData
     public LocalToGalaxy Sector;
 }
 
+public struct UnloadCandidate : IComponentData
+{
+
+}
+
 public partial class LoadSectorSystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem bufferSystem;
     private NativeQueue<LocalToGalaxy> sectorsToLoad;
     private EntityArchetype sectorArchetype;
-    private int3 LastPlayerSector;
-    private const int STAR_SCOUT_RANGE_LOCAL = 25;
+    private int3 lastPlayerSector;
+    private const int MAX_KEEP_SECTOR_DISTANCE = 35;
     private const int MAX_SECTORS_PER_FRAME = 20;
 
-    struct HasPendingSectors : IComponentData { }
+    struct HasPendingSectors : IComponentData
+    {
+        public int Count;
+    }
 
     protected override void OnCreate()
     {
@@ -145,7 +153,7 @@ public partial class LoadSectorSystem : SystemBase
         sectorsToLoad = new NativeQueue<LocalToGalaxy>(Allocator.Persistent);
         sectorArchetype = EntityManager.CreateArchetype(typeof(SubSector), typeof(LocalToGalaxy), typeof(TravellerInSector),
             typeof(ToGenerate));
-        LastPlayerSector = int.MaxValue;
+        lastPlayerSector = int.MaxValue;
     }
 
     protected override void OnDestroy()
@@ -167,7 +175,7 @@ public partial class LoadSectorSystem : SystemBase
 
         var localPlayer = GetSingletonEntity<LocalPlayer>();
         var localPlayerSector = GetComponent<LocalToGalaxy>(localPlayer).Sector;
-        var newPlayerSector = LastPlayerSector;
+        var newPlayerSector = lastPlayerSector;
 
         var sectorsToLoadLocal = sectorsToLoad;
 
@@ -223,46 +231,98 @@ public partial class LoadSectorSystem : SystemBase
             buffer.DestroyEntity(e);
         }).Run();
 
-        if (math.any(newPlayerSector != LastPlayerSector))
+        if (math.any(newPlayerSector != lastPlayerSector))
         {
-            LastPlayerSector = newPlayerSector;
-            Debug.Log("player changed LTG!");
-            sectorsToLoadLocal.Enqueue(new LocalToGalaxy{Sector = localPlayerSector});
-
-            for (int x = -STAR_SCOUT_RANGE_LOCAL; x < STAR_SCOUT_RANGE_LOCAL; x++)
-            for (int y = -STAR_SCOUT_RANGE_LOCAL; y < STAR_SCOUT_RANGE_LOCAL; y++)
-            for (int z = -STAR_SCOUT_RANGE_LOCAL; z < STAR_SCOUT_RANGE_LOCAL; z++)
+            lastPlayerSector = newPlayerSector;
+            Entities
+                .WithNone<UnloadCandidate>()
+                .ForEach((Entity e, in LocalToGalaxy ltg, in SectorData sector) =>
             {
-                var pos = new int3(x, y, z) + newPlayerSector;
-                if(GalaxyTools.GetSectorType(pos) == SectorType.Star)
-                    sectorsToLoad.Enqueue(new LocalToGalaxy
+                if (math.csum(math.abs(ltg.Sector - newPlayerSector)) > MAX_KEEP_SECTOR_DISTANCE)
+                    buffer.AddComponent<UnloadCandidate>(e);
+            }).Run();
+
+            Job
+                .WithName("LoadNearbyStarSectors")
+                .WithCode(() =>
+            {
+                sectorsToLoadLocal.Enqueue(new LocalToGalaxy{Sector = localPlayerSector});
+
+                for (int x = -MAX_KEEP_SECTOR_DISTANCE; x < MAX_KEEP_SECTOR_DISTANCE; x++)
+                for (int y = -MAX_KEEP_SECTOR_DISTANCE; y < MAX_KEEP_SECTOR_DISTANCE; y++)
+                for (int z = -MAX_KEEP_SECTOR_DISTANCE; z < MAX_KEEP_SECTOR_DISTANCE; z++)
+                {
+                    var pos = new int3(x, y, z) + newPlayerSector;
+                    if (math.csum(math.abs(new int3(x, y, z))) > MAX_KEEP_SECTOR_DISTANCE)
+                        continue;
+                    if(GalaxyTools.GetSectorType(pos) == SectorType.Star)
+                        sectorsToLoadLocal.Enqueue(new LocalToGalaxy
+                        {
+                            Sector = pos,
+                            SubSector = GalaxyTools.GetStarSectorData(pos).Center
+                        });
+                }
+            }).Run();
+        }
+
+        var added = new NativeList<LocalToGalaxy>(Allocator.Temp);
+        var sectorArchetypeLocal = sectorArchetype;
+        var hasPendingSectors = HasSingleton<HasPendingSectors>() ? GetSingletonEntity<HasPendingSectors>() : Entity.Null;
+        Job
+            .WithName("LoadSectors")
+            .WithCode(() =>
+            {
+                var sectorsLoadedThisFrame = 0;
+                while (sectorsLoadedThisFrame++ < MAX_SECTORS_PER_FRAME && sectorsToLoadLocal.TryDequeue(out var newSector))
+                {
+                    newSector.LocalPosition = 0;
+                    var hasSector = false;
+
+                    foreach (var sector in added)
                     {
-                        Sector = pos,
-                        SubSector = GalaxyTools.GetStarSectorData(pos).Center
-                    });
-            }
-        }
+                        if (math.all(sector.SubSector == newSector.SubSector) &&
+                            math.all(sector.Sector == newSector.Sector))
+                        {
+                            hasSector = true;
+                            break;
+                        }
+                    }
 
-        List<LocalToGalaxy> added = new List<LocalToGalaxy>(sectors);
-        var sectorsLoadedThisFrame = 0;
-        while (sectorsLoadedThisFrame++ < MAX_SECTORS_PER_FRAME && sectorsToLoad.TryDequeue(out var newSector))
-        {
-            newSector.LocalPosition = 0;
-            if (added.Contains(newSector))
-            {
-                sectorsLoadedThisFrame--;
-                continue;
-            }
+                    for (int i = 0; i < sectors.Length && !hasSector; i++)
+                    {
+                        if (math.all(sectors[i].SubSector == newSector.SubSector) &&
+                            math.all(sectors[i].Sector == newSector.Sector))
+                        {
+                            hasSector = true;
+                            break;
+                        }
+                    }
 
-            added.Add(newSector);
-            var e = buffer.CreateEntity(sectorArchetype);
-            buffer.SetComponent(e, newSector);
-        }
+                    if (hasSector)
+                    {
+                        sectorsLoadedThisFrame--;
+                        continue;
+                    }
 
-        if(sectorsToLoad.IsEmpty() && HasSingleton<HasPendingSectors>())
-            EntityManager.DestroyEntity(GetSingletonEntity<HasPendingSectors>());
-        else if (!sectorsToLoad.IsEmpty() && !HasSingleton<HasPendingSectors>())
-            EntityManager.CreateEntity(typeof(HasPendingSectors));
+                    added.Add(newSector);
+                    var e = buffer.CreateEntity(sectorArchetypeLocal);
+                    buffer.SetComponent(e, newSector);
+                }
+
+                if(sectorsToLoadLocal.IsEmpty() && hasPendingSectors != Entity.Null)
+                    buffer.DestroyEntity(hasPendingSectors);
+                else if (!sectorsToLoadLocal.IsEmpty())
+                {
+                    if (hasPendingSectors == Entity.Null)
+                    {
+                        hasPendingSectors = buffer.CreateEntity();
+                        buffer.AddComponent(hasPendingSectors, new HasPendingSectors{Count = sectorsToLoadLocal.Count});
+                    }
+                    else
+                        buffer.SetComponent(hasPendingSectors, new HasPendingSectors{Count = sectorsToLoadLocal.Count});
+                }
+            }).Run();
+
 
         bufferSystem.AddJobHandleForProducer(Dependency);
     }
