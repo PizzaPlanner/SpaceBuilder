@@ -29,7 +29,7 @@ public partial class GenerateAsteroidFieldSystem : SystemBase
         var buffer = bufferSystem.CreateCommandBuffer().AsParallelWriter();
         Entities
             .WithAll<GenerateAsteroidField, ToGenerate>()
-            .ForEach((Entity e, int nativeThreadIndex, in LocalToGalaxy ltg, in SectorData data) =>
+            .ForEach((Entity e, int nativeThreadIndex, in LocalToGalaxy ltg, in SubSectorData data) =>
             {
                 var random = new Unity.Mathematics.Random(data.Seed);
                 var field = buffer.CreateEntity(nativeThreadIndex);

@@ -104,7 +104,7 @@ public partial class POIMarkerSystem : SystemBase
         Entities
             .WithNone<TrackedPOI>()
             .WithAll<LocalToGalaxy>()
-            .WithAny<Grid, Star>()
+            .WithAny<Grid, BigObjectInPoiRange>()
             .ForEach((Entity e) =>
             {
                 EntityManager.AddComponent<TrackedPOI>(e);

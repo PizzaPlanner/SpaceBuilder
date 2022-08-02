@@ -22,7 +22,7 @@ public partial class POIGenerator : SystemBase
 
         Entities
             .WithAll<GeneratePOI, ToGenerate>()
-            .ForEach((Entity e, in LocalToGalaxy ltg, in SectorData data) =>
+            .ForEach((Entity e, in LocalToGalaxy ltg, in SubSectorData data) =>
             {
                 var random = new Unity.Mathematics.Random(data.Seed);
                 var numberOfPOIs = random.NextInt(2, 12);

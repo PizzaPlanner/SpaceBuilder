@@ -23,8 +23,8 @@ public struct LocalToGalaxy : IComponentData
         var subsector = target.SubSector - origin.SubSector;
         var relativePosition = target.LocalPosition - origin.LocalPosition;
         return new double3(TRSToLocalToGalaxySystem.MAX_SUBSECTOR_IN_SECTOR) * 2 *
-               TRSToLocalToGalaxySystem.MAX_POSITION_IN_SECTOR * 2 * sector +
-               new double3(TRSToLocalToGalaxySystem.MAX_POSITION_IN_SECTOR) * 2 * subsector + relativePosition;
+               TRSToLocalToGalaxySystem.MAX_POSITION_IN_SUBSECTOR * 2 * sector +
+               new double3(TRSToLocalToGalaxySystem.MAX_POSITION_IN_SUBSECTOR) * 2 * subsector + relativePosition;
     }
 }
 
@@ -59,7 +59,7 @@ public partial class MakeTravellerSystem : SystemBase
 public partial class TRSToLocalToGalaxySystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem bufferSystem;
-    public const int MAX_POSITION_IN_SECTOR = 0x0FFF;
+    public const int MAX_POSITION_IN_SUBSECTOR = 0x0FFF;
     public const int MAX_SUBSECTOR_IN_SECTOR = 0x7FFF_FFFF;
 
     protected override void OnCreate()
@@ -78,12 +78,12 @@ public partial class TRSToLocalToGalaxySystem : SystemBase
             .ForEach((Entity e, ref LocalToGalaxy ltg, ref Translation t) =>
             {
                 var secToLoad = ltg;
-                var relativePos = t.Value % MAX_POSITION_IN_SECTOR;
-                var ssDiff = (int3)(t.Value / MAX_POSITION_IN_SECTOR);
-                var edge = MAX_POSITION_IN_SECTOR * -math.sign(ssDiff);
+                var relativePos = t.Value % MAX_POSITION_IN_SUBSECTOR;
+                var ssDiff = (int3)(t.Value / MAX_POSITION_IN_SUBSECTOR);
+                var edge = MAX_POSITION_IN_SUBSECTOR * -math.sign(ssDiff);
 
                 var newPos = relativePos + edge;
-                newPos = math.select(newPos, newPos + MAX_POSITION_IN_SECTOR * 0.000001f, newPos == MAX_POSITION_IN_SECTOR);
+                newPos = math.select(newPos, newPos + MAX_POSITION_IN_SUBSECTOR * 0.000001f, newPos == MAX_POSITION_IN_SUBSECTOR);
                 ltg.LocalPosition = newPos;
                 t.Value = newPos;
 
@@ -110,7 +110,6 @@ public partial class TRSToLocalToGalaxySystem : SystemBase
             .WithNone<Parent>()
             .ForEach((Entity e, ref Translation t, in LocalToGalaxy ltg) =>
             {
-
                 t.Value = (float3)LocalToGalaxy.RelativePosition(playerPosition, ltg);
             }).ScheduleParallel();
 
@@ -118,30 +117,59 @@ public partial class TRSToLocalToGalaxySystem : SystemBase
     }
 }
 
+public struct ForceLoadSector : IComponentData
+{
+    public LocalToGalaxy Sector;
+}
+
 public partial class LoadSectorSystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem bufferSystem;
+    private NativeQueue<LocalToGalaxy> sectorsToLoad;
+    private EntityArchetype sectorArchetype;
+    private int3 LastPlayerSector;
+    private const int STAR_SCOUT_RANGE_LOCAL = 25;
+    private const int MAX_SECTORS_PER_FRAME = 20;
+
+    struct HasPendingSectors : IComponentData { }
 
     protected override void OnCreate()
     {
         bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-        RequireForUpdate(GetEntityQuery(typeof(SectorChange)));
+        RequireForUpdate(GetEntityQuery(new EntityQueryDesc{Any = new[]
+        {
+            ComponentType.ReadOnly<SectorChange>(),
+            ComponentType.ReadOnly<ForceLoadSector>(),
+            ComponentType.ReadOnly<HasPendingSectors>()
+        }}));
+        sectorsToLoad = new NativeQueue<LocalToGalaxy>(Allocator.Persistent);
+        sectorArchetype = EntityManager.CreateArchetype(typeof(SubSector), typeof(LocalToGalaxy), typeof(TravellerInSector),
+            typeof(ToGenerate));
+        LastPlayerSector = int.MaxValue;
+    }
+
+    protected override void OnDestroy()
+    {
+        sectorsToLoad.Dispose();
     }
 
     protected override void OnUpdate()
     {
         var buffer = bufferSystem.CreateCommandBuffer();
-        var sectorsToLoad = new NativeList<LocalToGalaxy>(Allocator.Temp);
         var loadedSectorsQuery = GetEntityQuery(new EntityQueryDesc() {
             Options = EntityQueryOptions.IncludeDisabled,
             All = new ComponentType[]
             {
-                typeof(SubSector), typeof(LocalToGalaxy), typeof(TravellerInSector)
+                typeof(SubSector), typeof(LocalToGalaxy)
             }});
         var sectorEntities = loadedSectorsQuery.ToEntityArray(Allocator.Temp);
         var sectors = loadedSectorsQuery.ToComponentDataArray<LocalToGalaxy>(Allocator.Temp);
 
         var localPlayer = GetSingletonEntity<LocalPlayer>();
+        var localPlayerSector = GetComponent<LocalToGalaxy>(localPlayer).Sector;
+        var newPlayerSector = LastPlayerSector;
+
+        var sectorsToLoadLocal = sectorsToLoad;
 
         Entities
             .ForEach((Entity e, in SectorChange sc) =>
@@ -158,7 +186,7 @@ public partial class LoadSectorSystem : SystemBase
 
                 if (newSector == Entity.Null)
                 {
-                    sectorsToLoad.Add(sc.New);
+                    sectorsToLoadLocal.Enqueue(sc.New);
                     return;
                 }
 
@@ -184,20 +212,57 @@ public partial class LoadSectorSystem : SystemBase
                         buffer.RemoveComponent<Disabled>(newSector);
                     }
                     newPlayerBuffer.Add(new TravellerInSector {Player = sc.Entity});
+                    newPlayerSector = sc.New.Sector;
                 }
                 buffer.DestroyEntity(e);
             }).Run();
 
-        List<LocalToGalaxy> added = new List<LocalToGalaxy>();
-        foreach (var newSector in sectorsToLoad)
+        Entities.ForEach((Entity e, in ForceLoadSector fls) =>
         {
-            if (added.Contains(newSector)) continue;
-            var e = EntityManager.CreateEntity(typeof(SubSector), typeof(LocalToGalaxy), typeof(TravellerInSector), typeof(Disabled), typeof(ToGenerate));
-            added.Add(newSector);
-            SetComponent(e, newSector);
-            if (math.all(newSector.SubSector == int3.zero))
-                EntityManager.RemoveComponent<Disabled>(e);
+            sectorsToLoadLocal.Enqueue(fls.Sector);
+            buffer.DestroyEntity(e);
+        }).Run();
+
+        if (math.any(newPlayerSector != LastPlayerSector))
+        {
+            LastPlayerSector = newPlayerSector;
+            Debug.Log("player changed LTG!");
+            sectorsToLoadLocal.Enqueue(new LocalToGalaxy{Sector = localPlayerSector});
+
+            for (int x = -STAR_SCOUT_RANGE_LOCAL; x < STAR_SCOUT_RANGE_LOCAL; x++)
+            for (int y = -STAR_SCOUT_RANGE_LOCAL; y < STAR_SCOUT_RANGE_LOCAL; y++)
+            for (int z = -STAR_SCOUT_RANGE_LOCAL; z < STAR_SCOUT_RANGE_LOCAL; z++)
+            {
+                var pos = new int3(x, y, z) + newPlayerSector;
+                if(GalaxyTools.GetSectorType(pos) == SectorType.Star)
+                    sectorsToLoad.Enqueue(new LocalToGalaxy
+                    {
+                        Sector = pos,
+                        SubSector = GalaxyTools.GetStarSectorData(pos).Center
+                    });
+            }
         }
+
+        List<LocalToGalaxy> added = new List<LocalToGalaxy>(sectors);
+        var sectorsLoadedThisFrame = 0;
+        while (sectorsLoadedThisFrame++ < MAX_SECTORS_PER_FRAME && sectorsToLoad.TryDequeue(out var newSector))
+        {
+            newSector.LocalPosition = 0;
+            if (added.Contains(newSector))
+            {
+                sectorsLoadedThisFrame--;
+                continue;
+            }
+
+            added.Add(newSector);
+            var e = buffer.CreateEntity(sectorArchetype);
+            buffer.SetComponent(e, newSector);
+        }
+
+        if(sectorsToLoad.IsEmpty() && HasSingleton<HasPendingSectors>())
+            EntityManager.DestroyEntity(GetSingletonEntity<HasPendingSectors>());
+        else if (!sectorsToLoad.IsEmpty() && !HasSingleton<HasPendingSectors>())
+            EntityManager.CreateEntity(typeof(HasPendingSectors));
 
         bufferSystem.AddJobHandleForProducer(Dependency);
     }

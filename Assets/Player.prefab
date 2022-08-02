@@ -338,30 +338,6 @@ MonoBehaviour:
         Tag07: 0
     m_SerializedVersion: 1
   m_SerializedVersion: 1
---- !u!114 &-987416224015658794
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7780807752270266386}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d02745121fd99f1458dc980f103fcfd9, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  Value: {fileID: 0}
-  PreviousValue: {fileID: 0}
-  Hit:
-    x: 0
-    y: 0
-    z: 0
-  PreviousHit:
-    x: 0
-    y: 0
-    z: 0
-  CanInteract: 0
-  CanConstruct: 0
 --- !u!114 &3074412916961436309
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -436,6 +412,30 @@ MonoBehaviour:
       x: 0
       y: 1
       z: 0
+--- !u!114 &-987416224015658794
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7780807752270266386}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d02745121fd99f1458dc980f103fcfd9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Value: {fileID: 0}
+  PreviousValue: {fileID: 0}
+  Hit:
+    x: 0
+    y: 0
+    z: 0
+  PreviousHit:
+    x: 0
+    y: 0
+    z: 0
+  CanInteract: 0
+  CanConstruct: 0
 --- !u!1 &7780807753546966488
 GameObject:
   m_ObjectHideFlags: 0
