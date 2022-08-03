@@ -269,6 +269,10 @@ public partial class SubSectorGeneratorSystem : SystemBase
                         }
                         break;
                     }
+
+                    case SectorType.Empty:
+                        buffer.RemoveComponent<ToGenerate>(nativeThreadIndex, e);
+                        break;
                 }
 
                 var subsectorData = GalaxyTools.GetSubSectorData(ltg);
@@ -286,6 +290,9 @@ public partial class SubSectorGeneratorSystem : SystemBase
                         break;
                     case SubSectorType.Star:
                         buffer.AddComponent<GenerateStar>(nativeThreadIndex, e);
+                        break;
+                    case SubSectorType.Empty when sectorData.Type != SectorType.Empty:
+                        buffer.RemoveComponent<ToGenerate>(nativeThreadIndex, e);
                         break;
                 }
             }).ScheduleParallel();

@@ -7,8 +7,8 @@ public struct BigObjectInPoiRange : IComponentData { }
 [UpdateInGroup(typeof(UpdatePresentationSystemGroup))]
 public partial class MarkObjectsInRangeSystem : SystemBase
 {
-    public const double IN_RANGE = 2.0 * TRSToLocalToGalaxySystem.MAX_POSITION_IN_SUBSECTOR *
-                                   TRSToLocalToGalaxySystem.MAX_SUBSECTOR_IN_SECTOR;
+    public const double IN_RANGE = 2.0 * Constants.MAX_POSITION *
+                                   Constants.MAX_SUBSECTOR;
 
     public const double IN_RANGE_SQ = IN_RANGE * IN_RANGE;
 

@@ -51,6 +51,7 @@ public partial class GeneratePlanetSystem : SystemBase
                 });
                 buffer.AddComponent(planet, new Scale {Value = planetData.Size * PLANET_SIZE_BASE});
                 buffer.RemoveComponent<GeneratePlanet>(e);
+                buffer.RemoveComponent<ToGenerate>(e);
             }).Schedule();
 
         bufferSystem.AddJobHandleForProducer(Dependency);

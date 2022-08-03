@@ -52,6 +52,7 @@ public partial class GenerateStarSystem : SystemBase
                 });
                 buffer.AddComponent(star, new Scale {Value = starData.Size * STAR_SIZE_BASE});
                 buffer.RemoveComponent<GenerateStar>(e);
+                buffer.RemoveComponent<ToGenerate>(e);
             }).Schedule();
 
         bufferSystem.AddJobHandleForProducer(Dependency);

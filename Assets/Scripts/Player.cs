@@ -58,6 +58,8 @@ public unsafe partial class MovePlayerSystem : SystemBase
             camAnchor.XRotation = 0;
         SetSingleton(camAnchor);
 
+        var deltaTime = Time.DeltaTime;
+
         Entities.WithAll<LocalPlayer>()
             .ForEach((ref Player player) =>
             {
@@ -66,10 +68,12 @@ public unsafe partial class MovePlayerSystem : SystemBase
 
         Entities
             .WithNone<Docked>()
-            .ForEach((ref Rotation r, ref PhysicsVelocity velocity, in Player player) =>
+            .ForEach((ref Rotation r, ref LocalToGalaxy ltg, ref Translation t, in Player player) =>
             {
                 r.Value = math.mul(r.Value, quaternion.EulerXYZ(rotation));
-                velocity.Linear = movement * (player.Running ? player.MovementSpeedRun : player.MovementSpeedDefault);
+                var totalMovement = (movement * (double3)(player.Running ? player.MovementSpeedRun : player.MovementSpeedDefault) * deltaTime);
+                ltg = LocalToGalaxy.OffsetBy(ltg, totalMovement);
+                t.Value = ltg.LocalPosition;
             }).Schedule();
 
         Entities

@@ -1,9 +1,55 @@
+using System.Runtime.CompilerServices;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
 public static class GridTools
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int mod(int x, int m) {
+        return (x%m + m)%m;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int2 mod(int2 x, int2 m) {
+        return (x%m + m)%m;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int3 mod(int3 x, int3 m) {
+        return (x%m + m)%m;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float mod(float x, int m) {
+        return (x%m + m)%m;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float2 mod(float2 x, int2 m) {
+        return (x%m + m)%m;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float3 mod(float3 x, int3 m) {
+        return (x%m + m)%m;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double mod(double x, int m) {
+        return (x%m + m)%m;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double2 mod(double2 x, int2 m) {
+        return (x%m + m)%m;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double3 mod(double3 x, int3 m) {
+        return (x%m + m)%m;
+    }
+
     public static void Rotate(this ref int3 value, quaternion rotation) =>
         value = (int3)math.round(math.mul(rotation, value));
 

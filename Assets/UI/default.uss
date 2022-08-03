@@ -11,7 +11,7 @@
     padding-right: 5px;
     padding-top: 5px;
     padding-bottom: 5px;
-    background-image: url('/Assets/UI/bg_slim.png');
+    background-image: url('project://database/Assets/UI/bg_slim.png?fileID=2800000&guid=cc32439c45babc04593dca5896662d0a&type=3#bg_slim');
     -unity-slice-left: 20;
     -unity-slice-top: 20;
     -unity-slice-right: 20;
@@ -24,7 +24,7 @@
 .inventory-button {
     width: 48px;
     height: 48px;
-    background-image: url('/Assets/UI/bg_default.png');
+    background-image: url('project://database/Assets/UI/bg_default.png?fileID=2800000&guid=c73eb54f62139d64087a3e6d1e440760&type=3#bg_default');
     border-left-width: 1px;
     border-right-width: 1px;
     border-top-width: 1px;
@@ -77,7 +77,7 @@
 }
 
 .builder-button__Active > .selector {
-    background-image: url('/Assets/UI/crosshair.png');
+    background-image: url('project://database/Assets/UI/crosshair.png?fileID=2800000&guid=18c36555461a00541bedc3bed7a78b41&type=3#crosshair');
     width: 16px;
     height: 16px;
     left: 0;
@@ -87,7 +87,7 @@
 .builder-button > .icon {
     width: 16px;
     height: 16px;
-    background-image: url('/Assets/UI/coorsys_system.png');
+    background-image: url('project://database/Assets/UI/coorsys_system.png?fileID=2800000&guid=c2e97b68c263c2540b96550bf1f92d1a&type=3#coorsys_system');
 }
 
 .inventory-button > .name {
@@ -108,7 +108,7 @@
 }
 
 .inventory-button > .icon {
-    background-image: url('/Assets/UI/crosshair.png');
+    background-image: url('project://database/Assets/UI/crosshair.png?fileID=2800000&guid=18c36555461a00541bedc3bed7a78b41&type=3#crosshair');
     flex-grow: 1;
     -unity-background-image-tint-color: rgb(115, 115, 115);
 }
@@ -150,7 +150,7 @@
 }
 
 .admin-console {
-    background-image: url('/Assets/UI/bg_slim.png');
+    background-image: url('project://database/Assets/UI/bg_slim.png?fileID=2800000&guid=cc32439c45babc04593dca5896662d0a&type=3#bg_slim');
     -unity-slice-left: 20;
     -unity-slice-top: 20;
     -unity-slice-right: 20;
@@ -255,7 +255,7 @@
 .crafting-input {
     width: 16px;
     height: 16px;
-    background-image: url('/Assets/UI/bg_default.png');
+    background-image: url('project://database/Assets/UI/bg_default.png?fileID=2800000&guid=c73eb54f62139d64087a3e6d1e440760&type=3#bg_default');
 }
 
 .crafting-input__missing {
@@ -280,7 +280,7 @@
 }
 
 .crafting-input > .icon {
-    background-image: url('/Assets/UI/crosshair.png');
+    background-image: url('project://database/Assets/UI/crosshair.png?fileID=2800000&guid=18c36555461a00541bedc3bed7a78b41&type=3#crosshair');
     flex-grow: 1;
     -unity-background-image-tint-color: rgb(115, 115, 115);
 }
@@ -302,7 +302,7 @@
 }
 
 .poi-marker {
-    background-image: url('/Assets/UI/target_marker.png');
+    background-image: url('project://database/Assets/UI/target_marker.png?fileID=2800000&guid=aef2665a177dcb043b9b9593211bf248&type=3#target_marker');
     justify-content: flex-end;
 }
 
@@ -322,4 +322,11 @@
     margin-top: 0;
     margin-bottom: 0;
     justify-content: flex-end;
+}
+
+.hotkey-label {
+    -unity-text-align: upper-center;
+    -unity-font-style: bold;
+    font-size: 16px;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.29);
 }

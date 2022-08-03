@@ -6,10 +6,20 @@
         <ui:Label text="Label" display-tooltip-when-elided="true" name="Coordinates" />
         <ui:Label text="Label" display-tooltip-when-elided="true" name="Forward" />
     </ui:VisualElement>
-    <ui:VisualElement name="ConstructionBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(0, 255, 99, 0.58); border-right-color: rgba(0, 255, 99, 0.58); border-top-color: rgba(0, 255, 99, 0.58); border-bottom-color: rgba(0, 255, 99, 0.58); display: none; align-items: center;" />
-    <ui:VisualElement name="DestructionBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(255, 69, 40, 0.58); border-right-color: rgba(255, 69, 40, 0.58); border-top-color: rgba(255, 69, 40, 0.58); border-bottom-color: rgba(255, 69, 40, 0.58); display: none; align-items: center;" />
-    <ui:VisualElement name="BlueprintBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(0, 178, 255, 0.58); border-right-color: rgba(0, 178, 255, 0.58); border-top-color: rgba(0, 178, 255, 0.58); border-bottom-color: rgba(0, 178, 255, 0.58); display: none; align-items: center;">
-        <ui:Label text="Some Text" display-tooltip-when-elided="true" style="font-size: 20px; -unity-font-style: bold; background-color: rgba(75, 75, 75, 0.19); border-left-color: rgba(0, 178, 255, 0.58); border-right-color: rgba(0, 178, 255, 0.58); border-top-color: rgba(0, 178, 255, 0.58); border-bottom-color: rgba(0, 178, 255, 0.58); border-right-width: 5px; border-bottom-width: 5px; border-left-width: 5px; margin-top: -1px;" />
+    <ui:VisualElement name="BuildingUI" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0;">
+        <ui:VisualElement name="Icons" style="position: absolute; right: 0; bottom: 0; flex-direction: row-reverse; justify-content: flex-end;">
+            <ui:VisualElement name="BuildButton" style="background-image: url(&apos;project://database/Assets/UI/removemode.png?fileID=2800000&amp;guid=f09e848341690ed4ca9ff3582facad8b&amp;type=3#removemode&apos;); width: 64px; height: 64px;">
+                <ui:Label text="B" display-tooltip-when-elided="true" class="hotkey-label" />
+            </ui:VisualElement>
+            <ui:VisualElement name="RemoveButton" style="background-image: url(&apos;project://database/Assets/UI/buildmode.png?fileID=2800000&amp;guid=8786d4e12af4e0c4e8326f9092e3a0ae&amp;type=3#buildmode&apos;); width: 64px; height: 64px;">
+                <ui:Label text="F" display-tooltip-when-elided="true" class="hotkey-label" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="DestructionBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(255, 69, 40, 0.58); border-right-color: rgba(255, 69, 40, 0.58); border-top-color: rgba(255, 69, 40, 0.58); border-bottom-color: rgba(255, 69, 40, 0.58); display: none; align-items: center;" />
+        <ui:VisualElement name="BlueprintBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(0, 178, 255, 0.58); border-right-color: rgba(0, 178, 255, 0.58); border-top-color: rgba(0, 178, 255, 0.58); border-bottom-color: rgba(0, 178, 255, 0.58); display: none; align-items: center;">
+            <ui:Label text="Some Text" display-tooltip-when-elided="true" style="font-size: 20px; -unity-font-style: bold; background-color: rgba(75, 75, 75, 0.19); border-left-color: rgba(0, 178, 255, 0.58); border-right-color: rgba(0, 178, 255, 0.58); border-top-color: rgba(0, 178, 255, 0.58); border-bottom-color: rgba(0, 178, 255, 0.58); border-right-width: 5px; border-bottom-width: 5px; border-left-width: 5px; margin-top: -1px;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="ConstructionBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(0, 255, 99, 0.58); border-right-color: rgba(0, 255, 99, 0.58); border-top-color: rgba(0, 255, 99, 0.58); border-bottom-color: rgba(0, 255, 99, 0.58); display: none; align-items: center;" />
     </ui:VisualElement>
     <ui:VisualElement name="SteeringOverlay" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: none; align-items: center; justify-content: center; cursor: url(&apos;project://database/Assets/UI/swap.png?fileID=2800000&amp;guid=cd4c7e8cf29844f44878fed8eb19b629&amp;type=3#swap&apos;);">
         <ui:VisualElement style="align-items: center; justify-content: center; background-image: url(&apos;project://database/Assets/UI/steering_overlay.png?fileID=2800000&amp;guid=2390d33e35567484db6db67e82ae9e65&amp;type=3#steering_overlay&apos;); width: 256px; height: 256px;">
@@ -69,6 +79,11 @@
             <BuilderButton />
             <BuilderButton class="inventory" />
             <BuilderButton />
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="DebugUI" picking-mode="Ignore" style="align-items: center;">
+        <ui:VisualElement name="SectorLoading" style="width: 48px; background-image: url(&apos;project://database/Assets/UI/swap.png?fileID=2800000&amp;guid=cd4c7e8cf29844f44878fed8eb19b629&amp;type=3#swap&apos;); height: 48px; align-items: center; justify-content: center; transition-property: opacity; transition-timing-function: ease-in-out-bounce; transition-duration: 0.3s; top: 55px; opacity: 1; -unity-background-image-tint-color: rgba(255, 255, 255, 0.48); display: none;">
+            <ui:Label text="50/1234" display-tooltip-when-elided="true" style="font-size: 24px; -unity-text-align: upper-center; -unity-text-outline-width: 1px; -unity-font-style: bold;" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
