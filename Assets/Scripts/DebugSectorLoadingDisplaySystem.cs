@@ -19,6 +19,7 @@ public partial class DebugSectorLoadingDisplaySystem : SystemBase
         {
             ComponentType.ReadOnly<LoadSectorSystem.HasPendingSectors>(),
             ComponentType.ReadOnly<ToGenerate>(),
+            ComponentType.ReadOnly<UnloadCandidate>(),
             ComponentType.ReadOnly<UIDelay>(),
         }}));
     }
@@ -28,7 +29,6 @@ public partial class DebugSectorLoadingDisplaySystem : SystemBase
         loadingBadge ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("SectorLoading");
         loadingBadge.style.display = DisplayStyle.Flex;
         loadingBadge.style.opacity = 0;
-        EntityManager.CreateEntity(typeof(UIDelay));
     }
 
     protected override void OnStopRunning()
@@ -41,10 +41,18 @@ public partial class DebugSectorLoadingDisplaySystem : SystemBase
         var pendingSectors = HasSingleton<LoadSectorSystem.HasPendingSectors>()
             ? GetSingleton<LoadSectorSystem.HasPendingSectors>().Count
             : 0;
-        var toGenerate = GetEntityQuery(ComponentType.ReadOnly<ToGenerate>()).CalculateEntityCount();
+        var toGenerate = GetEntityQuery(
+            ComponentType.ReadOnly<ToGenerate>(),
+            ComponentType.Exclude<UnloadCandidate>()).CalculateEntityCount();
+        var toUnload = GetEntityQuery(
+            ComponentType.ReadOnly<UnloadCandidate>(),
+            ComponentType.Exclude<ToGenerate>()).CalculateEntityCount();
+
+        if (!HasSingleton<UIDelay>())
+            EntityManager.CreateEntity(typeof(UIDelay));
 
         var uiDelay = GetSingleton<UIDelay>();
-        if (pendingSectors + toGenerate == 0)
+        if (pendingSectors + toGenerate + toUnload == 0)
             uiDelay.Progress--;
         else if(uiDelay.Progress < 13)
             uiDelay.Progress++;
@@ -57,6 +65,6 @@ public partial class DebugSectorLoadingDisplaySystem : SystemBase
 
         SetSingleton(uiDelay);
         loadingBadge.style.opacity = math.max(0, (uiDelay.Progress - 3) * 0.1f);
-        loadingBadge.Q<Label>().text = $"{toGenerate}:{pendingSectors}";
+        loadingBadge.Q<Label>().text = $"{toGenerate}\n{pendingSectors}\n{toUnload}";
     }
 }

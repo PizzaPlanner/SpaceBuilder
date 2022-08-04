@@ -68,12 +68,11 @@ public unsafe partial class MovePlayerSystem : SystemBase
 
         Entities
             .WithNone<Docked>()
-            .ForEach((ref Rotation r, ref LocalToGalaxy ltg, ref Translation t, in Player player) =>
+            .ForEach((ref Rotation r, ref LocalToGalaxy ltg, in Player player) =>
             {
                 r.Value = math.mul(r.Value, quaternion.EulerXYZ(rotation));
                 var totalMovement = (movement * (double3)(player.Running ? player.MovementSpeedRun : player.MovementSpeedDefault) * deltaTime);
                 ltg = LocalToGalaxy.OffsetBy(ltg, totalMovement);
-                t.Value = ltg.LocalPosition;
             }).Schedule();
 
         Entities

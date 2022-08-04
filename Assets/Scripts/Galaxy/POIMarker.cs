@@ -80,8 +80,13 @@ public class POIMarker : VisualElement
 
         if (em.HasComponent<Name>(Target))
             name = em.GetComponentData<Name>(Target).Value.Value;
+#if UNITY_EDITOR
+        this.Q<Label>().text = @$"{em.GetName(Target)}
+{distance:F1}{unit}";
+#else
         this.Q<Label>().text = @$"{name}
 {distance:F1}{unit}";
+#endif
 
     }
 }

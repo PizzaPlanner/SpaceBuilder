@@ -13,12 +13,13 @@ public struct TravellerInSector : IBufferElementData
 
 public static class Constants
 {
-    public const int MAX_POSITION = 0x2000;
-    public const int MAX_SUBSECTOR = 0x0FFF_FFFF;
+    public const long MAX_POSITION = 0x2A00; // Must satisfy MAX_POSITION * MAX_POSITION < int.MaxValue
+    public const long MAX_SUBSECTOR = 0x0000_FFFF; // Must satisfy MAX_SUBSECTOR * MAX_SUBSECTOR < int.MaxValue
+    public const long DISTANCE_PER_SECTOR = MAX_POSITION * MAX_SUBSECTOR;
 }
 
 [GenerateAuthoringComponent]
-public struct LocalToGalaxy : IComponentData
+public unsafe struct LocalToGalaxy : IComponentData
 {
     public int3 Sector;
     public int3 SubSector;
@@ -28,24 +29,47 @@ public struct LocalToGalaxy : IComponentData
     {
         var diff = target - origin;
         return (double3)diff.LocalPosition +
-               diff.SubSector * Constants.MAX_POSITION +
-               diff.Sector * Constants.MAX_SUBSECTOR;
+               (double3)diff.SubSector * Constants.MAX_POSITION +
+               (double3)diff.Sector * Constants.DISTANCE_PER_SECTOR;
     }
 
     public static LocalToGalaxy OffsetBy(LocalToGalaxy origin, double3 offset)
     {
-        var totalMoveSectors = (int3)(offset / Constants.MAX_POSITION / Constants.MAX_SUBSECTOR);
-        offset -= totalMoveSectors * Constants.MAX_POSITION * Constants.MAX_SUBSECTOR;
+        var totalMoveSectors = (int3)(offset / Constants.DISTANCE_PER_SECTOR);
+        offset %= Constants.DISTANCE_PER_SECTOR;
 
         var totalMoveSubSectors = (int3)(offset / Constants.MAX_POSITION);
-        offset -= totalMoveSubSectors * Constants.MAX_POSITION;
+        offset %= Constants.MAX_POSITION;
 
         var totalLocal = (float3)offset;
-        return origin + new LocalToGalaxy
+        var result = origin + new LocalToGalaxy
             {Sector = totalMoveSectors, SubSector = totalMoveSubSectors, LocalPosition = totalLocal};
+        Debug.Log($"({origin.Sector.x:X}:{origin.SubSector.x:X}, {origin.Sector.y:X}:{origin.SubSector.y:X}, {origin.Sector.y:X}:{origin.SubSector.y:X})@{origin.LocalPosition} + {offset} = ({result.Sector.x:X}:{result.SubSector.x:X}, {result.Sector.y:X}:{result.SubSector.y:X}, {result.Sector.z:X}:{result.SubSector.z:X})@{result.LocalPosition}");
+        return result;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [BurstCompile]
+    public static LocalToGalaxy Corrected(LocalToGalaxy ltg)
+    {
+        var overflowSubSector = (int3) math.floor(ltg.LocalPosition / (int) Constants.MAX_POSITION);
+        var overflow = new LocalToGalaxy()
+        {
+            Sector = (ltg.SubSector + overflowSubSector + (int)Constants.MAX_SUBSECTOR) /
+                (int)Constants.MAX_SUBSECTOR - 1,
+            SubSector = overflowSubSector
+        };
+        var correction = new LocalToGalaxy()
+        {
+            Sector = ltg.Sector + overflow.Sector,
+            SubSector = GridTools.mod(ltg.SubSector + overflow.SubSector, (int)Constants.MAX_SUBSECTOR),
+            LocalPosition = GridTools.mod(ltg.LocalPosition, (int)Constants.MAX_POSITION)
+        };
+        return correction;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [BurstCompile]
     public static LocalToGalaxy operator +(LocalToGalaxy lhs, LocalToGalaxy rhs)
     {
         var sum = new LocalToGalaxy()
@@ -54,24 +78,11 @@ public struct LocalToGalaxy : IComponentData
             SubSector = lhs.SubSector + rhs.SubSector,
             LocalPosition = lhs.LocalPosition + rhs.LocalPosition
         };
-        var overflowSubSector = ((int3) sum.LocalPosition + Constants.MAX_POSITION) /
-            Constants.MAX_POSITION - 1;
-        var overflow = new LocalToGalaxy()
-        {
-            Sector = (sum.SubSector + overflowSubSector + Constants.MAX_SUBSECTOR) /
-                Constants.MAX_SUBSECTOR - 1,
-            SubSector = overflowSubSector
-        };
-        var correction = new LocalToGalaxy()
-        {
-            Sector = sum.Sector + overflow.Sector,
-            SubSector = GridTools.mod(sum.SubSector + overflow.SubSector, Constants.MAX_SUBSECTOR),
-            LocalPosition = GridTools.mod(sum.LocalPosition, Constants.MAX_POSITION)
-        };
-        return correction;
+        return Corrected(sum);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [BurstCompile]
     public static LocalToGalaxy operator -(LocalToGalaxy lhs, LocalToGalaxy rhs)
     {
         var sum = new LocalToGalaxy()
@@ -80,42 +91,26 @@ public struct LocalToGalaxy : IComponentData
             SubSector = lhs.SubSector - rhs.SubSector,
             LocalPosition = lhs.LocalPosition - rhs.LocalPosition
         };
-        var overflowSubSector = ((int3) sum.LocalPosition - Constants.MAX_POSITION) /
-            Constants.MAX_POSITION + 1;
-        var overflow = new LocalToGalaxy()
-        {
-            Sector = (sum.SubSector + overflowSubSector - Constants.MAX_SUBSECTOR) /
-                Constants.MAX_SUBSECTOR + 1,
-            SubSector = overflowSubSector
-        };
-        var correction = new LocalToGalaxy()
-        {
-            Sector = sum.Sector + overflow.Sector,
-            SubSector = GridTools.mod(sum.SubSector + overflow.SubSector, Constants.MAX_SUBSECTOR),
-            LocalPosition = GridTools.mod(sum.LocalPosition, Constants.MAX_POSITION)
-        };
-        return correction;
+        return Corrected(sum);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static LocalToGalaxy operator -(LocalToGalaxy rhs)
-    {
-        rhs.Sector = -rhs.Sector;
-        rhs.SubSector = Constants.MAX_SUBSECTOR - rhs.SubSector;
-        rhs.LocalPosition = Constants.MAX_POSITION - rhs.LocalPosition;
-        return rhs;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [BurstCompile]
     public static bool operator ==(LocalToGalaxy l1, LocalToGalaxy l2)
     {
         return math.all(l1.Sector == l2.SubSector) && math.all(l1.SubSector == l2.SubSector);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [BurstCompile]
     public static bool operator !=(LocalToGalaxy l1, LocalToGalaxy l2)
     {
         return math.any(l1.Sector != l2.SubSector) || math.any(l1.SubSector != l2.SubSector);
+    }
+
+    public override string ToString()
+    {
+        return $"({Sector.x:X}:{SubSector.x:X}, {Sector.y:X}:{SubSector.y:X}, {Sector.z:X}:{SubSector.z:X}) @ ({LocalPosition:F0})";
     }
 }
 
@@ -126,7 +121,10 @@ public struct SectorChange : IComponentData
     public LocalToGalaxy New;
 }
 
-public struct CanTravelSectors : IComponentData { }
+public struct CanTravelSectors : IComponentData
+{
+    public LocalToGalaxy PreviousSector;
+}
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]
 public partial class MakeTravellerSystem : SystemBase
@@ -162,18 +160,16 @@ public partial class TRSToLocalToGalaxySystem : SystemBase
         var ecb = bufferSystem.CreateCommandBuffer();
 
         Entities
-            .WithAll<CanTravelSectors>()
             .WithNone<Parent>()
-            .ForEach((Entity e, ref LocalToGalaxy ltg, ref Translation t) =>
+            .ForEach((Entity e, ref LocalToGalaxy ltg, ref CanTravelSectors cts) =>
             {
-                var oldLtg = ltg;
-                ltg = LocalToGalaxy.OffsetBy(ltg, t.Value);
-
-                if (ltg != oldLtg)
+                if (ltg != cts.PreviousSector)
                 {
                     var update = ecb.CreateEntity();
-                    ecb.AddComponent(update, new SectorChange{Entity = e, Previous = oldLtg, New = ltg});
+                    ecb.AddComponent(update, new SectorChange{Entity = e, Previous = cts.PreviousSector, New = ltg});
                 }
+
+                cts.PreviousSector = ltg;
             }).Run();
 
         var playerPosition = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());

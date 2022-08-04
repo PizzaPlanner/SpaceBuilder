@@ -26,11 +26,13 @@ public partial class MapUISystem : SystemBase
             .ForEach((in LocalToGalaxy ltg, in PhysicsVelocity v) =>
             {
                 uiRoot.Q<Label>("Sector").text =
-                    $"Sector: ({ltg.Sector.x}.{ltg.SubSector.x}, {ltg.Sector.y}.{ltg.SubSector.y}, {ltg.Sector.z}.{ltg.SubSector.z})";
+                    $"Sector: ({ltg.Sector.x:X}:{ltg.SubSector.x:X}, {ltg.Sector.y:X}:{ltg.SubSector.y:X}, {ltg.Sector.z:X}:{ltg.SubSector.z:X})";
                 uiRoot.Q<Label>("Coordinates").text =
-                    $"Position: ({ltg.LocalPosition.x:F1}, {ltg.LocalPosition.y:F1}, {ltg.LocalPosition.z:F1})";
+                    $"Position: ({ltg.LocalPosition.x:F0}, {ltg.LocalPosition.y:F0}, {ltg.LocalPosition.z:F0})";
                 uiRoot.Q<Label>("Forward").text =
                     $"Speed: {math.length(v.Linear):F1}m/s";
+                uiRoot.Q<Label>("Forward").text =
+                    $"From Origin: ({LocalToGalaxy.RelativePosition(new LocalToGalaxy(), ltg):F0})";
             }).WithoutBurst().Run();
     }
 }
