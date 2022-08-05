@@ -16,11 +16,35 @@ public static class Constants
     public const long MAX_POSITION = 0x2A00; // Must satisfy MAX_POSITION * MAX_POSITION < int.MaxValue
     public const long MAX_SUBSECTOR = 0x0000_FFFF; // Must satisfy MAX_SUBSECTOR * MAX_SUBSECTOR < int.MaxValue
     public const long DISTANCE_PER_SECTOR = MAX_POSITION * MAX_SUBSECTOR;
+    // private const ulong BYTE_MASK = 0x0000_0000_0000_0000;
+    // private const ulong POST_COMMA_MASK = 0x0000_0000_0000_3FFF;
+    // private const ulong POSITION_MASK = 0x0000_0000_01FF_C000;
+    // private const ulong SUBSECTOR_MASK = 0x0000_0FFF_FE00_0000;
+    // private const ulong SECTOR_MASK = 0xFFFF_F000_0000_0000;
+    // private const ulong POST_COMMA_MAX = POST_COMMA_MASK >> 0;
+    // private const ulong POSITION_MAX = POSITION_MASK >> 12;
+    // private const ulong SUBSECTOR_MAX = SUBSECTOR_MASK >> 24;
+    // private const ulong SECTOR_MAX = SECTOR_MASK >> 44;
+
 }
 
+// public struct LocalToGalaxyComparer : IComparer<LocalToGalaxy>
+// {
+//     public float3 forward;
+//     public int Compare(LocalToGalaxy x, LocalToGalaxy y)
+//     {
+//         return math.all(x.Sector == y.Sector) ?
+//             math.acos(math.dot(forward, math.normalize(x.Sector))).CompareTo(math.acos(math.dot(forward, math.normalize(y.Sector)))) :
+//             math.acos(math.dot(forward, math.normalize(x.SubSector))).CompareTo(math.acos(math.dot(forward, math.normalize(y.SubSector))));
+//     }
+// }
+
 [GenerateAuthoringComponent]
-public unsafe struct LocalToGalaxy : IComponentData
+public struct LocalToGalaxy : IComponentData
 {
+    // private fixed byte BytesX[10];
+    // private fixed byte BytesY[10];
+    // private fixed byte BytesZ[10];
     public int3 Sector;
     public int3 SubSector;
     public float3 LocalPosition;
@@ -44,7 +68,7 @@ public unsafe struct LocalToGalaxy : IComponentData
         var totalLocal = (float3)offset;
         var result = origin + new LocalToGalaxy
             {Sector = totalMoveSectors, SubSector = totalMoveSubSectors, LocalPosition = totalLocal};
-        Debug.Log($"({origin.Sector.x:X}:{origin.SubSector.x:X}, {origin.Sector.y:X}:{origin.SubSector.y:X}, {origin.Sector.y:X}:{origin.SubSector.y:X})@{origin.LocalPosition} + {offset} = ({result.Sector.x:X}:{result.SubSector.x:X}, {result.Sector.y:X}:{result.SubSector.y:X}, {result.Sector.z:X}:{result.SubSector.z:X})@{result.LocalPosition}");
+        // Debug.Log($"({origin.Sector.x:X}:{origin.SubSector.x:X}, {origin.Sector.y:X}:{origin.SubSector.y:X}, {origin.Sector.y:X}:{origin.SubSector.y:X})@{origin.LocalPosition} + {offset} = ({result.Sector.x:X}:{result.SubSector.x:X}, {result.Sector.y:X}:{result.SubSector.y:X}, {result.Sector.z:X}:{result.SubSector.z:X})@{result.LocalPosition}");
         return result;
     }
 
@@ -53,6 +77,7 @@ public unsafe struct LocalToGalaxy : IComponentData
     public static LocalToGalaxy Corrected(LocalToGalaxy ltg)
     {
         var overflowSubSector = (int3) math.floor(ltg.LocalPosition / (int) Constants.MAX_POSITION);
+        // var overflowLocalPos = (double3)ltg.LocalPosition + math.sign(overflowSubSector) * (int) Constants.MAX_POSITION;
         var overflow = new LocalToGalaxy()
         {
             Sector = (ltg.SubSector + overflowSubSector + (int)Constants.MAX_SUBSECTOR) /
@@ -63,7 +88,7 @@ public unsafe struct LocalToGalaxy : IComponentData
         {
             Sector = ltg.Sector + overflow.Sector,
             SubSector = GridTools.mod(ltg.SubSector + overflow.SubSector, (int)Constants.MAX_SUBSECTOR),
-            LocalPosition = GridTools.mod(ltg.LocalPosition, (int)Constants.MAX_POSITION)
+            LocalPosition = (float3)GridTools.mod((double3)ltg.LocalPosition, (int)Constants.MAX_POSITION)
         };
         return correction;
     }
@@ -98,14 +123,14 @@ public unsafe struct LocalToGalaxy : IComponentData
     [BurstCompile]
     public static bool operator ==(LocalToGalaxy l1, LocalToGalaxy l2)
     {
-        return math.all(l1.Sector == l2.SubSector) && math.all(l1.SubSector == l2.SubSector);
+        return math.all(l1.Sector == l2.Sector) && math.all(l1.SubSector == l2.SubSector);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [BurstCompile]
     public static bool operator !=(LocalToGalaxy l1, LocalToGalaxy l2)
     {
-        return math.any(l1.Sector != l2.SubSector) || math.any(l1.SubSector != l2.SubSector);
+        return math.any(l1.Sector != l2.Sector) || math.any(l1.SubSector != l2.SubSector);
     }
 
     public override string ToString()

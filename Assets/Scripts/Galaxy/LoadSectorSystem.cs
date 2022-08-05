@@ -1,15 +1,12 @@
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 
 public struct ForceLoadSector : IComponentData
 {
     public LocalToGalaxy Sector;
-}
-
-public struct UnloadCandidate : IComponentData
-{
-
 }
 
 public partial class LoadSectorSystem : SystemBase
@@ -18,12 +15,17 @@ public partial class LoadSectorSystem : SystemBase
     private NativeQueue<LocalToGalaxy> sectorsToLoad;
     private EntityArchetype sectorArchetype;
     private int3 lastPlayerSector;
-    private const int MAX_KEEP_SECTOR_DISTANCE = 35;
-    private const int MAX_SECTORS_PER_FRAME = 20;
+    private SectorLoadSettings lastSectorLoadSettings;
 
     public struct HasPendingSectors : IComponentData
     {
         public int Count;
+    }
+
+    public struct SectorLoadSettings : IComponentData
+    {
+        public int MaxLoadedSectorDistance;
+        public int MaxSectorsLoadedPerFrame;
     }
 
     protected override void OnCreate()
@@ -39,6 +41,9 @@ public partial class LoadSectorSystem : SystemBase
         sectorArchetype = EntityManager.CreateArchetype(typeof(SubSector), typeof(LocalToGalaxy), typeof(TravellerInSector),
             typeof(ToGenerate));
         lastPlayerSector = int.MaxValue;
+
+        EntityManager.CreateEntity(typeof(SectorLoadSettings));
+        SetSingleton(new SectorLoadSettings{MaxLoadedSectorDistance = 50, MaxSectorsLoadedPerFrame = 75});
     }
 
     protected override void OnDestroy()
@@ -58,55 +63,18 @@ public partial class LoadSectorSystem : SystemBase
         var sectorEntities = loadedSectorsQuery.ToEntityArray(Allocator.Temp);
         var sectors = loadedSectorsQuery.ToComponentDataArray<LocalToGalaxy>(Allocator.Temp);
 
+        var unloadCandidates = GetEntityQuery(typeof(UnloadCandidate), typeof(LocalToGalaxy))
+            .ToComponentDataArray<LocalToGalaxy>(Allocator.Temp);
+
         var localPlayer = GetSingletonEntity<LocalPlayer>();
         var localPlayerSector = GetComponent<LocalToGalaxy>(localPlayer).Sector;
-        var newPlayerSector = lastPlayerSector;
 
         var sectorsToLoadLocal = sectorsToLoad;
 
         Entities
             .ForEach((Entity e, in SectorChange sc) =>
             {
-                Entity oldSector = Entity.Null;
-                Entity newSector = Entity.Null;
-                for (int i = 0; i < sectors.Length; i++)
-                {
-                    if (math.all(sectors[i].Sector == sc.New.Sector) && math.all(sectors[i].SubSector == sc.New.SubSector))
-                        newSector = sectorEntities[i];
-                    if (math.all(sectors[i].Sector == sc.Previous.Sector) && math.all(sectors[i].SubSector == sc.Previous.SubSector))
-                        oldSector = sectorEntities[i];
-                }
-
-                if (newSector == Entity.Null)
-                {
-                    sectorsToLoadLocal.Enqueue(sc.New);
-                    return;
-                }
-
-                if (sc.Entity == localPlayer)
-                {
-                    if (oldSector != Entity.Null && !HasComponent<Disabled>(oldSector))
-                    {
-                        var oldPlayerBuffer = GetBuffer<TravellerInSector>(oldSector);
-                        for (int i = 0; i < oldPlayerBuffer.Length; i++)
-                            if (oldPlayerBuffer[i].Player == sc.Entity)
-                            {
-                                oldPlayerBuffer.RemoveAt(i);
-                                i--;
-                            }
-
-                        if (oldPlayerBuffer.Length == 0)
-                            buffer.AddComponent<Disabled>(oldSector);
-                    }
-
-                    var newPlayerBuffer = GetBuffer<TravellerInSector>(newSector);
-                    if (newPlayerBuffer.Length == 0 && HasComponent<Disabled>(newSector))
-                    {
-                        buffer.RemoveComponent<Disabled>(newSector);
-                    }
-                    newPlayerBuffer.Add(new TravellerInSector {Player = sc.Entity});
-                    newPlayerSector = sc.New.Sector;
-                }
+                sectorsToLoadLocal.Enqueue(sc.New);
                 buffer.DestroyEntity(e);
             }).Run();
 
@@ -116,16 +84,31 @@ public partial class LoadSectorSystem : SystemBase
             buffer.DestroyEntity(e);
         }).Run();
 
-        if (math.any(newPlayerSector != lastPlayerSector))
+        var shouldRecalculateSectors = math.any(localPlayerSector != lastPlayerSector) ||
+                                       lastSectorLoadSettings.MaxLoadedSectorDistance != GetSingleton<SectorLoadSettings>().MaxLoadedSectorDistance;
+
+        lastSectorLoadSettings = GetSingleton<SectorLoadSettings>();
+        int maxLoadedSectorDistance = lastSectorLoadSettings.MaxLoadedSectorDistance;
+        int maxSectorsLoadedPerFrame = lastSectorLoadSettings.MaxSectorsLoadedPerFrame;
+
+        if (shouldRecalculateSectors)
         {
-            lastPlayerSector = newPlayerSector;
+            lastPlayerSector = localPlayerSector;
             Entities
                 .WithNone<UnloadCandidate>()
                 .ForEach((Entity e, in LocalToGalaxy ltg, in SectorData sector) =>
                 {
-                    if (math.csum(math.abs(ltg.Sector - newPlayerSector)) > MAX_KEEP_SECTOR_DISTANCE)
+                    if (math.csum(math.abs(ltg.Sector - localPlayerSector)) > maxLoadedSectorDistance)
                         buffer.AddComponent<UnloadCandidate>(e);
-                }).Run();
+                }).Schedule();
+
+            Entities
+                .WithAll<UnloadCandidate>()
+                .ForEach((Entity e, in LocalToGalaxy ltg) =>
+                {
+                    if (math.csum(math.abs(ltg.Sector - localPlayerSector)) < maxLoadedSectorDistance)
+                        buffer.RemoveComponent<UnloadCandidate>(e);
+                }).Schedule();
 
             Job
                 .WithName("LoadNearbyStarSectors")
@@ -133,12 +116,12 @@ public partial class LoadSectorSystem : SystemBase
                 {
                     sectorsToLoadLocal.Enqueue(new LocalToGalaxy{Sector = localPlayerSector});
 
-                    for (int x = -MAX_KEEP_SECTOR_DISTANCE; x < MAX_KEEP_SECTOR_DISTANCE; x++)
-                    for (int y = -MAX_KEEP_SECTOR_DISTANCE; y < MAX_KEEP_SECTOR_DISTANCE; y++)
-                    for (int z = -MAX_KEEP_SECTOR_DISTANCE; z < MAX_KEEP_SECTOR_DISTANCE; z++)
+                    for (int x = -maxLoadedSectorDistance; x < maxLoadedSectorDistance; x++)
+                    for (int y = -maxLoadedSectorDistance; y < maxLoadedSectorDistance; y++)
+                    for (int z = -maxLoadedSectorDistance; z < maxLoadedSectorDistance; z++)
                     {
-                        var pos = new int3(x, y, z) + newPlayerSector;
-                        if (math.csum(math.abs(new int3(x, y, z))) > MAX_KEEP_SECTOR_DISTANCE)
+                        var pos = new int3(x, y, z) + localPlayerSector;
+                        if (math.csum(math.abs(new int3(x, y, z))) > maxLoadedSectorDistance)
                             continue;
                         if(GalaxyTools.GetSectorType(pos) == SectorType.Star)
                             sectorsToLoadLocal.Enqueue(new LocalToGalaxy
@@ -153,37 +136,48 @@ public partial class LoadSectorSystem : SystemBase
         var added = new NativeList<LocalToGalaxy>(Allocator.Temp);
         var sectorArchetypeLocal = sectorArchetype;
         var hasPendingSectors = HasSingleton<HasPendingSectors>() ? GetSingletonEntity<HasPendingSectors>() : Entity.Null;
+
+        // var camForward = (float3)Camera.main.transform.forward;
+        // Job
+        //     .WithName("SortQueue")
+        //     .WithCode(() =>
+        //     {
+        //         var array = sectorsToLoadLocal.ToArray(Allocator.Temp);
+        //         array.Sort(new LocalToGalaxyComparer{forward = camForward});
+        //         sectorsToLoadLocal.Clear();
+        //         foreach(var item in array)
+        //             sectorsToLoadLocal.Enqueue(item);
+        //     }).Run();
+
         Job
             .WithName("LoadSectors")
             .WithCode(() =>
             {
                 var sectorsLoadedThisFrame = 0;
-                while (sectorsLoadedThisFrame++ < MAX_SECTORS_PER_FRAME && sectorsToLoadLocal.TryDequeue(out var newSector))
+                while (sectorsLoadedThisFrame++ < maxSectorsLoadedPerFrame && sectorsToLoadLocal.TryDequeue(out var newSector))
                 {
                     newSector.LocalPosition = 0;
-                    var hasSector = false;
+                    var skipLoading = math.csum(math.abs(newSector.Sector - localPlayerSector)) > maxLoadedSectorDistance;
 
                     foreach (var sector in added)
                     {
-                        if (math.all(sector.SubSector == newSector.SubSector) &&
-                            math.all(sector.Sector == newSector.Sector))
+                        if (sector == newSector || skipLoading)
                         {
-                            hasSector = true;
+                            skipLoading = true;
                             break;
                         }
                     }
 
-                    for (int i = 0; i < sectors.Length && !hasSector; i++)
+                    for (int i = 0; i < sectors.Length && !skipLoading; i++)
                     {
-                        if (math.all(sectors[i].SubSector == newSector.SubSector) &&
-                            math.all(sectors[i].Sector == newSector.Sector))
+                        if (sectors[i] == newSector)
                         {
-                            hasSector = true;
+                            skipLoading = true;
                             break;
                         }
                     }
 
-                    if (hasSector)
+                    if (skipLoading)
                     {
                         sectorsLoadedThisFrame--;
                         continue;
@@ -208,6 +202,7 @@ public partial class LoadSectorSystem : SystemBase
                 }
             }).Run();
 
+        sectorsToLoad = sectorsToLoadLocal;
 
         bufferSystem.AddJobHandleForProducer(Dependency);
     }

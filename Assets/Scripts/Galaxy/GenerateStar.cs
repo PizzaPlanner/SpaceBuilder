@@ -43,14 +43,14 @@ public partial class GenerateStarSystem : SystemBase
                 starData.Brightness = random.NextFloat(3, 9);
                 starData.Color = Color.HSVToRGB(random.NextFloat(), random.NextFloat(0.8f, 1),
                     random.NextFloat(0.8f, 1));
-                starData.Size = random.NextFloat(0.3f, 12f);
+                starData.Size = random.NextFloat(0.3f, 12f) * STAR_SIZE_BASE;
                 buffer.SetComponent(star, starData);
                 buffer.SetComponent(star, ltg);
                 buffer.SetComponent(star, new URPMaterialPropertyEmissionColor
                 {
                     Value = new float4(starData.Color.a, starData.Color.g, starData.Color.b, 0) * starData.Brightness
                 });
-                buffer.AddComponent(star, new Scale {Value = starData.Size * STAR_SIZE_BASE});
+                buffer.AddComponent(star, new Scale { Value = starData.Size });
                 buffer.RemoveComponent<GenerateStar>(e);
                 buffer.RemoveComponent<ToGenerate>(e);
             }).Schedule();

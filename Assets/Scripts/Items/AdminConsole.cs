@@ -269,6 +269,19 @@ public partial class AdminConsoleSystem : SystemBase
 
     protected override void OnUpdate()
     {
+        if (Input.GetKeyDown(KeyCode.KeypadPlus))
+        {
+            var pl = GetComponent<Player>(GetSingletonEntity<LocalPlayer>());
+            pl.MovementSpeedRun *= Input.GetKey(KeyCode.LeftShift) ? 10 : 100;
+            SetComponent(GetSingletonEntity<LocalPlayer>(), pl);
+        }
+        if (Input.GetKeyDown(KeyCode.KeypadMinus))
+        {
+            var pl = GetComponent<Player>(GetSingletonEntity<LocalPlayer>());
+            pl.MovementSpeedRun *= Input.GetKey(KeyCode.LeftShift) ? 0.1f : 0.01f;
+            SetComponent(GetSingletonEntity<LocalPlayer>(), pl);
+        }
+
         if (Input.GetKeyDown(KeyCode.F4))
         {
             uiRoot.style.display = uiRoot.style.display == DisplayStyle.Flex ? DisplayStyle.None : DisplayStyle.Flex;

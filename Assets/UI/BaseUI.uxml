@@ -1,11 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/default.uss?fileID=7433441132597879392&amp;guid=309dfca128ab79d4595813fdc55991a4&amp;type=3#default" />
     <ui:VisualElement name="POIMarkers" picking-mode="Ignore" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0;" />
-    <ui:VisualElement name="MapInfo" style="position: absolute; right: 0; top: 0;">
-        <ui:Label text="Label" display-tooltip-when-elided="true" name="Sector" />
-        <ui:Label text="Label" display-tooltip-when-elided="true" name="Coordinates" />
-        <ui:Label text="Label" display-tooltip-when-elided="true" name="Forward" />
-    </ui:VisualElement>
     <ui:VisualElement name="BuildingUI" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0;">
         <ui:VisualElement name="Icons" style="position: absolute; right: 0; bottom: 0; flex-direction: row-reverse; justify-content: flex-end;">
             <ui:VisualElement name="BuildButton" style="background-image: url(&apos;project://database/Assets/UI/removemode.png?fileID=2800000&amp;guid=f09e848341690ed4ca9ff3582facad8b&amp;type=3#removemode&apos;); width: 64px; height: 64px;">
@@ -82,8 +77,13 @@
         </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement name="DebugUI" picking-mode="Ignore" style="align-items: center;">
+        <ui:VisualElement name="MapInfo" style="position: absolute; right: 0; top: 0; -unity-text-align: upper-right; align-items: flex-end;">
+            <ui:Label text="Label" display-tooltip-when-elided="true" name="Sector" />
+            <ui:Label text="Label" display-tooltip-when-elided="true" name="Coordinates" />
+            <ui:Label text="Label" display-tooltip-when-elided="true" name="Forward" />
+        </ui:VisualElement>
         <ui:VisualElement name="SectorLoading" style="width: 48px; background-image: url(&apos;project://database/Assets/UI/swap.png?fileID=2800000&amp;guid=cd4c7e8cf29844f44878fed8eb19b629&amp;type=3#swap&apos;); height: 48px; align-items: center; justify-content: center; transition-property: opacity; transition-timing-function: ease-in-out-bounce; transition-duration: 0.3s; top: 55px; opacity: 1; -unity-background-image-tint-color: rgba(255, 255, 255, 0.48); display: none;">
-            <ui:Label text="50/1234" display-tooltip-when-elided="true" style="font-size: 24px; -unity-text-align: upper-center; -unity-text-outline-width: 1px; -unity-font-style: bold;" />
+            <ui:Label text="50/1234" display-tooltip-when-elided="true" style="font-size: 16px; -unity-text-align: upper-center; -unity-text-outline-width: 1px; -unity-font-style: bold;" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
