@@ -16,6 +16,7 @@ public partial class GenerateStarSystem : SystemBase
     private Star defaultStarData;
 
     public const float STAR_SIZE_BASE = 5_000_000;
+    public const float STAR_MAX_SIZE_FACTOR = 12;
 
     protected override void OnCreate()
     {
@@ -42,8 +43,8 @@ public partial class GenerateStarSystem : SystemBase
                 var starData = prefabStarData;
                 starData.Brightness = random.NextFloat(3, 9);
                 starData.Color = Color.HSVToRGB(random.NextFloat(), random.NextFloat(0.8f, 1),
-                    random.NextFloat(0.8f, 1));
-                starData.Size = random.NextFloat(0.3f, 12f) * STAR_SIZE_BASE;
+                    random.NextFloat(0.8f, 2));
+                starData.Size = random.NextFloat(0.3f, STAR_MAX_SIZE_FACTOR) * STAR_SIZE_BASE;
                 buffer.SetComponent(star, starData);
                 buffer.SetComponent(star, ltg);
                 buffer.SetComponent(star, new URPMaterialPropertyEmissionColor
@@ -51,6 +52,7 @@ public partial class GenerateStarSystem : SystemBase
                     Value = new float4(starData.Color.a, starData.Color.g, starData.Color.b, 0) * starData.Brightness
                 });
                 buffer.AddComponent(star, new Scale { Value = starData.Size });
+                buffer.SetComponent(star, new Name{Value = $"{GalaxyTools.GetStarName(data.Seed)}"});
                 buffer.RemoveComponent<GenerateStar>(e);
                 buffer.RemoveComponent<ToGenerate>(e);
             }).Schedule();

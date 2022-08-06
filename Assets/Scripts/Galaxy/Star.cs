@@ -52,7 +52,7 @@ public partial class StarRelativeToPlayerSystem : SystemBase
             {
                 var tBefore = ltw.Position - camPosition;
                 var newScale =
-                    math.max(star.Size * (farClipPlane / math.length(tBefore)), 1);
+                    math.max(star.Size * (farClipPlane / math.length(tBefore)), 2);
                 var tNew = math.normalize(tBefore) * (farClipPlane * 0.95f - newScale) + camPosition;
                 ltw.Value = float4x4.TRS(tNew, ltw.Rotation, newScale);
             }).Schedule();

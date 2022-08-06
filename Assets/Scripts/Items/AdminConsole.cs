@@ -12,6 +12,7 @@ using UnityEngine.UIElements;
 public class AdminConsole : VisualElement
 {
     public Entity LocalPlayer;
+    public static bool DebugMode;
 
     public interface IConsoleCommand
     {
@@ -229,6 +230,7 @@ public struct SpawnCommand : AdminConsole.IConsoleCommand
 
 public partial class AdminConsoleSystem : SystemBase
 {
+    private VisualElement DebugOverlay;
     protected override void OnCreate()
     {
         RequireSingletonForUpdate<LocalPlayer>();
@@ -248,6 +250,8 @@ public partial class AdminConsoleSystem : SystemBase
             uiRoot.Register(new MoveSectorCommand{EntityManager = EntityManager});
         }
         uiRoot.style.display = DisplayStyle.None;
+
+        DebugOverlay ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("DebugUI");
     }
 
     public ulong GetId(string s)
@@ -280,6 +284,12 @@ public partial class AdminConsoleSystem : SystemBase
             var pl = GetComponent<Player>(GetSingletonEntity<LocalPlayer>());
             pl.MovementSpeedRun *= Input.GetKey(KeyCode.LeftShift) ? 0.1f : 0.01f;
             SetComponent(GetSingletonEntity<LocalPlayer>(), pl);
+        }
+
+        if (Input.GetKeyDown(KeyCode.F5))
+        {
+            AdminConsole.DebugMode = !AdminConsole.DebugMode;
+            DebugOverlay.style.display = AdminConsole.DebugMode ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         if (Input.GetKeyDown(KeyCode.F4))

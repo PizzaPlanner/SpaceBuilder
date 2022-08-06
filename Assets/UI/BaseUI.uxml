@@ -21,7 +21,6 @@
             <ui:VisualElement name="Cursor" style="background-image: url(&apos;project://database/Assets/UI/crosshair.png?fileID=2800000&amp;guid=18c36555461a00541bedc3bed7a78b41&amp;type=3#crosshair&apos;); width: 32px; height: 32px;" />
         </ui:VisualElement>
     </ui:VisualElement>
-    <AdminConsole name="AdminConsole" style="position: absolute; width: 30%; height: 25%; display: none;" />
     <ui:VisualElement name="DockInfo" style="position: absolute; left: 0; bottom: 0; align-items: center; justify-content: center;">
         <ui:VisualElement name="System" class="dockingbutton dockingbutton-on" style="flex-direction: row; align-items: center; -unity-background-scale-mode: stretch-to-fill; justify-content: flex-start; width: 100%; margin-top: 1px; margin-bottom: 1px; background-image: url(&apos;project://database/Assets/UI/bg_default.png?fileID=2800000&amp;guid=c73eb54f62139d64087a3e6d1e440760&amp;type=3#bg_default&apos;);">
             <ui:VisualElement style="width: 28px; height: 28px; margin-left: 2px; margin-right: 2px; margin-top: 2px; margin-bottom: 2px; background-image: url(&apos;project://database/Assets/UI/coorsys_system.png?fileID=2800000&amp;guid=c2e97b68c263c2540b96550bf1f92d1a&amp;type=3#coorsys_system&apos;);" />
@@ -85,5 +84,6 @@
         <ui:VisualElement name="SectorLoading" style="width: 48px; background-image: url(&apos;project://database/Assets/UI/swap.png?fileID=2800000&amp;guid=cd4c7e8cf29844f44878fed8eb19b629&amp;type=3#swap&apos;); height: 48px; align-items: center; justify-content: center; transition-property: opacity; transition-timing-function: ease-in-out-bounce; transition-duration: 0.3s; top: 55px; opacity: 1; -unity-background-image-tint-color: rgba(255, 255, 255, 0.48); display: none;">
             <ui:Label text="50/1234" display-tooltip-when-elided="true" style="font-size: 16px; -unity-text-align: upper-center; -unity-text-outline-width: 1px; -unity-font-style: bold;" />
         </ui:VisualElement>
+        <AdminConsole name="AdminConsole" style="position: absolute; width: 30%; height: 25%; display: none;" />
     </ui:VisualElement>
 </ui:UXML>

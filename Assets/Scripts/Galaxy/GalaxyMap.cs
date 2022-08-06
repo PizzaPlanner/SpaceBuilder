@@ -19,7 +19,7 @@ namespace Galaxy
             if (genSec)
             {
                 sector = EditorGUILayout.Vector3IntField("Sector", sector);
-                GalaxyTools.GetSectorSeed(new LocalToGalaxy {Sector = new int3(sector.x, sector.y, sector.z)}, out var type);
+                var type = GalaxyTools.GetSectorType(new int3(sector.x, sector.y, sector.z));
                 if(GUILayout.Button($"Generate ({type})"))
                     (serializedObject.targetObject as GalaxyMap).GenerateSectorMap();
             }
@@ -46,7 +46,7 @@ namespace Galaxy
             for (int z = Start.y; z < End.y; z++)
             {
                 var current = (x - Start.x) * texture.height + (z - Start.y);
-                GalaxyTools.GetSectorSeed(new LocalToGalaxy{Sector = new int3(x, Y, z)}, out var type);
+                var type = GalaxyTools.GetSectorType(new int3(x, Y, z));
                 colors[current] =
                     (type == SectorType.Star ? Color.yellow :
                         type == SectorType.Nebula ? Color.blue :

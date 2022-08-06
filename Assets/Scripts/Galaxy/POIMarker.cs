@@ -34,11 +34,9 @@ public class POIMarker : VisualElement
             return;
         }
 
-        var playerLtw = em.GetComponentData<LocalToWorld>(localPlayer);
-
         var playerLtg = em.GetComponentData<LocalToGalaxy>(localPlayer);
         var targetLtg = em.GetComponentData<LocalToGalaxy>(Target);
-
+        var diffLtg = targetLtg - playerLtg;
         var relativePosition = LocalToGalaxy.RelativePosition(playerLtg, targetLtg);
         var distance = math.length(relativePosition);
         if (distance < 1000)
@@ -80,13 +78,15 @@ public class POIMarker : VisualElement
 
         if (em.HasComponent<Name>(Target))
             name = em.GetComponentData<Name>(Target).Value.Value;
-#if UNITY_EDITOR
-        this.Q<Label>().text = @$"{em.GetName(Target)}
+        if(AdminConsole.DebugMode)
+            this.Q<Label>().text = @$"{name}
+P: {playerLtg.Sector:X}|{playerLtg.SubSector:X}|{playerLtg.LocalPosition}
+T: {targetLtg.Sector:X}|{targetLtg.SubSector:X}|{targetLtg.LocalPosition}
+D: {diffLtg.Sector:X}|{diffLtg.SubSector:X}|{diffLtg.LocalPosition}
 {distance:F1}{unit}";
-#else
-        this.Q<Label>().text = @$"{name}
+        else
+            this.Q<Label>().text = @$"{name}
 {distance:F1}{unit}";
-#endif
 
     }
 }

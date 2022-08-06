@@ -43,7 +43,7 @@ public partial class LoadSectorSystem : SystemBase
         lastPlayerSector = int.MaxValue;
 
         EntityManager.CreateEntity(typeof(SectorLoadSettings));
-        SetSingleton(new SectorLoadSettings{MaxLoadedSectorDistance = 50, MaxSectorsLoadedPerFrame = 75});
+        SetSingleton(new SectorLoadSettings{MaxLoadedSectorDistance = 40, MaxSectorsLoadedPerFrame = 45});
     }
 
     protected override void OnDestroy()

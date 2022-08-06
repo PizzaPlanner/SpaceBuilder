@@ -14,7 +14,7 @@ public struct TravellerInSector : IBufferElementData
 public static class Constants
 {
     public const long MAX_POSITION = 0x2A00; // Must satisfy MAX_POSITION * MAX_POSITION < int.MaxValue
-    public const long MAX_SUBSECTOR = 0x0000_FFFF; // Must satisfy MAX_SUBSECTOR * MAX_SUBSECTOR < int.MaxValue
+    public const long MAX_SUBSECTOR = 0x0005_FFFF; // Must satisfy MAX_SUBSECTOR * MAX_SUBSECTOR < int.MaxValue
     public const long DISTANCE_PER_SECTOR = MAX_POSITION * MAX_SUBSECTOR;
     // private const ulong BYTE_MASK = 0x0000_0000_0000_0000;
     // private const ulong POST_COMMA_MASK = 0x0000_0000_0000_3FFF;
