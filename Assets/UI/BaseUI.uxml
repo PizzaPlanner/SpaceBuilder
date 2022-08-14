@@ -1,5 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/default.uss?fileID=7433441132597879392&amp;guid=309dfca128ab79d4595813fdc55991a4&amp;type=3#default" />
+    <Style src="project://database/Assets/UI/coordinates.uss?fileID=7433441132597879392&amp;guid=6a3d0a31285f421e8a2ad20fd30cf8aa&amp;type=3#coordinates" />
+    <Style src="project://database/Assets/UI/coordinatesegments.uss?fileID=7433441132597879392&amp;guid=b673c3db6dd869b499a1d50dce6a48bf&amp;type=3#coordinatesegments" />
     <ui:VisualElement name="POIMarkers" picking-mode="Ignore" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0;" />
     <ui:VisualElement name="BuildingUI" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0;">
         <ui:VisualElement name="Icons" style="position: absolute; right: 0; bottom: 0; flex-direction: row-reverse; justify-content: flex-end;">
@@ -38,6 +40,85 @@
         </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement name="Crosshair" style="width: 16px; height: 16px; position: absolute; left: 50%; top: 50%; right: 50%; bottom: 50%; background-image: url(&apos;project://database/Assets/UI/crosshair.png?fileID=2800000&amp;guid=18c36555461a00541bedc3bed7a78b41&amp;type=3#crosshair&apos;);" />
+    <ui:VisualElement name="Coordinates" style="flex-direction: column; align-items: center;">
+        <ui:VisualElement name="Current" style="flex-direction: row;">
+            <ui:VisualElement name="X" class="coorsys-axis" style="align-items: stretch;">
+                <ui:VisualElement name="Wall" class="coorsys-wall" />
+                <ui:VisualElement style="flex-direction: row;">
+                    <ui:VisualElement name="Sector" class="coorsys-segment-container">
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="SubSector" class="coorsys-segment-container">
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="Y" class="coorsys-axis" style="align-items: stretch;">
+                <ui:VisualElement name="Wall" class="coorsys-wall" />
+                <ui:VisualElement style="flex-direction: row;">
+                    <ui:VisualElement name="Sector" class="coorsys-segment-container">
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="SubSector" class="coorsys-segment-container">
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="Z" class="coorsys-axis" style="align-items: stretch;">
+                <ui:VisualElement name="Wall" class="coorsys-wall" />
+                <ui:VisualElement style="flex-direction: row;">
+                    <ui:VisualElement name="Sector" class="coorsys-segment-container">
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="SubSector" class="coorsys-segment-container">
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                        <ui:VisualElement class="coorsys-segment segment-0" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
     <ui:VisualElement name="ContextMenu" picking-mode="Ignore" style="left: 60%; top: 50%; display: flex; max-width: 200px; align-items: flex-start;">
         <ui:VisualElement name="MainAction" style="flex-direction: row; align-items: center; background-image: url(&apos;project://database/Assets/UI/bg_slim.png?fileID=2800000&amp;guid=cc32439c45babc04593dca5896662d0a&amp;type=3#bg_slim&apos;);">
             <ui:VisualElement style="width: 24px; height: 24px;" />

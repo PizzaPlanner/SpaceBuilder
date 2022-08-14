@@ -1,36 +1,106 @@
 using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Physics;
-using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+[UpdateInGroup(typeof(PresentationSystemGroup))]
 public partial class MapUISystem : SystemBase
 {
-    VisualElement uiRoot;
+    VisualElement coordinates;
+    private int maxSectorSegments;
+    private int maxSubSectorSegments;
     protected override void OnCreate()
     {
         RequireSingletonForUpdate<LocalPlayer>();
+        maxSectorSegments = sizeof(int);
+        for (int i = 0; i < sizeof(long) && (Constants.MAX_SUBSECTOR & (0x1FF << (i*9))) > 0; i++)
+        {
+            maxSubSectorSegments = i + 1;
+        }
     }
 
     protected override void OnStartRunning()
     {
-        if(uiRoot == null)
-            uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("MapInfo");
+        if (coordinates == null)
+        {
+            coordinates = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("Coordinates");
+            coordinates.Query(null, "coorsys-segment-container").ForEach(x => x.Clear());
+            coordinates.Query("Sector", "coorsys-segment-container").ForEach(x =>
+            {
+                for (int i = 0; i < maxSectorSegments; i++)
+                {
+                    var ve = new VisualElement();
+                    ve.AddToClassList("coorsys-segment");
+                    x.Add(ve);
+                }
+            });
+
+            coordinates.Query("SubSector", "coorsys-segment-container").ForEach(x =>
+            {
+                for (int i = 0; i < maxSubSectorSegments; i++)
+                {
+                    var ve = new VisualElement();
+                    ve.AddToClassList("coorsys-segment");
+                    x.Add(ve);
+                }
+            });
+        }
     }
 
     protected override void OnUpdate()
     {
-        Entities
-            .WithAll<LocalPlayer>()
-            .ForEach((in LocalToGalaxy ltg, in PhysicsVelocity v, in Player pl) =>
-            {
-                uiRoot.Q<Label>("Sector").text =
-                    $"Sector: ({ltg.Sector.x:X}:{ltg.SubSector.x:X}, {ltg.Sector.y:X}:{ltg.SubSector.y:X}, {ltg.Sector.z:X}:{ltg.SubSector.z:X})";
-                uiRoot.Q<Label>("Coordinates").text =
-                    $"Position: ({ltg.LocalPosition.x:F0}, {ltg.LocalPosition.y:F0}, {ltg.LocalPosition.z:F0})";
-                uiRoot.Q<Label>("Forward").text =
-                    $"Speed: ???m/s (Top: {pl.MovementSpeedRun:E2}m/s)";
-            }).WithoutBurst().Run();
+        var ltg = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
+        var secX = coordinates.Q("X").Q("Sector");
+        for (int i = 0; i < secX.childCount; i++)
+        {
+            var seg = (short)((ltg.Sector.x >> (9*i)) & 0x1FF);
+            secX[i].ClearClassList();
+            secX[i].AddToClassList("coorsys-segment");
+            secX[i].AddToClassList($"segment-{seg}");
+        }
+
+        var secY = coordinates.Q("Y").Q("Sector");
+        for (int i = 0; i < secY.childCount; i++)
+        {
+            var seg = (short)((ltg.Sector.y >> (9*i)) & 0x1FF);
+            secY[i].ClearClassList();
+            secY[i].AddToClassList("coorsys-segment");
+            secY[i].AddToClassList($"segment-{seg}");
+        }
+
+        var secZ = coordinates.Q("Z").Q("Sector");
+        for (int i = 0; i < secZ.childCount; i++)
+        {
+            var seg = (short)((ltg.Sector.z >> (9*i)) & 0x1FF);
+            secZ[i].ClearClassList();
+            secZ[i].AddToClassList("coorsys-segment");
+            secZ[i].AddToClassList($"segment-{seg}");
+        }
+
+        var secXS = coordinates.Q("X").Q("SubSector");
+        for (int i = 0; i < secXS.childCount; i++)
+        {
+            var seg = (short)((ltg.SubSector.x >> (9*i)) & 0x1FF);
+            secXS[i].ClearClassList();
+            secXS[i].AddToClassList("coorsys-segment");
+            secXS[i].AddToClassList($"segment-{seg}");
+        }
+
+        var secYS = coordinates.Q("Y").Q("SubSector");
+        for (int i = 0; i < secYS.childCount; i++)
+        {
+            var seg = (short)((ltg.SubSector.y >> (9*i)) & 0x1FF);
+            secYS[i].ClearClassList();
+            secYS[i].AddToClassList("coorsys-segment");
+            secYS[i].AddToClassList($"segment-{seg}");
+        }
+
+        var secZS = coordinates.Q("Z").Q("SubSector");
+        for (int i = 0; i < secZS.childCount; i++)
+        {
+            var seg = (short)((ltg.SubSector.z >> (9*i)) & 0x1FF);
+            secZS[i].ClearClassList();
+            secZS[i].AddToClassList("coorsys-segment");
+            secZS[i].AddToClassList($"segment-{seg}");
+        }
     }
 }

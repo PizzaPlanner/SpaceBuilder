@@ -1,4 +1,3 @@
-using System;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -13,6 +12,8 @@ public struct Grid : IComponentData
     public const float CELL_SIZE = 0.25f;
     public int3 BoundsMin;
     public int3 BoundsMax;
+
+    public AABB AABB;
 
     public static int3 CellFromPosition(LocalToWorld ltw, float3 worldPosition) => (int3) math.floor(math.mul(math.inverse(ltw.Rotation), worldPosition - ltw.Position) / CELL_SIZE);
     public static int3 CellFromPosition(float3 localPosition) => (int3) math.floor(localPosition / CELL_SIZE);
@@ -131,21 +132,15 @@ public partial class GridRecalculationSystem : SystemBase
             }
         }
 
-        var grids = GetComponentDataFromEntity<Grid>(false);
-        Entities
-            .WithName("CalculateGridBounds")
-            .ForEach((in GridItem item) =>
-            {
-                if (!grids.HasComponent(item.Grid))
-                    return;
-                var grid = grids[item.Grid];
-                grid.BoundsMin = math.min(grid.BoundsMin, item.Area.Min);
-                grid.BoundsMax = math.max(grid.BoundsMax, item.Area.Max);
-                grids[item.Grid] = grid;
-            }).Run();
+        Entities.ForEach((ref Grid grid) =>
+        {
+            grid.BoundsMax = int.MinValue;
+            grid.BoundsMin = int.MaxValue;
+        }).Run();
 
         var occupationBuffers = GetBufferFromEntity<OccupationBuffer>();
         var airtightBuffers = GetBufferFromEntity<AirtightBuffer>();
+        var grids = GetComponentDataFromEntity<Grid>();
         Entities
             .WithName("CalculateOccupation")
             .ForEach((in GridItem item) =>
@@ -171,7 +166,16 @@ public partial class GridRecalculationSystem : SystemBase
                     }
                     if (!found)
                         b.Add(new OccupationBuffer { Location = pos, Value = item.Occupied});
+
                 }
+            }
+
+            if (grids.HasComponent(item.Grid))
+            {
+                var gTemp = grids[item.Grid];
+                gTemp.BoundsMin = math.min(gTemp.BoundsMin, item.Area.Min);
+                gTemp.BoundsMax = math.max(gTemp.BoundsMax, item.Area.Max);
+                grids[item.Grid] = gTemp;
             }
 
             if (airtightBuffers.HasComponent(item.Grid))

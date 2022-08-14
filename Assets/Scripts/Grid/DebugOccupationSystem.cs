@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
@@ -96,6 +95,13 @@ public partial class DebugOccupationSystem : SystemBase
 
             Draw(matrices, ghostMat);
         }
+
+        matrices.Clear();
+        Entities.ForEach((in Grid grid) =>
+        {
+            matrices.Add(float4x4.TRS(grid.AABB.Center - grid.AABB.Extents, quaternion.identity, grid.AABB.Extents * 2 / Grid.CELL_SIZE));
+        }).Run();
+        Draw(matrices, ghostMat);
     }
 
     private void Draw(NativeList<float4x4> matrices, Material mat)

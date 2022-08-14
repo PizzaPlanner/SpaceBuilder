@@ -74,7 +74,11 @@ public partial class LoadSectorSystem : SystemBase
         Entities
             .ForEach((Entity e, in SectorChange sc) =>
             {
-                sectorsToLoadLocal.Enqueue(sc.New);
+                for(int x = -1; x <= 1; x++)
+                for(int y = -1; y <= 1; y++)
+                for(int z = -1; z <= 1; z++)
+                    sectorsToLoadLocal.Enqueue(sc.New + new LocalToGalaxy{ SubSector = new int3(x,y,z)});
+                // sectorsToLoadLocal.Enqueue(sc.New);
                 buffer.DestroyEntity(e);
             }).Run();
 
@@ -121,9 +125,8 @@ public partial class LoadSectorSystem : SystemBase
                     for (int z = -maxLoadedSectorDistance; z < maxLoadedSectorDistance; z++)
                     {
                         var pos = new int3(x, y, z) + localPlayerSector;
-                        if (math.csum(math.abs(new int3(x, y, z))) > maxLoadedSectorDistance)
-                            continue;
-                        if(GalaxyTools.GetSectorType(pos) == SectorType.Star)
+                        if(math.csum(math.abs(new int3(x, y, z))) < maxLoadedSectorDistance &&
+                           GalaxyTools.GetSectorType(pos) == SectorType.Star)
                             sectorsToLoadLocal.Enqueue(new LocalToGalaxy
                             {
                                 Sector = pos,

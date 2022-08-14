@@ -1,0 +1,2048 @@
+.segment-0 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1294831922&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_0');
+}
+
+.segment-1 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-852074621&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_1');
+}
+
+.segment-2 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1353111872&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_2');
+}
+
+.segment-3 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1284963588&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_3');
+}
+
+.segment-4 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-312208304&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_4');
+}
+
+.segment-5 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=920646147&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_5');
+}
+
+.segment-6 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-874325372&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_6');
+}
+
+.segment-7 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=94548635&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_7');
+}
+
+.segment-8 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-824455493&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_8');
+}
+
+.segment-9 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1342919036&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_9');
+}
+
+.segment-10 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1431487102&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_10');
+}
+
+.segment-11 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-571613948&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_11');
+}
+
+.segment-12 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=229996607&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_12');
+}
+
+.segment-13 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1836243553&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_13');
+}
+
+.segment-14 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=214980986&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_14');
+}
+
+.segment-15 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1513260443&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_15');
+}
+
+.segment-16 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1696980428&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_16');
+}
+
+.segment-17 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1396960325&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_17');
+}
+
+.segment-18 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=832674807&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_18');
+}
+
+.segment-19 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-151690896&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_19');
+}
+
+.segment-20 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=962731823&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_20');
+}
+
+.segment-21 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1997802225&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_21');
+}
+
+.segment-22 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1152271797&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_22');
+}
+
+.segment-23 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-757210123&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_23');
+}
+
+.segment-24 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-191613729&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_24');
+}
+
+.segment-25 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=621726417&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_25');
+}
+
+.segment-26 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-360216036&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_26');
+}
+
+.segment-27 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-50418384&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_27');
+}
+
+.segment-28 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1577306052&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_28');
+}
+
+.segment-29 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-98635061&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_29');
+}
+
+.segment-30 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1628068935&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_30');
+}
+
+.segment-31 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2085745120&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_31');
+}
+
+.segment-32 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-613107930&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_32');
+}
+
+.segment-33 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-860415112&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_33');
+}
+
+.segment-34 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1296516962&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_34');
+}
+
+.segment-35 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2088331901&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_35');
+}
+
+.segment-36 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=256381215&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_36');
+}
+
+.segment-37 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1875653886&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_37');
+}
+
+.segment-38 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1018734952&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_38');
+}
+
+.segment-39 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1719804730&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_39');
+}
+
+.segment-40 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=2131295420&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_40');
+}
+
+.segment-41 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1188826352&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_41');
+}
+
+.segment-42 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-490197642&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_42');
+}
+
+.segment-43 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=2134877969&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_43');
+}
+
+.segment-44 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1659788899&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_44');
+}
+
+.segment-45 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-642683351&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_45');
+}
+
+.segment-46 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1618539288&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_46');
+}
+
+.segment-47 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=442730403&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_47');
+}
+
+.segment-48 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-853596234&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_48');
+}
+
+.segment-49 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1398917332&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_49');
+}
+
+.segment-50 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1452203171&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_50');
+}
+
+.segment-51 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=754303054&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_51');
+}
+
+.segment-52 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=757401590&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_52');
+}
+
+.segment-53 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-27228585&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_53');
+}
+
+.segment-54 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1157720266&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_54');
+}
+
+.segment-55 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1734299814&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_55');
+}
+
+.segment-56 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-379685675&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_56');
+}
+
+.segment-57 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1087193539&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_57');
+}
+
+.segment-58 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-252183376&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_58');
+}
+
+.segment-59 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1091674079&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_59');
+}
+
+.segment-60 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1439999035&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_60');
+}
+
+.segment-61 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=726723000&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_61');
+}
+
+.segment-62 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1299368954&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_62');
+}
+
+.segment-63 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1084702771&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_63');
+}
+
+.segment-64 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2015031880&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_64');
+}
+
+.segment-65 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=797279667&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_65');
+}
+
+.segment-66 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-615704663&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_66');
+}
+
+.segment-67 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1673045790&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_67');
+}
+
+.segment-68 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=958685505&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_68');
+}
+
+.segment-69 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2124165096&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_69');
+}
+
+.segment-70 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1380416211&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_70');
+}
+
+.segment-71 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1552948018&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_71');
+}
+
+.segment-72 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=2041368454&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_72');
+}
+
+.segment-73 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=135986622&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_73');
+}
+
+.segment-74 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-327582382&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_74');
+}
+
+.segment-75 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=562590469&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_75');
+}
+
+.segment-76 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=204732888&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_76');
+}
+
+.segment-77 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1576228818&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_77');
+}
+
+.segment-78 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1621551262&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_78');
+}
+
+.segment-79 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1395570073&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_79');
+}
+
+.segment-80 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1230762391&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_80');
+}
+
+.segment-81 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=280509128&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_81');
+}
+
+.segment-82 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-361501729&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_82');
+}
+
+.segment-83 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1978892610&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_83');
+}
+
+.segment-84 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-633306398&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_84');
+}
+
+.segment-85 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-343324351&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_85');
+}
+
+.segment-86 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=168902806&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_86');
+}
+
+.segment-87 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=31452596&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_87');
+}
+
+.segment-88 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1577586349&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_88');
+}
+
+.segment-89 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1530584743&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_89');
+}
+
+.segment-90 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2039976668&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_90');
+}
+
+.segment-91 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1972515963&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_91');
+}
+
+.segment-92 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=231648929&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_92');
+}
+
+.segment-93 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=621761701&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_93');
+}
+
+.segment-94 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1472133353&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_94');
+}
+
+.segment-95 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=41536772&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_95');
+}
+
+.segment-96 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1495231187&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_96');
+}
+
+.segment-97 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1056730910&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_97');
+}
+
+.segment-98 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-845233413&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_98');
+}
+
+.segment-99 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1091373881&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_99');
+}
+
+.segment-100 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-717425653&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_100');
+}
+
+.segment-101 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1284292241&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_101');
+}
+
+.segment-102 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-608720196&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_102');
+}
+
+.segment-103 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1665710905&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_103');
+}
+
+.segment-104 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1074196072&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_104');
+}
+
+.segment-105 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1857048533&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_105');
+}
+
+.segment-106 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=134223766&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_106');
+}
+
+.segment-107 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=678415807&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_107');
+}
+
+.segment-108 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-596246097&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_108');
+}
+
+.segment-109 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-831362916&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_109');
+}
+
+.segment-110 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1736374276&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_110');
+}
+
+.segment-111 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-817586162&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_111');
+}
+
+.segment-112 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1828529224&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_112');
+}
+
+.segment-113 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1187758073&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_113');
+}
+
+.segment-114 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1139342357&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_114');
+}
+
+.segment-115 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1106181612&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_115');
+}
+
+.segment-116 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1903238585&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_116');
+}
+
+.segment-117 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1953195806&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_117');
+}
+
+.segment-118 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1711485831&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_118');
+}
+
+.segment-119 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-462159505&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_119');
+}
+
+.segment-120 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1852392153&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_120');
+}
+
+.segment-121 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2110318254&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_121');
+}
+
+.segment-122 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=723135710&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_122');
+}
+
+.segment-123 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1249715266&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_123');
+}
+
+.segment-124 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-975791&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_124');
+}
+
+.segment-125 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1169386003&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_125');
+}
+
+.segment-126 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=2001800020&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_126');
+}
+
+.segment-127 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1134273624&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_127');
+}
+
+.segment-128 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1806034951&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_128');
+}
+
+.segment-129 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1170757573&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_129');
+}
+
+.segment-130 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-998031400&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_130');
+}
+
+.segment-131 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1569560588&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_131');
+}
+
+.segment-132 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1443908343&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_132');
+}
+
+.segment-133 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=823419161&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_133');
+}
+
+.segment-134 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=779431366&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_134');
+}
+
+.segment-135 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1684287909&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_135');
+}
+
+.segment-136 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=2102236185&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_136');
+}
+
+.segment-137 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1533304335&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_137');
+}
+
+.segment-138 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-984531883&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_138');
+}
+
+.segment-139 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1201354901&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_139');
+}
+
+.segment-140 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-490825928&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_140');
+}
+
+.segment-141 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1588081641&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_141');
+}
+
+.segment-142 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=959286196&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_142');
+}
+
+.segment-143 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1564563150&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_143');
+}
+
+.segment-144 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1512475692&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_144');
+}
+
+.segment-145 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=2084396782&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_145');
+}
+
+.segment-146 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=152938580&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_146');
+}
+
+.segment-147 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1993478371&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_147');
+}
+
+.segment-148 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1453756942&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_148');
+}
+
+.segment-149 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-992356748&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_149');
+}
+
+.segment-150 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=459086369&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_150');
+}
+
+.segment-151 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1096925152&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_151');
+}
+
+.segment-152 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-919637305&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_152');
+}
+
+.segment-153 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2048912223&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_153');
+}
+
+.segment-154 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-98331566&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_154');
+}
+
+.segment-155 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1716679347&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_155');
+}
+
+.segment-156 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1840176562&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_156');
+}
+
+.segment-157 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1104184398&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_157');
+}
+
+.segment-158 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1746079434&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_158');
+}
+
+.segment-159 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2083544605&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_159');
+}
+
+.segment-160 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-101566495&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_160');
+}
+
+.segment-161 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1732037394&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_161');
+}
+
+.segment-162 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1828449960&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_162');
+}
+
+.segment-163 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-865091516&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_163');
+}
+
+.segment-164 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1780736721&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_164');
+}
+
+.segment-165 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1292439032&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_165');
+}
+
+.segment-166 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-4632151&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_166');
+}
+
+.segment-167 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2075351960&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_167');
+}
+
+.segment-168 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1036238516&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_168');
+}
+
+.segment-169 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=882036518&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_169');
+}
+
+.segment-170 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=222398345&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_170');
+}
+
+.segment-171 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=776295002&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_171');
+}
+
+.segment-172 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=870283207&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_172');
+}
+
+.segment-173 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1440743763&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_173');
+}
+
+.segment-174 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=155967989&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_174');
+}
+
+.segment-175 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=907367853&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_175');
+}
+
+.segment-176 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-105142660&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_176');
+}
+
+.segment-177 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=651341357&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_177');
+}
+
+.segment-178 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=161643116&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_178');
+}
+
+.segment-179 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1180080263&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_179');
+}
+
+.segment-180 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1091402771&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_180');
+}
+
+.segment-181 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-333411329&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_181');
+}
+
+.segment-182 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-767225644&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_182');
+}
+
+.segment-183 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1571568035&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_183');
+}
+
+.segment-184 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1975529704&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_184');
+}
+
+.segment-185 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1749121391&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_185');
+}
+
+.segment-186 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1130178371&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_186');
+}
+
+.segment-187 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2128880792&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_187');
+}
+
+.segment-188 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=354408621&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_188');
+}
+
+.segment-189 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1977543956&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_189');
+}
+
+.segment-190 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1844007188&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_190');
+}
+
+.segment-191 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-230940466&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_191');
+}
+
+.segment-192 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1342676994&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_192');
+}
+
+.segment-193 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-805525105&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_193');
+}
+
+.segment-194 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1033544412&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_194');
+}
+
+.segment-195 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-159216554&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_195');
+}
+
+.segment-196 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=186826057&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_196');
+}
+
+.segment-197 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1126326820&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_197');
+}
+
+.segment-198 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1210316064&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_198');
+}
+
+.segment-199 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=523448066&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_199');
+}
+
+.segment-200 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=76838085&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_200');
+}
+
+.segment-201 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=84355117&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_201');
+}
+
+.segment-202 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=536151287&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_202');
+}
+
+.segment-203 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-756557977&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_203');
+}
+
+.segment-204 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-377278959&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_204');
+}
+
+.segment-205 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=593338161&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_205');
+}
+
+.segment-206 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=575568332&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_206');
+}
+
+.segment-207 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-374180350&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_207');
+}
+
+.segment-208 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1756760728&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_208');
+}
+
+.segment-209 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1090254337&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_209');
+}
+
+.segment-210 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=163025719&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_210');
+}
+
+.segment-211 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-884507091&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_211');
+}
+
+.segment-212 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=378188479&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_212');
+}
+
+.segment-213 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1364724553&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_213');
+}
+
+.segment-214 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-448149246&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_214');
+}
+
+.segment-215 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1990101089&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_215');
+}
+
+.segment-216 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-619077597&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_216');
+}
+
+.segment-217 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-706463107&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_217');
+}
+
+.segment-218 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1360517031&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_218');
+}
+
+.segment-219 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-158822963&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_219');
+}
+
+.segment-220 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1368733543&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_220');
+}
+
+.segment-221 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1047606783&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_221');
+}
+
+.segment-222 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-527205674&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_222');
+}
+
+.segment-223 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=868259735&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_223');
+}
+
+.segment-224 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-606241883&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_224');
+}
+
+.segment-225 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1968503923&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_225');
+}
+
+.segment-226 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1388181691&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_226');
+}
+
+.segment-227 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1163001990&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_227');
+}
+
+.segment-228 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-161346900&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_228');
+}
+
+.segment-229 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=924720349&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_229');
+}
+
+.segment-230 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1279133627&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_230');
+}
+
+.segment-231 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=269024419&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_231');
+}
+
+.segment-232 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=517686792&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_232');
+}
+
+.segment-233 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1870673587&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_233');
+}
+
+.segment-234 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1007467597&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_234');
+}
+
+.segment-235 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=39963207&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_235');
+}
+
+.segment-236 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-543966634&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_236');
+}
+
+.segment-237 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1674447753&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_237');
+}
+
+.segment-238 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-739331888&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_238');
+}
+
+.segment-239 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1089732561&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_239');
+}
+
+.segment-240 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1356902219&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_240');
+}
+
+.segment-241 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-574139989&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_241');
+}
+
+.segment-242 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-887279181&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_242');
+}
+
+.segment-243 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-391725507&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_243');
+}
+
+.segment-244 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=467297555&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_244');
+}
+
+.segment-245 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1300839623&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_245');
+}
+
+.segment-246 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-840301700&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_246');
+}
+
+.segment-247 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=890689377&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_247');
+}
+
+.segment-248 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1165440138&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_248');
+}
+
+.segment-249 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1048648497&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_249');
+}
+
+.segment-250 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1469847178&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_250');
+}
+
+.segment-251 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1552474304&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_251');
+}
+
+.segment-252 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1807180021&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_252');
+}
+
+.segment-253 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2115861588&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_253');
+}
+
+.segment-254 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=271793515&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_254');
+}
+
+.segment-255 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1159515699&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_255');
+}
+
+.segment-256 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1346782034&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_256');
+}
+
+.segment-257 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1040051731&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_257');
+}
+
+.segment-258 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-62649097&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_258');
+}
+
+.segment-259 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=17306208&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_259');
+}
+
+.segment-260 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1770150068&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_260');
+}
+
+.segment-261 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1748682082&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_261');
+}
+
+.segment-262 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1616356395&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_262');
+}
+
+.segment-263 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2026841779&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_263');
+}
+
+.segment-264 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=2115718192&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_264');
+}
+
+.segment-265 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1505755417&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_265');
+}
+
+.segment-266 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1774452405&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_266');
+}
+
+.segment-267 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=440169285&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_267');
+}
+
+.segment-268 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1100267236&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_268');
+}
+
+.segment-269 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=2137095594&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_269');
+}
+
+.segment-270 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-305246367&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_270');
+}
+
+.segment-271 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2013050728&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_271');
+}
+
+.segment-272 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=6298152&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_272');
+}
+
+.segment-273 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-538368086&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_273');
+}
+
+.segment-274 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1587374895&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_274');
+}
+
+.segment-275 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1547237862&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_275');
+}
+
+.segment-276 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2085706687&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_276');
+}
+
+.segment-277 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1806203029&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_277');
+}
+
+.segment-278 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=841176927&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_278');
+}
+
+.segment-279 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1445397117&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_279');
+}
+
+.segment-280 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1384358361&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_280');
+}
+
+.segment-281 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=472164776&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_281');
+}
+
+.segment-282 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-105230878&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_282');
+}
+
+.segment-283 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1351528310&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_283');
+}
+
+.segment-284 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1958532715&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_284');
+}
+
+.segment-285 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-993967037&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_285');
+}
+
+.segment-286 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1647182022&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_286');
+}
+
+.segment-287 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1363024601&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_287');
+}
+
+.segment-288 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1441034965&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_288');
+}
+
+.segment-289 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1894158116&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_289');
+}
+
+.segment-290 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1700226847&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_290');
+}
+
+.segment-291 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2065411561&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_291');
+}
+
+.segment-292 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=827783637&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_292');
+}
+
+.segment-293 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-713136793&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_293');
+}
+
+.segment-294 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1010481232&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_294');
+}
+
+.segment-295 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1099652390&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_295');
+}
+
+.segment-296 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1495370969&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_296');
+}
+
+.segment-297 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-832218341&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_297');
+}
+
+.segment-298 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1972975343&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_298');
+}
+
+.segment-299 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-94648343&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_299');
+}
+
+.segment-300 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=535389788&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_300');
+}
+
+.segment-301 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=33245431&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_301');
+}
+
+.segment-302 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-883873791&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_302');
+}
+
+.segment-303 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1390747710&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_303');
+}
+
+.segment-304 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=2021558454&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_304');
+}
+
+.segment-305 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=36783432&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_305');
+}
+
+.segment-306 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=264502612&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_306');
+}
+
+.segment-307 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1901473315&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_307');
+}
+
+.segment-308 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1803510476&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_308');
+}
+
+.segment-309 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1957888130&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_309');
+}
+
+.segment-310 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1518848439&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_310');
+}
+
+.segment-311 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1103813345&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_311');
+}
+
+.segment-312 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1044934225&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_312');
+}
+
+.segment-313 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1652780356&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_313');
+}
+
+.segment-314 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1091535214&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_314');
+}
+
+.segment-315 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-33694293&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_315');
+}
+
+.segment-316 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-633726839&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_316');
+}
+
+.segment-317 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1033486937&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_317');
+}
+
+.segment-318 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1305471832&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_318');
+}
+
+.segment-319 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2105850493&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_319');
+}
+
+.segment-320 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=906066883&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_320');
+}
+
+.segment-321 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=2106287475&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_321');
+}
+
+.segment-322 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-180416486&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_322');
+}
+
+.segment-323 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1057772053&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_323');
+}
+
+.segment-324 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-795858349&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_324');
+}
+
+.segment-325 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-606816030&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_325');
+}
+
+.segment-326 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=697889852&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_326');
+}
+
+.segment-327 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=286771230&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_327');
+}
+
+.segment-328 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=849654529&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_328');
+}
+
+.segment-329 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=372322972&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_329');
+}
+
+.segment-330 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1839874270&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_330');
+}
+
+.segment-331 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1339074260&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_331');
+}
+
+.segment-332 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=226645806&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_332');
+}
+
+.segment-333 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-105706378&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_333');
+}
+
+.segment-334 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1163980879&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_334');
+}
+
+.segment-335 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=795976530&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_335');
+}
+
+.segment-336 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=122625651&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_336');
+}
+
+.segment-337 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1698231401&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_337');
+}
+
+.segment-338 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=445867089&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_338');
+}
+
+.segment-339 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=778639233&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_339');
+}
+
+.segment-340 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1473120463&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_340');
+}
+
+.segment-341 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1449414350&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_341');
+}
+
+.segment-342 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1029886724&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_342');
+}
+
+.segment-343 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1724965065&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_343');
+}
+
+.segment-344 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1787709559&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_344');
+}
+
+.segment-345 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=2132032019&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_345');
+}
+
+.segment-346 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1745144866&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_346');
+}
+
+.segment-347 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1906650679&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_347');
+}
+
+.segment-348 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=907130941&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_348');
+}
+
+.segment-349 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1517827892&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_349');
+}
+
+.segment-350 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-417431601&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_350');
+}
+
+.segment-351 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1004317006&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_351');
+}
+
+.segment-352 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1113863693&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_352');
+}
+
+.segment-353 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1111925046&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_353');
+}
+
+.segment-354 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1494865678&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_354');
+}
+
+.segment-355 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1507964703&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_355');
+}
+
+.segment-356 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1161107947&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_356');
+}
+
+.segment-357 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=716400571&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_357');
+}
+
+.segment-358 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1539989817&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_358');
+}
+
+.segment-359 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1998872657&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_359');
+}
+
+.segment-360 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1722012328&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_360');
+}
+
+.segment-361 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=680706475&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_361');
+}
+
+.segment-362 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=776747675&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_362');
+}
+
+.segment-363 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1263410965&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_363');
+}
+
+.segment-364 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=727487631&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_364');
+}
+
+.segment-365 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=328305838&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_365');
+}
+
+.segment-366 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1075010063&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_366');
+}
+
+.segment-367 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1368362683&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_367');
+}
+
+.segment-368 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1318250410&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_368');
+}
+
+.segment-369 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=2132575851&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_369');
+}
+
+.segment-370 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1290848401&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_370');
+}
+
+.segment-371 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=924032996&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_371');
+}
+
+.segment-372 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=2024813638&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_372');
+}
+
+.segment-373 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1769445298&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_373');
+}
+
+.segment-374 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1628616116&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_374');
+}
+
+.segment-375 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=754055893&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_375');
+}
+
+.segment-376 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-299624140&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_376');
+}
+
+.segment-377 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-122914039&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_377');
+}
+
+.segment-378 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=50181099&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_378');
+}
+
+.segment-379 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-954126834&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_379');
+}
+
+.segment-380 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1651044631&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_380');
+}
+
+.segment-381 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=702511560&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_381');
+}
+
+.segment-382 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-878935111&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_382');
+}
+
+.segment-383 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=527996511&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_383');
+}
+
+.segment-384 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1899191076&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_384');
+}
+
+.segment-385 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=831996201&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_385');
+}
+
+.segment-386 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=720505396&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_386');
+}
+
+.segment-387 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1313019092&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_387');
+}
+
+.segment-388 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=788080119&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_388');
+}
+
+.segment-389 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1219820902&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_389');
+}
+
+.segment-390 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1284490856&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_390');
+}
+
+.segment-391 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1781869202&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_391');
+}
+
+.segment-392 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2082897728&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_392');
+}
+
+.segment-393 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=541535679&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_393');
+}
+
+.segment-394 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1188640945&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_394');
+}
+
+.segment-395 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=577986859&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_395');
+}
+
+.segment-396 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-947002552&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_396');
+}
+
+.segment-397 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1834213583&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_397');
+}
+
+.segment-398 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=2054164760&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_398');
+}
+
+.segment-399 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1221073602&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_399');
+}
+
+.segment-400 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-226434984&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_400');
+}
+
+.segment-401 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1596374801&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_401');
+}
+
+.segment-402 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1200430455&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_402');
+}
+
+.segment-403 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=625120419&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_403');
+}
+
+.segment-404 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=472629351&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_404');
+}
+
+.segment-405 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=357985908&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_405');
+}
+
+.segment-406 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1657072767&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_406');
+}
+
+.segment-407 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1551492742&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_407');
+}
+
+.segment-408 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1284984021&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_408');
+}
+
+.segment-409 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1227833092&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_409');
+}
+
+.segment-410 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1051523799&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_410');
+}
+
+.segment-411 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1946959618&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_411');
+}
+
+.segment-412 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1607675064&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_412');
+}
+
+.segment-413 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1597217042&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_413');
+}
+
+.segment-414 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1179224510&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_414');
+}
+
+.segment-415 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-450204685&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_415');
+}
+
+.segment-416 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=726658922&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_416');
+}
+
+.segment-417 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2051717859&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_417');
+}
+
+.segment-418 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1052660441&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_418');
+}
+
+.segment-419 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-335232474&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_419');
+}
+
+.segment-420 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1039058190&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_420');
+}
+
+.segment-421 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2141739229&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_421');
+}
+
+.segment-422 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1038626552&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_422');
+}
+
+.segment-423 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1322619229&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_423');
+}
+
+.segment-424 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-335594865&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_424');
+}
+
+.segment-425 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1076164912&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_425');
+}
+
+.segment-426 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1688321289&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_426');
+}
+
+.segment-427 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1967682136&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_427');
+}
+
+.segment-428 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1778912578&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_428');
+}
+
+.segment-429 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1397719106&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_429');
+}
+
+.segment-430 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-786409310&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_430');
+}
+
+.segment-431 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1808266496&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_431');
+}
+
+.segment-432 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=962847212&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_432');
+}
+
+.segment-433 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1049628661&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_433');
+}
+
+.segment-434 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-376459092&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_434');
+}
+
+.segment-435 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-378302720&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_435');
+}
+
+.segment-436 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1891156824&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_436');
+}
+
+.segment-437 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-362098855&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_437');
+}
+
+.segment-438 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=28550459&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_438');
+}
+
+.segment-439 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1403905499&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_439');
+}
+
+.segment-440 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-467025113&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_440');
+}
+
+.segment-441 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-374137179&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_441');
+}
+
+.segment-442 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1207864142&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_442');
+}
+
+.segment-443 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=972976796&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_443');
+}
+
+.segment-444 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1152305360&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_444');
+}
+
+.segment-445 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1288762096&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_445');
+}
+
+.segment-446 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=234890117&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_446');
+}
+
+.segment-447 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1572269539&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_447');
+}
+
+.segment-448 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-938544906&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_448');
+}
+
+.segment-449 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=819960092&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_449');
+}
+
+.segment-450 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-946876940&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_450');
+}
+
+.segment-451 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1388378470&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_451');
+}
+
+.segment-452 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2019081214&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_452');
+}
+
+.segment-453 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-980808954&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_453');
+}
+
+.segment-454 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1964393962&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_454');
+}
+
+.segment-455 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1920738322&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_455');
+}
+
+.segment-456 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=146555476&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_456');
+}
+
+.segment-457 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1813601518&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_457');
+}
+
+.segment-458 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1769561420&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_458');
+}
+
+.segment-459 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1292253342&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_459');
+}
+
+.segment-460 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=310542655&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_460');
+}
+
+.segment-461 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-327361598&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_461');
+}
+
+.segment-462 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-76484741&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_462');
+}
+
+.segment-463 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1463692530&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_463');
+}
+
+.segment-464 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-133434947&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_464');
+}
+
+.segment-465 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=520491348&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_465');
+}
+
+.segment-466 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1118604259&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_466');
+}
+
+.segment-467 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-953736670&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_467');
+}
+
+.segment-468 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=771105709&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_468');
+}
+
+.segment-469 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=359663393&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_469');
+}
+
+.segment-470 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=948227866&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_470');
+}
+
+.segment-471 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-550441927&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_471');
+}
+
+.segment-472 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-232956338&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_472');
+}
+
+.segment-473 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=881264691&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_473');
+}
+
+.segment-474 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1967604164&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_474');
+}
+
+.segment-475 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1916785367&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_475');
+}
+
+.segment-476 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2131710490&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_476');
+}
+
+.segment-477 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=278036205&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_477');
+}
+
+.segment-478 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-468423292&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_478');
+}
+
+.segment-479 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=83819717&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_479');
+}
+
+.segment-480 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-285908672&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_480');
+}
+
+.segment-481 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2096449019&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_481');
+}
+
+.segment-482 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1520403379&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_482');
+}
+
+.segment-483 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-894284408&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_483');
+}
+
+.segment-484 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1191631446&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_484');
+}
+
+.segment-485 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=606004599&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_485');
+}
+
+.segment-486 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-408121400&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_486');
+}
+
+.segment-487 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1512662452&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_487');
+}
+
+.segment-488 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1341450373&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_488');
+}
+
+.segment-489 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=338367969&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_489');
+}
+
+.segment-490 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-2021796620&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_490');
+}
+
+.segment-491 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=822794514&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_491');
+}
+
+.segment-492 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-413295195&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_492');
+}
+
+.segment-493 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1317123890&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_493');
+}
+
+.segment-494 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=2123181402&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_494');
+}
+
+.segment-495 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=2013456986&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_495');
+}
+
+.segment-496 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=159746876&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_496');
+}
+
+.segment-497 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1220100384&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_497');
+}
+
+.segment-498 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1390714888&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_498');
+}
+
+.segment-499 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-722298244&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_499');
+}
+
+.segment-500 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-774503709&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_500');
+}
+
+.segment-501 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1727635669&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_501');
+}
+
+.segment-502 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1447984721&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_502');
+}
+
+.segment-503 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-793956641&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_503');
+}
+
+.segment-504 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1908541391&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_504');
+}
+
+.segment-505 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1217118938&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_505');
+}
+
+.segment-506 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1253599464&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_506');
+}
+
+.segment-507 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1012066782&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_507');
+}
+
+.segment-508 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=1927754481&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_508');
+}
+
+.segment-509 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1752941047&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_509');
+}
+
+.segment-510 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1021111759&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_510');
+}
+
+.segment-511 {
+    background-image: url('project://database/Assets/UI/Counter.png?fileID=-1314926677&guid=b40b8abf1d7512a4282cf8ec3970de72&type=3#Counter_511');
+}
+

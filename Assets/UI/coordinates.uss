@@ -1,0 +1,54 @@
+.coorsys-wall {
+    width: 3px;
+    height: 13px;
+    margin-left: 1px;
+    margin-right: 1px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+
+#X > .coorsys-wall {
+    background-color: rgb(255, 119, 119);
+}
+
+#Y > .coorsys-wall {
+    background-color: rgb(119, 255, 138);
+}
+
+#Z > .coorsys-wall {
+    background-color: rgb(119, 176, 255);
+}
+
+#X .coorsys-segment {
+}
+
+.coorsys-segment {
+    flex-shrink: 0;
+    width: 15px;
+    height: 15px;
+}
+
+.coorsys-segment-input {
+    flex-shrink: 0;
+    width: 45px;
+    height: 45px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    flex-direction: row;
+}
+
+.coorsys-segment-container {
+    flex-direction: row-reverse;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.coorsys-axis {
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: row;
+}
+
+.coorsys-segment-input__button:hover {
+    background-color: rgba(0, 0, 0, 0.39);
+}

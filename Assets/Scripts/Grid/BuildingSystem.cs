@@ -160,6 +160,33 @@ public partial class BuildingSystem : SystemBase
     }
 }
 
+public partial class GeneratedBufferToPartsSystem : SystemBase
+{
+    private EntityCommandBufferSystem bufferSystem;
+
+    protected override void OnCreate()
+    {
+        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
+    }
+
+    protected override void OnUpdate()
+    {
+        var ecb = bufferSystem.CreateCommandBuffer();
+        Entities.ForEach((Entity e, in DynamicBuffer<BuildingPartInfo> parts) =>
+        {
+            for (int i = 0; i < parts.Length; i++)
+            {
+                var part = ecb.CreateEntity();
+                ecb.AddComponent(part, new PendingPart{Grid = e, Data = parts[i]});
+            }
+        }).Schedule();
+
+        EntityManager.RemoveComponent<BuildingPartInfo>(GetEntityQuery(typeof(BuildingPartInfo)));
+
+        bufferSystem.AddJobHandleForProducer(Dependency);
+    }
+}
+
 [UpdateInGroup(typeof(LateSimulationSystemGroup))]
 public partial class BlueprintedChildrenUpdateSystem : SystemBase
 {

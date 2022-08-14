@@ -1,5 +1,7 @@
 Version: 3
 Name: ShipYard
+Tags:
+- Generatable
 Parts:
   17704343019872175460:
   - LocalToGrid: [0,0,0,24]

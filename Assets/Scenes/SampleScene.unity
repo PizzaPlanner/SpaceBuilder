@@ -417,9 +417,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Sector:
-    x: 6
-    y: 0
-    z: 2
+    x: 754210
+    y: -1723
+    z: 144821
   SubSector:
     x: 15000
     y: 0

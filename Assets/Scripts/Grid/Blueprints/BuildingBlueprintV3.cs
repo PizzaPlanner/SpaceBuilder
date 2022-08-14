@@ -32,6 +32,7 @@ public struct BlueprintParserV3 : IBlueprintParser
         public int Version;
         public string Name;
         public Dictionary<ulong, List<PartData>> Parts;
+        public List<string> Tags;
 
         public void Deserialize(string data)
         {
@@ -59,12 +60,22 @@ public struct BlueprintParserV3 : IBlueprintParser
                 }
                 if (key == "Version")
                     int.TryParse(value, out Version);
+                else if (key == "Tags")
+                {
+                    int.TryParse(value, out Version);
+                    Tags = new List<string>();
+                    CurrentToken.Push((Tags, indent));
+                }
                 else if (key == "Name")
                     Name = value;
                 else if (key == "Parts")
                 {
                     Parts = new Dictionary<ulong, List<PartData>>();
                     CurrentToken.Push((Parts, indent));
+                }
+                else if (CurrentToken.Peek().Property == Tags)
+                {
+                    Tags.Add(value);
                 }
                 else if (CurrentToken.Peek().Property is Dictionary<ulong, List<PartData>> dict && key != null)
                 {
@@ -223,14 +234,14 @@ Parts:
         {
             parts.AddRange(ds.Parts[id].Select(item => new BuildingPartInfo
                 {
-                    Id = id, Orientation =
-                    item.Orientation,
+                    Id = id,
+                    Orientation = item.Orientation,
                     Area = new BoundingBox{Origin = item.Position, Extents = item.Scale - 1},
                     BuildStatus = item.Status,
                     Color = math.all(item.Color == int3.zero) ? default :  new Color(item.Color.x / 255f, item.Color.y / 255f, item.Color.z / 255f)
                 }));
         }
-        return new BlueprintData {Name = ds.Name, Parts = parts};
+        return new BlueprintData {Name = ds.Name, Parts = parts, Tags = ds.Tags};
     }
 
     public string VersionIdentifier => "Version: 3";

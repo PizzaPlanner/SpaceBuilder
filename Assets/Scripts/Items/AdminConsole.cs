@@ -219,12 +219,8 @@ public struct SpawnCommand : AdminConsole.IConsoleCommand
             return;
 
         var path = parameters[0];
-        var e = BlueprintLibrary.Load(path, EntityManager);
-        if (e == Entity.Null)
-            return;
-        var ltg = EntityManager.GetComponentData<LocalToGalaxy>(executor);
-        EntityManager.SetComponentData(e, EntityManager.GetComponentData<Rotation>(executor));
-        EntityManager.SetComponentData(e, ltg);
+        var ecb = EntityManager.World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>().CreateCommandBuffer();
+        POIGenerator.QueuePOISpawn(ecb, path, EntityManager.GetComponentData<LocalToGalaxy>(executor), EntityManager.GetComponentData<Rotation>(executor));
     }
 }
 

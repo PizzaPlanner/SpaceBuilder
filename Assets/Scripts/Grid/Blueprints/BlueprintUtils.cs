@@ -89,7 +89,7 @@ public struct RightAngleRotation
     }
 }
 
-public struct BuildingPartInfo
+public struct BuildingPartInfo : IBufferElementData
 {
     public ulong Id;
     public BoundingBox Area;
@@ -100,7 +100,7 @@ public struct BuildingPartInfo
 
 public struct BlueprintData
 {
-
+    public IEnumerable<string> Tags;
     public IEnumerable<BuildingPartInfo> Parts;
     public string Name;
 }
@@ -121,6 +121,8 @@ public interface IBlueprintParser
 
 public static class BlueprintUtils
 {
+    public const string BlueprintFileExtension = ".txt";
+
     private static Dictionary<string, IBlueprintParser> versionToLoader;
 
     static void Initialize()

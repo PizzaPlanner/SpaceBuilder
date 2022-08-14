@@ -1,6 +1,6 @@
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics;
+using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -18,11 +18,11 @@ public partial class SteeringSystem : SystemBase
         Entities.ForEach((in SteeringController steer, in GridItem item, in DynamicBuffer<ControlledItems> items) =>
         {
             var grid = item.Grid;
-            if (!HasComponent<Flyable>(grid))
-                return;
+            // if (!HasComponent<Flyable>(grid))
+            //     return;
 
-            var velocity = GetComponent<PhysicsVelocity>(grid);
-            velocity.Angular = steer.SteeringAngle;
+            var velocity = GetComponent<Rotation>(grid);
+            velocity.Value = math.mul(velocity.Value, quaternion.Euler(steer.SteeringAngle));
             SetComponent(grid, velocity);
             for (int i = 0; i < items.Length; i++)
             {

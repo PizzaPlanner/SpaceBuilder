@@ -64,6 +64,8 @@ public partial class PlayerTargetSystem : SystemBase
 
     protected override void OnUpdate()
     {
+        Dependency.Complete();
+
         var camera = Camera.main.transform;
         var camPosition = (float3)camera.position;
         var camForward = (float3) camera.forward;
@@ -144,7 +146,7 @@ public partial class PlayerTargetSystem : SystemBase
             var distToNextSide = math.select(startRelative, 1 - startRelative, step > 0) * delta;
 
             var next = start;
-            while (math.any(next != end))
+            while (math.any(next != end) && cellBuffer.Length <= math.csum(math.abs(end - start)))
             {
                 var smallFilter = math.select(int3.zero, 1, new bool3(
                     distToNextSide.x <= distToNextSide.y && distToNextSide.x <= distToNextSide.z,

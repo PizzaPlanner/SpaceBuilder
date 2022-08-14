@@ -7,9 +7,9 @@ public static class GalaxyTools
 {
     private const float PERLIN_SECTOR_RESOLUTION = 0.01f;
     private const int SECTOR_CENTRAL_SUBSECTOR = (int) Constants.MAX_SUBSECTOR >> 1;
-    private const uint SUN_MAX_DIST_FROM_CENTER = (int) (SECTOR_CENTRAL_SUBSECTOR * 0.015f);
-    private const uint MIN_DIST_FROM_SUN_TO_PLANET = (int) (SECTOR_CENTRAL_SUBSECTOR * 0.04f + GenerateStarSystem.STAR_SIZE_BASE * GenerateStarSystem.STAR_MAX_SIZE_FACTOR / Constants.MAX_POSITION);
-    private const uint MIN_DIST_BETWEEN_PLANETS = (int) (SECTOR_CENTRAL_SUBSECTOR * 0.02f + GeneratePlanetSystem.PLANET_SIZE_BASE * GeneratePlanetSystem.PLANET_MAX_SIZE_FACTOR / Constants.MAX_POSITION);
+    private const uint SUN_MAX_DIST_FROM_CENTER = (int) (SECTOR_CENTRAL_SUBSECTOR * 0.024f);
+    private const uint MIN_DIST_FROM_SUN_TO_PLANET = (int) (10 * GenerateStarSystem.STAR_SIZE_BASE * GenerateStarSystem.STAR_MAX_SIZE_FACTOR / Constants.MAX_POSITION);
+    private const uint MIN_DIST_BETWEEN_PLANETS = (int) (22 * GeneratePlanetSystem.PLANET_SIZE_BASE / Constants.MAX_POSITION * GeneratePlanetSystem.PLANET_MAX_SIZE_FACTOR );
     private const int PLANET_MAX_Y_DISTANCE = (int) (Constants.MAX_SUBSECTOR * 0.003f);
 
     [BurstCompile]

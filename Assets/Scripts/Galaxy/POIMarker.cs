@@ -60,7 +60,12 @@ public class POIMarker : VisualElement
 
         var name = "<?>";
         var unit = "m";
-        if (distance > 1000_000_000)
+        if (distance >= 100_000_000_000)
+        {
+            distance /= Constants.DISTANCE_PER_SECTOR;
+            unit = "s";
+        }
+        else if (distance > 1000_000_000)
         {
             distance *= 0.000_000_001f;
             unit = "Gm";

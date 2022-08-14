@@ -55,14 +55,14 @@ public partial class GeneratePlanetSystem : SystemBase
                 var planetData = prefabPlanetData;
                 planetData.Color = Color.HSVToRGB(random.NextFloat(), random.NextFloat(0.6f, 1f),
                     random.NextFloat(0.8f, 1));
-                planetData.Size = random.NextFloat(1f, PLANET_MAX_SIZE_FACTOR);
+                planetData.Size = random.NextFloat(1f, PLANET_MAX_SIZE_FACTOR) * PLANET_SIZE_BASE;
                 buffer.SetComponent(planet, planetData);
                 buffer.SetComponent(planet, ltg);
                 buffer.SetComponent(planet, new URPMaterialPropertyEmissionColor
                 {
                     Value = new float4(planetData.Color.a, planetData.Color.g, planetData.Color.b, 0)
                 });
-                buffer.AddComponent(planet, new Scale {Value = planetData.Size * PLANET_SIZE_BASE});
+                buffer.AddComponent(planet, new Scale {Value = planetData.Size});
                 buffer.SetComponent(planet, new Name{Value = $"{GalaxyTools.GetStarName(GalaxyTools.GetSectorSeed(ltg.Sector))} {GalaxyTools.ToRomanNumeral(planetRank)}"});
                 buffer.RemoveComponent<GeneratePlanet>(e);
                 buffer.RemoveComponent<ToGenerate>(e);
