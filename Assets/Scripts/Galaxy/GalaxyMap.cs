@@ -21,88 +21,64 @@ namespace Galaxy
                 sector = EditorGUILayout.Vector3IntField("Sector", sector);
                 var type = GalaxyTools.GetSectorType(new int3(sector.x, sector.y, sector.z));
                 if(GUILayout.Button($"Generate ({type})"))
-                    (serializedObject.targetObject as GalaxyMap).GenerateSectorMap();
+                    (serializedObject.targetObject as GalaxyMap).Generate(new int3(sector.x, sector.y, sector.z));
             }
             else
             {
                 if(GUILayout.Button("Generate (Galaxy)"))
-                    (serializedObject.targetObject as GalaxyMap).GenerateGalaxyMap();
+                    (serializedObject.targetObject as GalaxyMap).Generate(int3.zero);
             }
         }
     }
 
     public class GalaxyMap : MonoBehaviour
     {
-        public int2 Start, End;
-        public int Y;
-        public Texture2D texture;
-        public void GenerateGalaxyMap()
-        {
-            texture = new Texture2D(End.x - Start.x, End.y - Start.y);
-            texture.filterMode = FilterMode.Point;
-            texture.wrapMode = TextureWrapMode.Clamp;
-            var colors = new Color[texture.width * texture.height];
-            for(int x = Start.x; x < End.x; x++)
-            for (int z = Start.y; z < End.y; z++)
-            {
-                var current = (x - Start.x) * texture.height + (z - Start.y);
-                var type = GalaxyTools.GetSectorType(new int3(x, Y, z));
-                colors[current] =
-                    (type == SectorType.Star ? Color.yellow :
-                        type == SectorType.Nebula ? Color.blue :
-                        type == SectorType.BlackHole ? Color.magenta :Color.clear);
-                if (x == 0 && z == 0)
-                    colors[current] += new Color(0,0,0,0.6f);
-                else if (x == 0 && z >= 2 && z <= 7)
-                    colors[current] = new Color(0,0,1,0.6f);
-                else if (z == 0 && x >= 2 && x <= 7)
-                    colors[current] = new Color(1,0,0,0.6f);
-                if(current % 5000 == 0)
-                    EditorUtility.DisplayProgressBar("Generating Map...",
-                        $"{current}/{texture.width * texture.height}",
-                        current * 1f / (texture.width * texture.height));
-            }
-            EditorUtility.ClearProgressBar();
-            texture.SetPixels(colors);
-            texture.Apply();
-            var path = Application.dataPath + "/map.png";
-            File.WriteAllBytes(path, texture.EncodeToPNG());
-            Debug.Log("Created "+path);
-        }
+        public int3 Center, Extents;
+        public Texture3D texture;
 
-        public void GenerateSectorMap()
+        Color GetColor(int3 sector, int3 subsector)
         {
-            texture = new Texture2D(End.x - Start.x, End.y - Start.y);
-            texture.filterMode = FilterMode.Point;
-            texture.wrapMode = TextureWrapMode.Clamp;
-            var colors = new Color[texture.width * texture.height];
-            for(int x = Start.x; x < End.x; x++)
-            for (int z = Start.y; z < End.y; z++)
+            if (math.all(subsector == int3.zero))
             {
-                var current = (x - Start.x) * texture.height + (z - Start.y);
-                var type = GalaxyTools.GetSubSectorData(new LocalToGalaxy {Sector = new int3(x, Y, z)}).Type;
-                colors[current] =
-                    type == SubSectorType.Planet ? Color.green :
+                var type = GalaxyTools.GetSectorType(sector);
+                return (type == SectorType.Star ? Color.yellow :
+                    type == SectorType.Nebula ? Color.blue :
+                    type == SectorType.BlackHole ? Color.magenta :Color.clear);
+            }
+            else
+            {
+                var type = GalaxyTools.GetSubSectorData(new LocalToGalaxy {Sector = sector, SubSector = subsector}).Type;
+                return type == SubSectorType.Planet ? Color.green :
                     type == SubSectorType.AsteroidField ? Color.red :
                     type == SubSectorType.POI ? Color.cyan :
                     Color.clear;
-                if (x == 0 && z == 0)
-                    colors[current] += new Color(0,0,0,0.6f);
-                else if (x == 0 && z >= 2 && z <= 7)
-                    colors[current] = new Color(0,0,1,0.6f);
-                else if (z == 0 && x >= 2 && x <= 7)
-                    colors[current] = new Color(1,0,0,0.6f);
-                if(current % 5000 == 0)
+            }
+        }
+
+        public void Generate(int3 sector)
+        {
+            texture = new Texture3D(2*Extents.x, 2*Extents.y, 2*Extents.z, TextureFormat.RGBA4444, 1);
+            texture.filterMode = FilterMode.Point;
+            texture.wrapMode = TextureWrapMode.Clamp;
+            var colors = new Color[texture.width * texture.height * texture.depth];
+            for (int z = Center.z - Extents.z; z < Center.z + Extents.z; z++)
+            for (int y = Center.y - Extents.y; y < Center.y + Extents.y; y++)
+            for (int x = Center.x - Extents.x; x < Center.x + Extents.x; x++)
+            {
+                var current = (x + Extents.x - Center.x) + (y + Extents.y - Center.y) * texture.height + (z + Extents.z - Center.z) * texture.height * texture.depth;
+                colors[current] = math.all(sector == 0) ? GetColor(new int3(x, y, z), int3.zero) : GetColor(sector, new int3(x, y, z));
+                if(current % 10000 == 0)
                     EditorUtility.DisplayProgressBar("Generating Map...",
-                        $"{current}/{texture.width * texture.height}",
-                        current * 1f / (texture.width * texture.height));
+                        $"{current}/{texture.width * texture.height * texture.depth}",
+                        current * 1f / (texture.width * texture.height * texture.depth));
             }
             EditorUtility.ClearProgressBar();
             texture.SetPixels(colors);
             texture.Apply();
             var path = Application.dataPath + "/map.png";
-            File.WriteAllBytes(path, texture.EncodeToPNG());
-            Debug.Log("Created "+path);
+            AssetDatabase.CreateAsset(texture, "Assets/Map3D.asset");
+            AssetDatabase.ImportAsset("Assets/Map3D.asset");
+            Debug.Log("Created Assets/Map3D.asset");
         }
     }
 }

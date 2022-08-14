@@ -1,5 +1,6 @@
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Transforms;
 using UnityEngine;
 
 public struct UnloadCandidate : IComponentData
@@ -47,6 +48,14 @@ public partial class UnloadSectorSystem : SystemBase
                         if (localToGalaxyBuffer[i] == ltg)
                             toRemoveList.Add(localToGalaxyEntities[i]);
                 }
+            }).Run();
+
+        Entities
+            .WithNone<Parent>()
+            .WithAll<GridItem>()
+            .ForEach((Entity e) =>
+            {
+                toRemoveList.Add(e);
             }).Run();
 
         EntityManager.DestroyEntity(toRemoveList);

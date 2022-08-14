@@ -139,16 +139,25 @@ public struct LocalToGalaxy : IComponentData
     }
 }
 
+public enum SectorChangeType
+{
+    Normal,
+    FTL,
+    Teleport
+}
+
 public struct SectorChange : IComponentData
 {
     public Entity Entity;
     public LocalToGalaxy Previous;
     public LocalToGalaxy New;
+    public SectorChangeType ChangeType;
 }
 
 public struct CanTravelSectors : IComponentData
 {
     public LocalToGalaxy PreviousSector;
+    public SectorChangeType CurrentTravelType;
 }
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]
@@ -188,10 +197,16 @@ public partial class TRSToLocalToGalaxySystem : SystemBase
             .WithNone<Parent>()
             .ForEach((Entity e, ref LocalToGalaxy ltg, ref CanTravelSectors cts) =>
             {
-                if (ltg != cts.PreviousSector)
+                if (ltg != cts.PreviousSector && cts.CurrentTravelType != SectorChangeType.FTL)
                 {
                     var update = ecb.CreateEntity();
-                    ecb.AddComponent(update, new SectorChange{Entity = e, Previous = cts.PreviousSector, New = ltg});
+                    ecb.AddComponent(update, new SectorChange
+                    {
+                        Entity = e,
+                        Previous = cts.PreviousSector,
+                        New = ltg,
+                        ChangeType = cts.CurrentTravelType
+                    });
                 }
 
                 cts.PreviousSector = ltg;

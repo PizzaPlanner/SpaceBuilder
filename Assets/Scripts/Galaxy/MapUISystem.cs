@@ -102,5 +102,7 @@ public partial class MapUISystem : SystemBase
             secZS[i].AddToClassList("coorsys-segment");
             secZS[i].AddToClassList($"segment-{seg}");
         }
+
+        coordinates.Q<Label>().text = $"{GalaxyTools.GetSectorType(ltg.Sector)} > {GalaxyTools.GetSubSectorData(ltg).Type}";
     }
 }

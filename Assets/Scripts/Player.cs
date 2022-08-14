@@ -22,6 +22,8 @@ public unsafe partial class MovePlayerSystem : SystemBase
 {
     private const float ROTATION_SENSIVITY = 0.2f;
 
+    private EntityCommandBufferSystem bufferSystem;
+
     protected override void OnCreate()
     {
         RequireSingletonForUpdate<LocalPlayer>();
@@ -30,6 +32,8 @@ public unsafe partial class MovePlayerSystem : SystemBase
         RequireSingletonForUpdate<ControlScheme.OnFeet>();
         RequireForUpdate(GetEntityQuery(typeof(LocalPlayer), typeof(LocalToWorld)));
         RequireForUpdate(GetEntityQuery(typeof(CameraAnchor), typeof(LocalToWorld)));
+
+        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
     }
 
     protected override void OnUpdate()
@@ -60,10 +64,27 @@ public unsafe partial class MovePlayerSystem : SystemBase
 
         var deltaTime = Time.DeltaTime;
 
+        var ecb = bufferSystem.CreateCommandBuffer();
         Entities.WithAll<LocalPlayer>()
-            .ForEach((ref Player player) =>
+            .ForEach((Entity e, ref Player player, ref CanTravelSectors cts, in LocalToGalaxy ltg) =>
             {
                 player.Running = Input.GetKey(KeyCode.LeftShift);
+
+                var previous = cts.CurrentTravelType;
+                cts.CurrentTravelType = player.Running && player.MovementSpeedRun > 1e9
+                    ? SectorChangeType.FTL
+                    : SectorChangeType.Normal;
+                if (previous == SectorChangeType.FTL && cts.CurrentTravelType != SectorChangeType.FTL)
+                {
+                    var update = ecb.CreateEntity();
+                    ecb.AddComponent(update, new SectorChange
+                    {
+                        Entity = e,
+                        Previous = new LocalToGalaxy(),
+                        New = ltg,
+                        ChangeType = cts.CurrentTravelType
+                    });
+                }
             }).Run();
 
         Entities

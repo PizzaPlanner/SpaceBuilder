@@ -41,7 +41,8 @@ public partial class PlayerSpawnSystem : SystemBase
             {
                 Entity = player,
                 Previous = new LocalToGalaxy(),
-                New = ltg
+                New = ltg,
+                ChangeType = SectorChangeType.Teleport
             });
         }).Schedule();
         bufferSystem.AddJobHandleForProducer(Dependency);

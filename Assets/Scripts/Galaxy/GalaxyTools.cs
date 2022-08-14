@@ -202,34 +202,36 @@ public static class GalaxyTools
                     data.Type = SubSectorType.Star;
                 else
                 {
-                    var distToSunSq = math.distancesq(ltg.SubSector, starsector.Center);
                     for (byte i = 0; i < starsector.NumberOfPlanets; i++)
                     {
                         var planetsector = GetPlanetData(starsector, i);
+                        var distToPlanetSq = math.distancesq(planetsector.SubSector, ltg.SubSector);
+                        // Is a planet ?
                         if (math.all(planetsector.SubSector == ltg.SubSector))
                             data.Type = SubSectorType.Planet;
-                        else if (math.distancesq(planetsector.SubSector, ltg.Sector) < 25 * 25)
+                        // Is in Planet POI Range ?
+                        else if (distToPlanetSq < MIN_DIST_BETWEEN_PLANETS * 0.04f * MIN_DIST_BETWEEN_PLANETS * 0.04f)
                         {
                             var random = new Random(data.Seed).NextFloat();
-                            data.Type = random < 0.021f ? SubSectorType.POI : SubSectorType.Empty;
+                            data.Type = random < 0.0021f ? SubSectorType.POI : SubSectorType.Empty;
                         }
-                        else
+                        // non-POI space close to planets is empty
+                        else if(distToPlanetSq < MIN_DIST_BETWEEN_PLANETS * 0.15f * MIN_DIST_BETWEEN_PLANETS * 0.15f)
                         {
-                            var planetDistToSunSq = math.distancesq(planetsector.SubSector, starsector.Center);
-                            if (math.abs(planetDistToSunSq - distToSunSq) < 100 * 100)
-                                data.Type = SubSectorType.Empty;
+                            data.Type = SubSectorType.Empty;
                         }
                     }
 
+                    // Is not next to a planet or a planet's orbit
                     if (data.Type == SubSectorType.Unknown)
                     {
                         var random = new Random(data.Seed).NextFloat();
-                        data.Type = random < 0.0012f ? SubSectorType.AsteroidField : SubSectorType.Empty;
+                        data.Type = random < 0.00027f ? SubSectorType.AsteroidField : SubSectorType.Empty;
                     }
                 }
                 break;
             default:
-                data.Type = SubSectorType.Empty;
+                data.Type = SubSectorType.AsteroidField;
                 break;
         }
 

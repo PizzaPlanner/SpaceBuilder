@@ -28,7 +28,7 @@ public class POIMarker : VisualElement
 
     public void Update(EntityManager em, Entity localPlayer)
     {
-        if (!em.Exists(Target))
+        if (!em.Exists(Target) || !em.HasComponent<LocalToGalaxy>(Target))
         {
             RemoveFromHierarchy();
             return;

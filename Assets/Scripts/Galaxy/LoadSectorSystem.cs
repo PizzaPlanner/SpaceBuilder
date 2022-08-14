@@ -74,12 +74,12 @@ public partial class LoadSectorSystem : SystemBase
         Entities
             .ForEach((Entity e, in SectorChange sc) =>
             {
-                for(int x = -1; x <= 1; x++)
-                for(int y = -1; y <= 1; y++)
-                for(int z = -1; z <= 1; z++)
-                    sectorsToLoadLocal.Enqueue(sc.New + new LocalToGalaxy{ SubSector = new int3(x,y,z)});
-                // sectorsToLoadLocal.Enqueue(sc.New);
                 buffer.DestroyEntity(e);
+
+                for(int x = -2; x <= 2; x++)
+                for(int y = -2; y <= 2; y++)
+                for(int z = -2; z <= 2; z++)
+                    sectorsToLoadLocal.Enqueue(sc.New + new LocalToGalaxy{ SubSector = new int3(x,y,z)});
             }).Run();
 
         Entities.ForEach((Entity e, in ForceLoadSector fls) =>
