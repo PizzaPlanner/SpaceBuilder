@@ -14,8 +14,6 @@ public partial class LoadSectorSystem : SystemBase
     private EndSimulationEntityCommandBufferSystem bufferSystem;
     private NativeQueue<LocalToGalaxy> sectorsToLoad;
     private EntityArchetype sectorArchetype;
-    private int3 lastPlayerSector;
-    private SectorLoadSettings lastSectorLoadSettings;
 
     public struct HasPendingSectors : IComponentData
     {
@@ -24,7 +22,9 @@ public partial class LoadSectorSystem : SystemBase
 
     public struct SectorLoadSettings : IComponentData
     {
-        public int MaxLoadedSectorDistance;
+        public int2 MaxLoadedSectorDistanceCelestial;
+        public int2 MaxLoadedSectorDistancePlanetoid;
+        public int2 MaxLoadedSectorDistanceDefault;
         public int MaxSectorsLoadedPerFrame;
     }
 
@@ -40,10 +40,15 @@ public partial class LoadSectorSystem : SystemBase
         sectorsToLoad = new NativeQueue<LocalToGalaxy>(Allocator.Persistent);
         sectorArchetype = EntityManager.CreateArchetype(typeof(SubSector), typeof(LocalToGalaxy), typeof(TravellerInSector),
             typeof(ToGenerate));
-        lastPlayerSector = int.MaxValue;
 
         EntityManager.CreateEntity(typeof(SectorLoadSettings));
-        SetSingleton(new SectorLoadSettings{MaxLoadedSectorDistance = 40, MaxSectorsLoadedPerFrame = 45});
+        SetSingleton(new SectorLoadSettings
+        {
+            MaxLoadedSectorDistanceCelestial = new int2(40, 0),
+            MaxLoadedSectorDistancePlanetoid = new int2(3, 0),
+            MaxLoadedSectorDistanceDefault = new int2(0, 3),
+            MaxSectorsLoadedPerFrame = 45
+        });
     }
 
     protected override void OnDestroy()
@@ -60,26 +65,50 @@ public partial class LoadSectorSystem : SystemBase
             {
                 typeof(SubSector), typeof(LocalToGalaxy)
             }});
-        var sectorEntities = loadedSectorsQuery.ToEntityArray(Allocator.Temp);
         var sectors = loadedSectorsQuery.ToComponentDataArray<LocalToGalaxy>(Allocator.Temp);
-
-        var unloadCandidates = GetEntityQuery(typeof(UnloadCandidate), typeof(LocalToGalaxy))
-            .ToComponentDataArray<LocalToGalaxy>(Allocator.Temp);
-
-        var localPlayer = GetSingletonEntity<LocalPlayer>();
-        var localPlayerSector = GetComponent<LocalToGalaxy>(localPlayer).Sector;
-
         var sectorsToLoadLocal = sectorsToLoad;
+        var sectorLoadSettings = GetSingleton<SectorLoadSettings>();
 
         Entities
+            .WithName("ProcessSectorChanges")
             .ForEach((Entity e, in SectorChange sc) =>
             {
                 buffer.DestroyEntity(e);
 
-                for(int x = -2; x <= 2; x++)
-                for(int y = -2; y <= 2; y++)
-                for(int z = -2; z <= 2; z++)
-                    sectorsToLoadLocal.Enqueue(sc.New + new LocalToGalaxy{ SubSector = new int3(x,y,z)});
+                if (sc.ChangeType == SectorChangeType.Teleport)
+                {
+                    for(int x = -2; x <= 2; x++)
+                    for(int y = -2; y <= 2; y++)
+                    for(int z = -2; z <= 2; z++)
+                        sectorsToLoadLocal.Enqueue(sc.New + new LocalToGalaxy{ SubSector = new int3(x,y,z)});
+                }
+                else if (sc.ChangeType == SectorChangeType.Normal)
+                {
+                    for(int x = -2; x <= 2; x++)
+                    for(int y = -2; y <= 2; y++)
+                    for(int z = -2; z <= 2; z++)
+                        sectorsToLoadLocal.Enqueue(sc.New + new LocalToGalaxy{ SubSector = new int3(x,y,z)});
+                }
+                if(math.any(sc.New.Sector != sc.Previous.Sector))
+                {
+                    var maxDistance = sectorLoadSettings.MaxLoadedSectorDistanceCelestial.x;
+                    var diff = sc.New.Sector - sc.Previous.Sector;
+                    diff = math.max(math.min(diff, -2 * maxDistance), 2 * maxDistance);
+                    var diffsign = (int3)math.round(math.sign(diff));
+                    for (int x = diffsign.x * maxDistance; x != diffsign.x * (maxDistance - diff.x); x-= diffsign.x)
+                    for (int y = diffsign.y * maxDistance; y != diffsign.y * (maxDistance - diff.y); y-= diffsign.y)
+                    for (int z = diffsign.z * maxDistance; z != diffsign.z * (maxDistance - diff.z); z-= diffsign.z)
+                    {
+                        var pos = new int3(x, y, z) + sc.New.Sector;
+                        if(GalaxyTools.GetSectorType(pos) == SectorType.Star &&
+                           math.csum(math.abs(new int3(x, y, z))) < maxDistance)
+                            sectorsToLoadLocal.Enqueue(new LocalToGalaxy
+                            {
+                                Sector = pos,
+                                SubSector = GalaxyTools.GetStarSectorData(pos).Center
+                            });
+                    }
+                }
             }).Run();
 
         Entities.ForEach((Entity e, in ForceLoadSector fls) =>
@@ -87,54 +116,6 @@ public partial class LoadSectorSystem : SystemBase
             sectorsToLoadLocal.Enqueue(fls.Sector);
             buffer.DestroyEntity(e);
         }).Run();
-
-        var shouldRecalculateSectors = math.any(localPlayerSector != lastPlayerSector) ||
-                                       lastSectorLoadSettings.MaxLoadedSectorDistance != GetSingleton<SectorLoadSettings>().MaxLoadedSectorDistance;
-
-        lastSectorLoadSettings = GetSingleton<SectorLoadSettings>();
-        int maxLoadedSectorDistance = lastSectorLoadSettings.MaxLoadedSectorDistance;
-        int maxSectorsLoadedPerFrame = lastSectorLoadSettings.MaxSectorsLoadedPerFrame;
-
-        if (shouldRecalculateSectors)
-        {
-            lastPlayerSector = localPlayerSector;
-            Entities
-                .WithNone<UnloadCandidate>()
-                .ForEach((Entity e, in LocalToGalaxy ltg, in SectorData sector) =>
-                {
-                    if (math.csum(math.abs(ltg.Sector - localPlayerSector)) > maxLoadedSectorDistance)
-                        buffer.AddComponent<UnloadCandidate>(e);
-                }).Schedule();
-
-            Entities
-                .WithAll<UnloadCandidate>()
-                .ForEach((Entity e, in LocalToGalaxy ltg) =>
-                {
-                    if (math.csum(math.abs(ltg.Sector - localPlayerSector)) < maxLoadedSectorDistance)
-                        buffer.RemoveComponent<UnloadCandidate>(e);
-                }).Schedule();
-
-            Job
-                .WithName("LoadNearbyStarSectors")
-                .WithCode(() =>
-                {
-                    sectorsToLoadLocal.Enqueue(new LocalToGalaxy{Sector = localPlayerSector});
-
-                    for (int x = -maxLoadedSectorDistance; x < maxLoadedSectorDistance; x++)
-                    for (int y = -maxLoadedSectorDistance; y < maxLoadedSectorDistance; y++)
-                    for (int z = -maxLoadedSectorDistance; z < maxLoadedSectorDistance; z++)
-                    {
-                        var pos = new int3(x, y, z) + localPlayerSector;
-                        if(math.csum(math.abs(new int3(x, y, z))) < maxLoadedSectorDistance &&
-                           GalaxyTools.GetSectorType(pos) == SectorType.Star)
-                            sectorsToLoadLocal.Enqueue(new LocalToGalaxy
-                            {
-                                Sector = pos,
-                                SubSector = GalaxyTools.GetStarSectorData(pos).Center
-                            });
-                    }
-                }).Run();
-        }
 
         var added = new NativeList<LocalToGalaxy>(Allocator.Temp);
         var sectorArchetypeLocal = sectorArchetype;
@@ -152,32 +133,26 @@ public partial class LoadSectorSystem : SystemBase
         //             sectorsToLoadLocal.Enqueue(item);
         //     }).Run();
 
+        var playerLtg = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
         Job
             .WithName("LoadSectors")
             .WithCode(() =>
             {
+                var maxDistance = sectorLoadSettings.MaxLoadedSectorDistanceCelestial.x;
                 var sectorsLoadedThisFrame = 0;
-                while (sectorsLoadedThisFrame++ < maxSectorsLoadedPerFrame && sectorsToLoadLocal.TryDequeue(out var newSector))
+                while (sectorsLoadedThisFrame++ < sectorLoadSettings.MaxSectorsLoadedPerFrame && sectorsToLoadLocal.TryDequeue(out var newSector))
                 {
                     newSector.LocalPosition = 0;
-                    var skipLoading = math.csum(math.abs(newSector.Sector - localPlayerSector)) > maxLoadedSectorDistance;
+                    var skipLoading = math.csum(math.abs(newSector.Sector - playerLtg.Sector)) > maxDistance;
 
                     foreach (var sector in added)
                     {
-                        if (sector == newSector || skipLoading)
-                        {
-                            skipLoading = true;
-                            break;
-                        }
+                        skipLoading |= sector == newSector;
                     }
 
                     for (int i = 0; i < sectors.Length && !skipLoading; i++)
                     {
-                        if (sectors[i] == newSector)
-                        {
-                            skipLoading = true;
-                            break;
-                        }
+                        skipLoading |= sectors[i] == newSector;
                     }
 
                     if (skipLoading)

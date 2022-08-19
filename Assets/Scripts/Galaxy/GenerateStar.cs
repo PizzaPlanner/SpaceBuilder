@@ -35,7 +35,7 @@ public partial class GenerateStarSystem : SystemBase
         var prefabStarData = defaultStarData;
         var prefabLocal = prefab;
         Entities
-            .WithAll<GenerateStar, ToGenerate>()
+            .WithAll<GenerateStar>()
             .ForEach((Entity e, in LocalToGalaxy ltg, in SectorData data) =>
             {
                 var random = new Random(data.Seed);
@@ -54,7 +54,6 @@ public partial class GenerateStarSystem : SystemBase
                 buffer.AddComponent(star, new Scale { Value = starData.Size });
                 buffer.SetComponent(star, new Name{Value = $"{GalaxyTools.GetStarName(data.Seed)}"});
                 buffer.RemoveComponent<GenerateStar>(e);
-                buffer.RemoveComponent<ToGenerate>(e);
             }).Schedule();
 
         bufferSystem.AddJobHandleForProducer(Dependency);

@@ -158,6 +158,7 @@ public struct CanTravelSectors : IComponentData
 {
     public LocalToGalaxy PreviousSector;
     public SectorChangeType CurrentTravelType;
+    public double CurrentSpeed;
 }
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]

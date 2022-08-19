@@ -1,5 +1,6 @@
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -12,13 +13,14 @@ public struct UnloadCandidate : IComponentData
 public partial class UnloadSectorSystem : SystemBase
 {
     private EntityCommandBufferSystem bufferSystem;
-    private const float KEEP_CANDIDATE_FOR_MAX_SECONDS = 2;
+    private const float KEEP_CANDIDATE_FOR_MAX_SECONDS = 1;
+    private LocalToGalaxy lastPlayerLtg;
 
     protected override void OnCreate()
     {
         bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-        RequireForUpdate(GetEntityQuery(typeof(UnloadCandidate), typeof(LocalToGalaxy)));
         RequireSingletonForUpdate<LocalPlayer>();
+        lastPlayerLtg = new LocalToGalaxy {Sector = int.MaxValue, SubSector = int.MaxValue};
     }
 
     protected override void OnUpdate()
@@ -30,6 +32,70 @@ public partial class UnloadSectorSystem : SystemBase
         var localToGalaxyBuffer = GetEntityQuery(typeof(LocalToGalaxy)).ToComponentDataArray<LocalToGalaxy>(Allocator.Temp);
         var playerLtg = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
         var toRemoveList = new NativeList<Entity>(Allocator.Temp);
+
+        var shouldRecalculateSectors = math.any(playerLtg.Sector != lastPlayerLtg.Sector);
+        var shouldRecalculateSubSectors = shouldRecalculateSectors || math.any(playerLtg.SubSector != lastPlayerLtg.SubSector);
+        var sectorLoadSettings = GetSingleton<LoadSectorSystem.SectorLoadSettings>();
+        if (shouldRecalculateSectors)
+        {
+            Entities
+                .WithNone<UnloadCandidate>()
+                .WithAll<SectorLoadingDistance.CelestialBody>()
+                .ForEach((Entity e, in LocalToGalaxy ltg, in SectorData sector) =>
+                {
+                    if (math.csum(math.abs(ltg.Sector - playerLtg.Sector)) > sectorLoadSettings.MaxLoadedSectorDistanceCelestial.x)
+                        ecb.AddComponent<UnloadCandidate>(e);
+                }).Schedule();
+
+            Entities
+                .WithAll<UnloadCandidate, SectorLoadingDistance.CelestialBody>()
+                .ForEach((Entity e, in LocalToGalaxy ltg) =>
+                {
+                    if (math.csum(math.abs(ltg.Sector - playerLtg.Sector)) < sectorLoadSettings.MaxLoadedSectorDistanceCelestial.x)
+                        ecb.RemoveComponent<UnloadCandidate>(e);
+                }).Schedule();
+
+            Entities
+                .WithNone<UnloadCandidate>()
+                .WithAll<SectorLoadingDistance.Planetoid>()
+                .ForEach((Entity e, in LocalToGalaxy ltg, in SectorData sector) =>
+                {
+                    if (math.csum(math.abs(ltg.Sector - playerLtg.Sector)) > sectorLoadSettings.MaxLoadedSectorDistancePlanetoid.x)
+                        ecb.AddComponent<UnloadCandidate>(e);
+                }).Schedule();
+
+            Entities
+                .WithAll<UnloadCandidate, SectorLoadingDistance.Planetoid>()
+                .ForEach((Entity e, in LocalToGalaxy ltg) =>
+                {
+                    if (math.csum(math.abs(ltg.Sector - playerLtg.Sector)) < sectorLoadSettings.MaxLoadedSectorDistancePlanetoid.x)
+                        ecb.RemoveComponent<UnloadCandidate>(e);
+                }).Schedule();
+        }
+
+        if (shouldRecalculateSubSectors)
+        {
+            Entities
+                .WithNone<UnloadCandidate, SectorLoadingDistance.Planetoid, SectorLoadingDistance.CelestialBody>()
+                .ForEach((Entity e, in LocalToGalaxy ltg, in SectorData sector) =>
+                {
+                    var diff = ltg - playerLtg;
+                    if (math.csum(math.abs(diff.SubSector)) > sectorLoadSettings.MaxLoadedSectorDistanceDefault.y)
+                        ecb.AddComponent<UnloadCandidate>(e);
+                }).Schedule();
+
+            Entities
+                .WithAll<UnloadCandidate>()
+                .WithNone<SectorLoadingDistance.Planetoid, SectorLoadingDistance.CelestialBody>()
+                .ForEach((Entity e, in LocalToGalaxy ltg) =>
+                {
+                    var diff = ltg - playerLtg;
+                    if (math.csum(math.abs(diff.SubSector)) < sectorLoadSettings.MaxLoadedSectorDistanceDefault.y)
+                        ecb.RemoveComponent<UnloadCandidate>(e);
+                }).Schedule();
+        }
+
+
         Entities
             .WithAll<LocalToGalaxy>()
             .ForEach((Entity e, ref UnloadCandidate candidate) =>

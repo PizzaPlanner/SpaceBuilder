@@ -21,6 +21,13 @@ public enum SubSectorType : byte
     AsteroidField,
 }
 
+public static class SectorLoadingDistance
+{
+    public struct CelestialBody : IComponentData { }
+    public struct Planetoid : IComponentData { }
+
+}
+
 public struct SectorData : IComponentData
 {
     public SectorType Type;
@@ -105,7 +112,6 @@ public partial class SubSectorGeneratorSystem : SystemBase
                     }
 
                     case SectorType.Empty:
-                        buffer.RemoveComponent<ToGenerate>(nativeThreadIndex, e);
                         break;
                 }
 
@@ -118,17 +124,20 @@ public partial class SubSectorGeneratorSystem : SystemBase
                         break;
                     case SubSectorType.Planet:
                         buffer.AddComponent<GeneratePlanet>(nativeThreadIndex, e);
+                        buffer.AddComponent<SectorLoadingDistance.Planetoid>(nativeThreadIndex, e);
                         break;
                     case SubSectorType.POI:
                         buffer.AddComponent<GeneratePOI>(nativeThreadIndex, e);
                         break;
                     case SubSectorType.Star:
                         buffer.AddComponent<GenerateStar>(nativeThreadIndex, e);
+                        buffer.AddComponent<SectorLoadingDistance.CelestialBody>(nativeThreadIndex, e);
                         break;
                     case SubSectorType.Empty when sectorData.Type != SectorType.Empty:
-                        buffer.RemoveComponent<ToGenerate>(nativeThreadIndex, e);
                         break;
                 }
+
+                buffer.RemoveComponent<ToGenerate>(nativeThreadIndex, e);
             }).ScheduleParallel();
 
         bufferSystem.AddJobHandleForProducer(Dependency);

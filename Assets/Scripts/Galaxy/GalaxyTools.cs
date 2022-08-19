@@ -231,8 +231,11 @@ public static class GalaxyTools
                 }
                 break;
             default:
-                data.Type = SubSectorType.AsteroidField;
+            {
+                var perlin = Perlin3D((float3)ltg.SubSector / Constants.MAX_SUBSECTOR + ltg.Sector);
+                data.Type = perlin > 0.2f ? SubSectorType.AsteroidField : SubSectorType.Empty;
                 break;
+            }
         }
 
         return data;

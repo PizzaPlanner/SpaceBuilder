@@ -18,55 +18,52 @@ public struct GenerateAsteroidField : IComponentData { }
 
 public partial class GenerateAsteroidFieldSystem : SystemBase
 {
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
+    private EntityCommandBufferSystem bufferSystem;
     protected override void OnCreate()
     {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
+        bufferSystem = World.GetExistingSystem<BeginSimulationEntityCommandBufferSystem>();
     }
 
     protected override void OnUpdate()
     {
         var buffer = bufferSystem.CreateCommandBuffer().AsParallelWriter();
         Entities
-            .WithAll<GenerateAsteroidField, ToGenerate>()
+            .WithAll<GenerateAsteroidField>()
             .ForEach((Entity e, int nativeThreadIndex, in LocalToGalaxy ltg, in SubSectorData data) =>
             {
                 var random = new Unity.Mathematics.Random(data.Seed);
                 var field = buffer.CreateEntity(nativeThreadIndex);
-                var position = random.NextFloat3(new float3(-2000), new float3(2000));
                 var fieldLtg = ltg;
-                fieldLtg.LocalPosition = position;
                 buffer.AddComponent(nativeThreadIndex, field, fieldLtg);
-                buffer.AddComponent(nativeThreadIndex, field, new Translation{Value = position});
                 buffer.AddComponent(nativeThreadIndex, field, new AsteroidFieldData
                 {
                     Seed = random.NextUInt(),
-                    AsteroidCount = random.NextInt(4000, 25000),
+                    AsteroidCount = random.NextInt(4000, 10000),
                     DiameterRange = random.NextInt2(new int2(15,30), new int2(20, 100))
                 });
                 buffer.AddComponent<ToGenerate>(nativeThreadIndex, field);
                 buffer.RemoveComponent<GenerateAsteroidField>(nativeThreadIndex, e);
+                Debug.Log($"Generating asteroid fioeld");
         }).ScheduleParallel();
 
         var prefabs = GetEntityQuery(typeof(Prefab), typeof(AsteroidData)).ToEntityArray(Allocator.TempJob);
         Entities
-            .WithAll<ToGenerate, LocalToGalaxy>()
             .WithReadOnly(prefabs)
             .WithDisposeOnCompletion(prefabs)
+            .WithAll<ToGenerate, LocalToGalaxy>()
             .ForEach((Entity e, int nativeThreadIndex, ref AsteroidFieldData data) =>
             {
                 var random = new Unity.Mathematics.Random {state = data.Seed};
                 var spawned = 0;
-                while (data.Spawned < data.AsteroidCount && spawned < 1000)
+                while (data.Spawned < data.AsteroidCount && spawned < 100)
                 {
-                    var location = random.NextFloat3(-new float3(2500), new float3(2500));
                     var asteroid = buffer.Instantiate(nativeThreadIndex, prefabs[random.NextInt(0, prefabs.Length - 1)]);
                     buffer.SetComponent(nativeThreadIndex, asteroid, new AsteroidData
                     {
                         Seed = random.NextUInt()
                     });
                     var asteroidLtg = GetComponent<LocalToGalaxy>(e);
-                    asteroidLtg.LocalPosition += location;
+                    asteroidLtg.LocalPosition = random.NextFloat3(Constants.MAX_POSITION);;
                     buffer.SetComponent(nativeThreadIndex, asteroid, asteroidLtg);
                     // buffer.AddComponent(nativeThreadIndex, asteroid, new ToGenerate());
                     spawned++;
@@ -75,6 +72,41 @@ public partial class GenerateAsteroidFieldSystem : SystemBase
 
                 if(data.Spawned >= data.AsteroidCount)
                     buffer.RemoveComponent<ToGenerate>(nativeThreadIndex, e);
+            }).ScheduleParallel();
+
+        bufferSystem.AddJobHandleForProducer(Dependency);
+    }
+}
+
+[UpdateInGroup(typeof(UpdatePresentationSystemGroup))]
+public partial class AsteroidRelativeToPlayerSystem : SystemBase
+{
+    private EntityCommandBufferSystem bufferSystem;
+
+    protected override void OnCreate()
+    {
+        RequireSingletonForUpdate<CameraAnchor>();
+        bufferSystem = World.GetExistingSystem<BeginInitializationEntityCommandBufferSystem>();
+    }
+
+    protected override void OnUpdate()
+    {
+        var ecb = bufferSystem.CreateCommandBuffer().AsParallelWriter();
+
+        var farClipPlane = Camera.main.farClipPlane;
+        var camPosition = (float3)Camera.main.transform.position;
+        Entities
+            .WithAll<AsteroidData, LocalToGalaxy>()
+            .ForEach((Entity e, int nativeThreadIndex, ref LocalToWorld ltw) =>
+            {
+                var tBefore = ltw.Position - camPosition;
+                var newScale = math.min(farClipPlane / math.length(tBefore), 1);
+                var tNew = math.select(math.normalize(tBefore) * farClipPlane + camPosition, tBefore, newScale >= 1);
+                if (newScale < 0.2f && !HasComponent<DisableRendering>(e))
+                    ecb.AddComponent<DisableRendering>(nativeThreadIndex, e);
+                else if(newScale > 0.2f && HasComponent<DisableRendering>(e))
+                    ecb.RemoveComponent<DisableRendering>(nativeThreadIndex, e);
+                ltw.Value = float4x4.TRS(tNew, ltw.Rotation, newScale);
             }).ScheduleParallel();
 
         bufferSystem.AddJobHandleForProducer(Dependency);

@@ -62,38 +62,37 @@ public unsafe partial class MovePlayerSystem : SystemBase
             camAnchor.XRotation = 0;
         SetSingleton(camAnchor);
 
+        var player = GetComponent<Player>(localPlayer);
+        player.Running = Input.GetKey(KeyCode.LeftShift);
+        SetComponent(localPlayer, player);
+
         var deltaTime = Time.DeltaTime;
 
         var ecb = bufferSystem.CreateCommandBuffer();
-        Entities.WithAll<LocalPlayer>()
-            .ForEach((Entity e, ref Player player, ref CanTravelSectors cts, in LocalToGalaxy ltg) =>
+        Entities
+            .WithNone<Docked>()
+            .ForEach((Entity e, ref Rotation r, ref CanTravelSectors cts, ref LocalToGalaxy ltg, ref Player player) =>
             {
-                player.Running = Input.GetKey(KeyCode.LeftShift);
+                r.Value = math.mul(r.Value, quaternion.EulerXYZ(rotation));
+                var totalMovement = (movement * (double3)(player.Running ? player.MovementSpeedRun : player.MovementSpeedDefault) * deltaTime);
+                ltg = LocalToGalaxy.OffsetBy(ltg, totalMovement);
 
-                var previous = cts.CurrentTravelType;
                 cts.CurrentTravelType = player.Running && player.MovementSpeedRun > 1e9
                     ? SectorChangeType.FTL
                     : SectorChangeType.Normal;
-                if (previous == SectorChangeType.FTL && cts.CurrentTravelType != SectorChangeType.FTL)
+                if (cts.PreviousSector != ltg)
                 {
                     var update = ecb.CreateEntity();
                     ecb.AddComponent(update, new SectorChange
                     {
                         Entity = e,
-                        Previous = new LocalToGalaxy(),
+                        Previous = cts.PreviousSector,
                         New = ltg,
                         ChangeType = cts.CurrentTravelType
                     });
                 }
-            }).Run();
 
-        Entities
-            .WithNone<Docked>()
-            .ForEach((ref Rotation r, ref LocalToGalaxy ltg, in Player player) =>
-            {
-                r.Value = math.mul(r.Value, quaternion.EulerXYZ(rotation));
-                var totalMovement = (movement * (double3)(player.Running ? player.MovementSpeedRun : player.MovementSpeedDefault) * deltaTime);
-                ltg = LocalToGalaxy.OffsetBy(ltg, totalMovement);
+                cts.CurrentSpeed = math.length(LocalToGalaxy.RelativePosition(ltg, cts.PreviousSector));
             }).Schedule();
 
         Entities

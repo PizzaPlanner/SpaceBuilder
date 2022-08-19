@@ -36,7 +36,7 @@ public partial class GeneratePlanetSystem : SystemBase
         var prefabPlanetData = defaultPlanetData;
         var prefabLocal = prefab;
         Entities
-            .WithAll<GeneratePlanet, ToGenerate>()
+            .WithAll<GeneratePlanet>()
             .ForEach((Entity e, in LocalToGalaxy ltg, in SubSectorData data) =>
             {
                 var planetRank = byte.MaxValue;
@@ -65,7 +65,6 @@ public partial class GeneratePlanetSystem : SystemBase
                 buffer.AddComponent(planet, new Scale {Value = planetData.Size});
                 buffer.SetComponent(planet, new Name{Value = $"{GalaxyTools.GetStarName(GalaxyTools.GetSectorSeed(ltg.Sector))} {GalaxyTools.ToRomanNumeral(planetRank)}"});
                 buffer.RemoveComponent<GeneratePlanet>(e);
-                buffer.RemoveComponent<ToGenerate>(e);
             }).Schedule();
 
         bufferSystem.AddJobHandleForProducer(Dependency);

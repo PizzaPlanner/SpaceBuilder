@@ -98,7 +98,7 @@ public partial class POIGenerator : SystemBase
 
         var keys = generatablePOIs;
         Entities
-            .WithAll<GeneratePOI, ToGenerate>()
+            .WithAll<GeneratePOI>()
             .ForEach((Entity e, in LocalToGalaxy ltg, in SubSectorData data) =>
             {
                 var random = new Unity.Mathematics.Random(data.Seed);
