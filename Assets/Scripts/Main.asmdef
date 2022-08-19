@@ -14,7 +14,8 @@
         "YamlDotNet",
         "Unity.Burst",
         "Unity.Properties",
-        "Unity.Mathematics.Extensions"
+        "Unity.Mathematics.Extensions",
+        "Unity.RenderPipelines.Core.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

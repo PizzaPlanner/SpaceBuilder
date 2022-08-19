@@ -1,0 +1,39 @@
+using System.Linq;
+using Unity.Entities;
+using Unity.Mathematics;
+using UnityEngine;
+using UnityEngine.Rendering;
+
+[UpdateInGroup(typeof(PresentationSystemGroup))]
+public partial class UpdateVisualsBySpeedSystem : SystemBase
+{
+    private Volume Volume;
+
+    private float targetWeight;
+
+    protected override void OnCreate()
+    {
+        RequireSingletonForUpdate<CameraAnchor>();
+        RequireSingletonForUpdate<LocalPlayer>();
+    }
+
+    protected override void OnStartRunning()
+    {
+        Volume ??= GameObject.FindObjectsOfType<Volume>().First(x => x.weight == 0);
+    }
+
+    protected override void OnUpdate()
+    {
+        var localPlayer = GetSingletonEntity<LocalPlayer>();
+        var speed = GetComponent<CanTravelSectors>(localPlayer).CurrentSpeed;
+        if (speed > 0)
+        {
+            var intensity = (float) math.log10(speed) / 7f - 0.25f;
+            intensity = math.clamp(intensity, 0, 1);
+            targetWeight = intensity * intensity;
+            Debug.Log($"Speed: {speed}; Int: {intensity}, tw: {targetWeight}");
+        }
+        else targetWeight = 0;
+        Volume.weight = math.lerp(Volume.weight, targetWeight, 2f * Time.DeltaTime);
+    }
+}
