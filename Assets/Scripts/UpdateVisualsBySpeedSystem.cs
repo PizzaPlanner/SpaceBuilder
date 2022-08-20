@@ -31,9 +31,8 @@ public partial class UpdateVisualsBySpeedSystem : SystemBase
             var intensity = (float) math.log10(speed) / 7f - 0.25f;
             intensity = math.clamp(intensity, 0, 1);
             targetWeight = intensity * intensity;
-            Debug.Log($"Speed: {speed}; Int: {intensity}, tw: {targetWeight}");
         }
         else targetWeight = 0;
-        Volume.weight = math.lerp(Volume.weight, targetWeight, 2f * Time.DeltaTime);
+        Volume.weight = math.lerp(Volume.weight, targetWeight, Time.DeltaTime);
     }
 }

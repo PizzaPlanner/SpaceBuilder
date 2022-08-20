@@ -41,14 +41,10 @@ public partial class IdentifiableMappingSystem : SystemBase
                 if (HasComponent<Parent>(e) && GetComponent<Parent>(e).Value != Entity.Null)
                     return;
 
-                if (EntitiesById.ContainsKey(id.ItemId))
-                {
-#if UNITY_EDITOR
-                    Debug.LogError($"ID {id.ItemId} used by {EntityManager.GetName(e)} is already taken!");
-#else
+                if(id.ItemId == 0)
+                    Debug.LogError($"Entity {e} has invalid ID 0");
+                else if (EntitiesById.ContainsKey(id.ItemId))
                     Debug.LogError($"ID {id.ItemId} used by {e} is already taken!");
-#endif
-                }
                 else
                     EntitiesById.Add(id.ItemId, e);
 

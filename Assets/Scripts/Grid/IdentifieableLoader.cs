@@ -21,8 +21,14 @@ public class IdentifieableLoader : MonoBehaviour, IDeclareReferencedPrefabs
                 continue;
 
             var obj = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
-            if(UnityEditor.PrefabUtility.IsPartOfPrefabAsset(obj) && obj is GameObject go && go.TryGetComponent(out IdentifieableAuthoring id))
-                list.Add(id.gameObject);
+            if (UnityEditor.PrefabUtility.IsPartOfPrefabAsset(obj) && obj is GameObject go &&
+                go.TryGetComponent(out IdentifieableAuthoring id))
+            {
+                if(id.Id == 0)
+                    Debug.LogError($"{id.gameObject.name} has invalid ID 0!");
+                else
+                    list.Add(id.gameObject);
+            }
         }
         Debug.Log($"Created {list.Count} Identifieables");
 

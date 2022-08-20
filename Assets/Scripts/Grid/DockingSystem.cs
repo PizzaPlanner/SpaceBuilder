@@ -22,6 +22,7 @@ public struct AlignUpVector : IComponentData
 }
 
 [UpdateBefore(typeof(TransformSystemGroup))]
+[UpdateAfter(typeof(CalculateCloseGridsSystem))]
 public partial class DockingSystem : SystemBase
 {
     private VisualElement swapRoot;
@@ -41,7 +42,7 @@ public partial class DockingSystem : SystemBase
         var grids = GetBuffer<CloseGrids>(entity);
         var isDocked = HasComponent<Docked>(GetSingletonEntity<LocalPlayer>());
 
-        if (grids.Length == 0)
+        if (grids.Length == 0 || !EntityManager.Exists(grids[0].Grid))
         {
             if(isDocked)
                 Dock(entity, Entity.Null);
