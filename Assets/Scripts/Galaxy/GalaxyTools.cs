@@ -98,13 +98,21 @@ public static class GalaxyTools
         return it1;
     }
 
+    public static int3 GetCelestialSectorCenter(in int3 sector, out Random random)
+    {
+        if (!GetSectorType(sector, out random).IsCelestialScale())
+            return default;
+
+        var center = (int3)random.NextUInt3(0, SUN_MAX_DIST_FROM_CENTER);
+        return SECTOR_CENTRAL_SUBSECTOR + math.select(center, -center, random.NextBool3());
+    }
+
     public static StarSectorData GetStarSectorData(in int3 sector)
     {
         if (GetSectorType(sector, out var random) != SectorType.Star)
             return default;
 
-        var center = (int3)random.NextUInt3(0, SUN_MAX_DIST_FROM_CENTER);
-        center = SECTOR_CENTRAL_SUBSECTOR + math.select(center, -center, random.NextBool3());
+        var center = GetCelestialSectorCenter(sector, out random);
         var planetRandom = random.NextFloat();
         return new StarSectorData
         {
@@ -142,6 +150,14 @@ public static class GalaxyTools
     }
 
     [BurstCompile]
+    public static bool IsCelestialScale(this SubSectorType type) =>
+        type is SubSectorType.Star or SubSectorType.Nebula;
+
+    [BurstCompile]
+    public static bool IsCelestialScale(this SectorType type) =>
+        type is SectorType.Star or SectorType.Nebula;
+
+    [BurstCompile]
     public static SectorType GetSectorType(int3 sector) => GetSectorType(sector, out _);
 
     [BurstCompile]
@@ -152,8 +168,8 @@ public static class GalaxyTools
         var nextType = random.NextInt(0, 10000);
         return
             nextType < 226 ? SectorType.Star :
-            nextType < 300 ? SectorType.Nebula :
-            nextType < 301 ? SectorType.BlackHole :
+            nextType < 229 ? SectorType.Nebula :
+            nextType < 230 ? SectorType.BlackHole :
             SectorType.Empty;
     }
 
@@ -161,6 +177,12 @@ public static class GalaxyTools
     public static uint GetSectorSeed(in int3 sector)
     {
         return math.hash(sector);
+    }
+
+    [BurstCompile]
+    public static uint GetSubsectorSeed(LocalToGalaxy ltg)
+    {
+        return GetSubsectorSeed(GetSectorSeed(ltg.Sector), ltg.SubSector);
     }
 
     [BurstCompile]
@@ -181,20 +203,14 @@ public static class GalaxyTools
     [BurstCompile]
     public static SubSectorData GetSubSectorData(in LocalToGalaxy ltg)
     {
-        var sectorData = GetSectorData(ltg);
+        var sectorType = GetSectorType(ltg.Sector);
         var data = new SubSectorData
         {
-            Seed = GetSubsectorSeed(sectorData.Seed, ltg.SubSector),
+            Seed = GetSubsectorSeed(ltg),
             Type = SubSectorType.Unknown
         };
 
-        if (math.all(ltg.SubSector == 0))
-        {
-            data.Type = SubSectorType.Empty;
-            return data;
-        }
-
-        switch (sectorData.Type)
+        switch (sectorType)
         {
             case SectorType.Star:
                 var starsector = GetStarSectorData(ltg.Sector);
@@ -230,6 +246,13 @@ public static class GalaxyTools
                     }
                 }
                 break;
+            case SectorType.Nebula:
+            {
+                data.Type = math.all(ltg.SubSector == GetCelestialSectorCenter(ltg.Sector, out _))
+                    ? SubSectorType.Nebula
+                    : SubSectorType.Empty;
+                break;
+            }
             default:
             {
                 var perlin = Perlin3D((float3)ltg.SubSector / Constants.MAX_SUBSECTOR + ltg.Sector);
@@ -239,5 +262,14 @@ public static class GalaxyTools
         }
 
         return data;
+    }
+
+
+    [BurstCompile]
+    public static bool ShouldUnloadSector(LocalToGalaxy sector, LocalToGalaxy playerSector, int unloadDistances)
+    {
+        var rpos = math.abs(LocalToGalaxy.RelativePosition(playerSector, sector));
+        var distInSubsectors = math.csum(math.abs(rpos / Constants.MAX_POSITION));
+        return distInSubsectors > unloadDistances;
     }
 }

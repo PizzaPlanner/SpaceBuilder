@@ -29,6 +29,7 @@ public partial class GenerateAsteroidFieldSystem : SystemBase
         var buffer = bufferSystem.CreateCommandBuffer().AsParallelWriter();
         Entities
             .WithAll<GenerateAsteroidField>()
+            .WithNone<UnloadCandidate>()
             .ForEach((Entity e, int nativeThreadIndex, in LocalToGalaxy ltg, in SubSectorData data) =>
             {
                 var random = new Unity.Mathematics.Random(data.Seed);
@@ -51,6 +52,7 @@ public partial class GenerateAsteroidFieldSystem : SystemBase
             .WithReadOnly(prefabs)
             .WithDisposeOnCompletion(prefabs)
             .WithAll<ToGenerate, LocalToGalaxy>()
+            .WithNone<UnloadCandidate>()
             .ForEach((Entity e, int nativeThreadIndex, ref AsteroidFieldData data) =>
             {
                 var random = new Unity.Mathematics.Random {state = data.Seed};

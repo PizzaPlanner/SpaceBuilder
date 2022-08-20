@@ -16,6 +16,7 @@ public enum SubSectorType : byte
     Unknown,
     Empty,
     Star,
+    Nebula,
     Planet,
     POI,
     AsteroidField,
@@ -38,6 +39,11 @@ public struct SubSectorData : IComponentData
 {
     public SubSectorType Type;
     public uint Seed;
+}
+
+public struct NebulaSectorData : IComponentData
+{
+    public int3 Center;
 }
 
 public struct StarSectorData : IComponentData
@@ -110,7 +116,11 @@ public partial class SubSectorGeneratorSystem : SystemBase
                         }
                         break;
                     }
-
+                    // case SectorType.Nebula when math.all(
+                    //     ltg.SubSector == GalaxyTools.GetCelestialSectorCenter(ltg.Sector, out _)):
+                    // {
+                    //     break;
+                    // }
                     case SectorType.Empty:
                         break;
                 }
@@ -131,6 +141,10 @@ public partial class SubSectorGeneratorSystem : SystemBase
                         break;
                     case SubSectorType.Star:
                         buffer.AddComponent<GenerateStar>(nativeThreadIndex, e);
+                        buffer.AddComponent<SectorLoadingDistance.CelestialBody>(nativeThreadIndex, e);
+                        break;
+                    case SubSectorType.Nebula:
+                        buffer.AddComponent<GenerateNebula>(nativeThreadIndex, e);
                         buffer.AddComponent<SectorLoadingDistance.CelestialBody>(nativeThreadIndex, e);
                         break;
                     case SubSectorType.Empty when sectorData.Type != SectorType.Empty:
