@@ -35,6 +35,40 @@ public struct Star : IComponentData
 //     }
 // }
 
+public partial class CalculateClosestStarSystem : SystemBase
+{
+    public struct ClosestStarSector : IComponentData
+    {
+        public LocalToGalaxy StarLTG;
+        public double DistanceInSubSectors;
+    }
+    protected override void OnCreate()
+    {
+        RequireSingletonForUpdate<CameraAnchor>();
+        RequireSingletonForUpdate<LocalPlayer>();
+        EntityManager.CreateEntity(typeof(ClosestStarSector));
+    }
+
+    protected override void OnUpdate()
+    {
+        var playerLtg = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
+        LocalToGalaxy closestStar = default;
+        var closestDistance = double.PositiveInfinity;
+        Entities
+            .WithAll<Star>()
+            .ForEach((in LocalToGalaxy ltg) =>
+            {
+                var len = GalaxyTools.DistanceInSubsectors(playerLtg, ltg);
+                if (len < closestDistance)
+                {
+                    closestDistance = len;
+                    closestStar = ltg;
+                }
+            }).Run();
+        SetSingleton(new ClosestStarSector{StarLTG = closestStar, DistanceInSubSectors = closestDistance});
+    }
+}
+
 [UpdateInGroup(typeof(UpdatePresentationSystemGroup))]
 public partial class StarRelativeToPlayerSystem : SystemBase
 {

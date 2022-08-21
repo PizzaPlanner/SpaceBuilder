@@ -36,6 +36,7 @@ public partial class UnloadSectorSystem : SystemBase
 
         var shouldRecalculateSectors = math.any(playerLtg.Sector != lastPlayerLtg.Sector);
         var shouldRecalculateSubSectors = shouldRecalculateSectors || math.any(playerLtg.SubSector != lastPlayerLtg.SubSector);
+        lastPlayerLtg = playerLtg;
         var sectorLoadSettings = GetSingleton<LoadSectorSystem.SectorLoadSettings>();
         if (shouldRecalculateSectors)
         {

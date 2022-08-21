@@ -264,12 +264,17 @@ public static class GalaxyTools
         return data;
     }
 
-
     [BurstCompile]
-    public static bool ShouldUnloadSector(LocalToGalaxy sector, LocalToGalaxy playerSector, int unloadDistances)
+    public static double DistanceInSubsectors(LocalToGalaxy playerSector, LocalToGalaxy sector)
     {
         var rpos = math.abs(LocalToGalaxy.RelativePosition(playerSector, sector));
-        var distInSubsectors = math.csum(math.abs(rpos / Constants.MAX_POSITION));
-        return distInSubsectors > unloadDistances;
+        return math.csum(math.abs(rpos / Constants.MAX_POSITION));
+
+    }
+
+    [BurstCompile]
+    public static bool ShouldUnloadSector(LocalToGalaxy playerSector, LocalToGalaxy sector, int unloadDistances)
+    {
+        return DistanceInSubsectors(playerSector, sector) > unloadDistances;
     }
 }

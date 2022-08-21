@@ -16,35 +16,11 @@ public static class Constants
     public const long MAX_POSITION = 0x2A00; // Must satisfy MAX_POSITION * MAX_POSITION < int.MaxValue
     public const long MAX_SUBSECTOR = 0x0003_FFFF; // Must satisfy MAX_SUBSECTOR * MAX_SUBSECTOR < int.MaxValue
     public const long DISTANCE_PER_SECTOR = MAX_POSITION * MAX_SUBSECTOR;
-    // private const ulong BYTE_MASK = 0x0000_0000_0000_0000;
-    // private const ulong POST_COMMA_MASK = 0x0000_0000_0000_3FFF;
-    // private const ulong POSITION_MASK = 0x0000_0000_01FF_C000;
-    // private const ulong SUBSECTOR_MASK = 0x0000_0FFF_FE00_0000;
-    // private const ulong SECTOR_MASK = 0xFFFF_F000_0000_0000;
-    // private const ulong POST_COMMA_MAX = POST_COMMA_MASK >> 0;
-    // private const ulong POSITION_MAX = POSITION_MASK >> 12;
-    // private const ulong SUBSECTOR_MAX = SUBSECTOR_MASK >> 24;
-    // private const ulong SECTOR_MAX = SECTOR_MASK >> 44;
-
 }
-
-// public struct LocalToGalaxyComparer : IComparer<LocalToGalaxy>
-// {
-//     public float3 forward;
-//     public int Compare(LocalToGalaxy x, LocalToGalaxy y)
-//     {
-//         return math.all(x.Sector == y.Sector) ?
-//             math.acos(math.dot(forward, math.normalize(x.Sector))).CompareTo(math.acos(math.dot(forward, math.normalize(y.Sector)))) :
-//             math.acos(math.dot(forward, math.normalize(x.SubSector))).CompareTo(math.acos(math.dot(forward, math.normalize(y.SubSector))));
-//     }
-// }
 
 [GenerateAuthoringComponent]
 public struct LocalToGalaxy : IComponentData
 {
-    // private fixed byte BytesX[10];
-    // private fixed byte BytesY[10];
-    // private fixed byte BytesZ[10];
     public int3 Sector;
     public int3 SubSector;
     public float3 LocalPosition;

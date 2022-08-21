@@ -14,6 +14,7 @@ public partial class LoadSectorSystem : SystemBase
     private EndSimulationEntityCommandBufferSystem bufferSystem;
     private NativeQueue<LocalToGalaxy> sectorsToLoad;
     private EntityArchetype sectorArchetype;
+    private LocalToGalaxy lastPlayerLtg;
 
     public struct HasPendingSectors : IComponentData
     {
@@ -49,6 +50,7 @@ public partial class LoadSectorSystem : SystemBase
             MaxLoadedSectorDistanceDefault = 3,
             MaxSectorsLoadedPerFrame = 45
         });
+        lastPlayerLtg = new LocalToGalaxy {Sector = int.MaxValue, SubSector = int.MaxValue};
     }
 
     protected override void OnDestroy()
@@ -75,19 +77,15 @@ public partial class LoadSectorSystem : SystemBase
             {
                 buffer.DestroyEntity(e);
 
-                if (sc.ChangeType == SectorChangeType.Teleport)
+                if (sc.ChangeType != SectorChangeType.FTL)
                 {
                     for(int x = -2; x <= 2; x++)
                     for(int y = -2; y <= 2; y++)
-                    for(int z = -2; z <= 2; z++)
-                        sectorsToLoadLocal.Enqueue(sc.New + new LocalToGalaxy{ SubSector = new int3(x,y,z)});
-                }
-                else if (sc.ChangeType == SectorChangeType.Normal)
-                {
-                    for(int x = -2; x <= 2; x++)
-                    for(int y = -2; y <= 2; y++)
-                    for(int z = -2; z <= 2; z++)
-                        sectorsToLoadLocal.Enqueue(sc.New + new LocalToGalaxy{ SubSector = new int3(x,y,z)});
+                    for (int z = -2; z <= 2; z++)
+                    {
+                        var newLtg = sc.New + new LocalToGalaxy {SubSector = new int3(x, y, z)};
+                        sectorsToLoadLocal.Enqueue(newLtg);
+                    }
                 }
                 if(math.any(sc.New.Sector != sc.Previous.Sector))
                 {
@@ -111,6 +109,24 @@ public partial class LoadSectorSystem : SystemBase
                 }
             }).Run();
 
+        var playerLtg = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
+        var shouldRecalculateSectors = math.any(playerLtg.Sector != lastPlayerLtg.Sector);
+        lastPlayerLtg = playerLtg;
+        if (shouldRecalculateSectors)
+        {
+            var css = GetSingleton<CalculateClosestStarSystem.ClosestStarSector>();
+            if (css.DistanceInSubSectors < sectorLoadSettings.MaxLoadedSectorDistancePlanetoid)
+            {
+                var starsec = GalaxyTools.GetStarSectorData(css.StarLTG.Sector);
+                for (byte i = 0; i < starsec.NumberOfPlanets; i++)
+                {
+                    var planetsec = css.StarLTG;
+                    planetsec.SubSector = GalaxyTools.GetPlanetData(starsec, i).SubSector;
+                    sectorsToLoadLocal.Enqueue(planetsec);
+                }
+            }
+        }
+
         Entities.ForEach((Entity e, in ForceLoadSector fls) =>
         {
             sectorsToLoadLocal.Enqueue(fls.Sector);
@@ -121,7 +137,6 @@ public partial class LoadSectorSystem : SystemBase
         var sectorArchetypeLocal = sectorArchetype;
         var hasPendingSectors = HasSingleton<HasPendingSectors>() ? GetSingletonEntity<HasPendingSectors>() : Entity.Null;
 
-        var playerLtg = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
         Job
             .WithName("LoadSectors")
             .WithCode(() =>
@@ -131,7 +146,7 @@ public partial class LoadSectorSystem : SystemBase
                 {
                     newSector.LocalPosition = 0;
                     var sectorType = GalaxyTools.GetSubSectorData(newSector).Type;
-                    var skipLoading = sectorType == SubSectorType.Empty || GalaxyTools.ShouldUnloadSector(newSector, playerLtg,
+                    var skipLoading = sectorType == SubSectorType.Empty || GalaxyTools.ShouldUnloadSector(playerLtg, newSector,
                         sectorType.IsCelestialScale() ? sectorLoadSettings.MaxLoadedSectorDistanceCelestial :
                         sectorType == SubSectorType.Planet ? sectorLoadSettings.MaxLoadedSectorDistancePlanetoid :
                         sectorLoadSettings.MaxLoadedSectorDistanceDefault
