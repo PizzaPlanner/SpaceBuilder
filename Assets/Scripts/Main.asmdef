@@ -9,6 +9,7 @@
         "Unity.Physics",
         "Unity.Physics.Hybrid",
         "Unity.Transforms",
+        "Unity.Transforms.Hybrid",
         "Rival.Runtime",
         "Unity.Rendering.Hybrid",
         "YamlDotNet",

@@ -35,6 +35,7 @@ public partial class GenerateNebulaSystem : SystemBase
             {
                 var star = ecb.Instantiate(prefabLocal);
                 ecb.SetComponent(star, ltg);
+                ecb.AddComponent<ToGenerate>(star);
                 ecb.RemoveComponent<GenerateNebula>(e);
             }).Schedule();
 

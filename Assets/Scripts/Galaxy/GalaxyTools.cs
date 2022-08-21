@@ -165,11 +165,11 @@ public static class GalaxyTools
     {
         var hash = GetSectorSeed(sector);
         random = new Random(hash);
-        var nextType = random.NextInt(0, 10000);
+        var nextType = random.NextInt(0, 100000);
         return
-            nextType < 226 ? SectorType.Star :
-            nextType < 229 ? SectorType.Nebula :
-            nextType < 230 ? SectorType.BlackHole :
+            nextType < 3438 ? SectorType.Star :
+            // nextType < 2865 ? SectorType.Nebula :
+            nextType < 3439 ? SectorType.BlackHole :
             SectorType.Empty;
     }
 

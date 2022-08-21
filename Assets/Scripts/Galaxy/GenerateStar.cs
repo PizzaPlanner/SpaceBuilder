@@ -41,7 +41,7 @@ public partial class GenerateStarSystem : SystemBase
                 var random = new Random(data.Seed);
                 var star = buffer.Instantiate(prefabLocal);
                 var starData = prefabStarData;
-                starData.Brightness = random.NextFloat(3, 9);
+                starData.Brightness = random.NextFloat(8, 44);
                 starData.Color = Color.HSVToRGB(random.NextFloat(), random.NextFloat(0.8f, 1),
                     random.NextFloat(0.8f, 2));
                 starData.Size = random.NextFloat(0.3f, STAR_MAX_SIZE_FACTOR) * STAR_SIZE_BASE;

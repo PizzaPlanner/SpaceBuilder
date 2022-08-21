@@ -27,7 +27,7 @@ public partial class MarkObjectsInRangeSystem : SystemBase
         var buffer = bufferSystem.CreateCommandBuffer();
 
         Entities
-            .WithAny<Planet, Star>()
+            .WithAny<Planet, Star, Nebula>()
             .WithNone<BigObjectInPoiRange>()
             .ForEach((Entity e, in LocalToGalaxy ltg) =>
             {
