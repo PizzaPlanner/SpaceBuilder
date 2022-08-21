@@ -28,7 +28,7 @@ public partial class UpdateVisualsBySpeedSystem : SystemBase
         var speed = GetComponent<CanTravelSectors>(localPlayer).CurrentSpeed;
         if (speed > 0)
         {
-            var intensity = (float) math.log10(speed) / 7f - 0.25f;
+            var intensity = (float) math.log10(speed) / 7.5f - 0.3f;
             intensity = math.clamp(intensity, 0, 1);
             targetWeight = intensity * intensity;
         }

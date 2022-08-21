@@ -35,6 +35,7 @@ public class POIMarker : VisualElement
         }
 
         var playerLtg = em.GetComponentData<LocalToGalaxy>(localPlayer);
+        var playerCts = em.GetComponentData<CanTravelSectors>(localPlayer);
         var targetLtg = em.GetComponentData<LocalToGalaxy>(Target);
         var diffLtg = targetLtg - playerLtg;
         var relativePosition = LocalToGalaxy.RelativePosition(playerLtg, targetLtg);
@@ -59,28 +60,9 @@ public class POIMarker : VisualElement
         this.style.opacity = math.min(0.9f, math.lerp(0f, 0.9f, math.min(((float)distance - 3) * 0.1f, 10)));
 
         var name = "<?>";
-        var unit = "m";
-        if (distance >= 100_000_000_000)
-        {
-            distance /= Constants.DISTANCE_PER_SECTOR;
-            unit = "s";
-        }
-        else if (distance > 1000_000_000)
-        {
-            distance *= 0.000_000_001f;
-            unit = "Gm";
-        }
-        else if (distance > 1000_000)
-        {
-            distance *= 0.000_001f;
-            unit = "Mm";
-        }
-        else if (distance > 1000)
-        {
-            distance *= 0.001f;
-            unit = "km";
-        }
-
+        var distanceFmt = GalaxyTools.ToGalacticDistanceWithUnit(distance);
+        var timeToDistance = distance / playerCts.CurrentSpeed;
+        var timeFmt = GalaxyTools.ToTimeUnit(timeToDistance);
         if (em.HasComponent<Name>(Target))
             name = em.GetComponentData<Name>(Target).Value.Value;
         if(AdminConsole.DebugMode)
@@ -88,11 +70,10 @@ public class POIMarker : VisualElement
 P: {playerLtg.Sector:X}|{playerLtg.SubSector:X}|{playerLtg.LocalPosition}
 T: {targetLtg.Sector:X}|{targetLtg.SubSector:X}|{targetLtg.LocalPosition}
 D: {diffLtg.Sector:X}|{diffLtg.SubSector:X}|{diffLtg.LocalPosition}
-{distance:F1}{unit}";
+{distanceFmt}";
         else
             this.Q<Label>().text = @$"{name}
-{distance:F1}{unit}";
-
+{distanceFmt}{(playerCts.CurrentSpeed > 0 ? $" // ETA {timeFmt}" : "")}";
     }
 }
 

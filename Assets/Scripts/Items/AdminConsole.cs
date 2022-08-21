@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -18,6 +19,7 @@ public class AdminConsole : VisualElement
     {
         public string BaseCommand { get; }
         void Execute(string[] parameters, Entity executor);
+        string[] GetHints(int parameter);
     }
 
     public AdminConsole()
@@ -66,6 +68,15 @@ public class AdminConsole : VisualElement
         Command,
         Text,
         Number
+    }
+
+    public string[] GetPossibleWords(string text)
+    {
+        var tokens = Parse(text);
+        var command = tokens.FirstOrDefault(x => x.Type == TokenType.Command);
+        if (string.IsNullOrWhiteSpace(command.Content))
+            return commands.Keys.ToArray();
+        return commands[command.Content].GetHints(tokens.Count - 1);
     }
 
     public struct Token
@@ -173,6 +184,11 @@ public struct MoveSectorCommand : AdminConsole.IConsoleCommand
             Previous = EntityManager.GetComponentData<LocalToGalaxy>(executor)
         });
     }
+
+    public string[] GetHints(int parameter)
+    {
+        return parameter < 6 ? new[]{"0"} : Array.Empty<string>();
+    }
 }
 
 public struct GiveItemConsoleCommand : AdminConsole.IConsoleCommand
@@ -196,6 +212,18 @@ public struct GiveItemConsoleCommand : AdminConsole.IConsoleCommand
             ItemId = id
         });
     }
+
+    public string[] GetHints(int parameter)
+    {
+        if (parameter == 0)
+        {
+            var query = EntityManager.CreateEntityQuery(typeof(Prefab), typeof(Item), typeof(Identifieable), typeof(Name));
+            var names = query.ToComponentDataArray<Name>(Allocator.Temp);
+            query.Dispose();
+            return names.Select(x => x.Value.Value).ToArray();
+        }
+        return parameter == 1 ? new[]{"10", "100", "1000"} : Array.Empty<string>();
+    }
 }
 
 public struct NoclipConsoleCommand : AdminConsole.IConsoleCommand
@@ -206,6 +234,11 @@ public struct NoclipConsoleCommand : AdminConsole.IConsoleCommand
     {
         bool on = !(parameters.Length == 1 && ushort.TryParse(parameters[0], out var i) && i == 0);
         EntityManager.SetSharedComponentData(executor, new PhysicsWorldIndex{Value = on ? 0u : 1u});
+    }
+
+    public string[] GetHints(int parameter)
+    {
+        return parameter == 0 ? new[]{"0", "1"} : Array.Empty<string>();
     }
 }
 
@@ -221,6 +254,11 @@ public struct SpawnCommand : AdminConsole.IConsoleCommand
         var path = parameters[0];
         var ecb = EntityManager.World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>().CreateCommandBuffer();
         POIGenerator.QueuePOISpawn(ecb, path, EntityManager.GetComponentData<LocalToGalaxy>(executor), EntityManager.GetComponentData<Rotation>(executor));
+    }
+
+    public string[] GetHints(int parameter)
+    {
+        return parameter == 0 ? POIGenerator.GetAllSpawnables : Array.Empty<string>();
     }
 }
 
@@ -267,6 +305,33 @@ public partial class AdminConsoleSystem : SystemBase
         return 0;
     }
 
+    void InputNextHint()
+    {
+        var tf = uiRoot.Q<TextField>();
+        var lastword = tf.value.Split(' ').LastOrDefault() ?? "";
+        var withoutLastword = tf.value.Substring(0, tf.value.Length - lastword.Length);
+
+        var possibleWords = uiRoot.Q<AdminConsole>().GetPossibleWords(withoutLastword);
+        var nextword = "";
+        for (int i = 0; i < possibleWords.Length; i++)
+        {
+            if (lastword == possibleWords[(i - 1).mod(possibleWords.Length)])
+            {
+                nextword = possibleWords[i];
+                break;
+            } else if (possibleWords[i].StartsWith(lastword))
+            {
+                nextword = possibleWords[i];
+            }
+        }
+
+        if (nextword == "" && possibleWords.Length > 0)
+            nextword = possibleWords[0];
+
+        tf.value = tf.value.Substring(0, tf.value.LastIndexOf(' ') + 1) + nextword;
+        tf.SelectRange(tf.value.Length, tf.value.Length);
+    }
+
     protected override void OnUpdate()
     {
         if (Input.GetKeyDown(KeyCode.KeypadPlus))
@@ -280,6 +345,11 @@ public partial class AdminConsoleSystem : SystemBase
             var pl = GetComponent<Player>(GetSingletonEntity<LocalPlayer>());
             pl.MovementSpeedRun *= Input.GetKey(KeyCode.LeftShift) ? 0.1f : 0.01f;
             SetComponent(GetSingletonEntity<LocalPlayer>(), pl);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Tab) && uiRoot.style.display == DisplayStyle.Flex)
+        {
+            InputNextHint();
         }
 
         if (Input.GetKeyDown(KeyCode.F5))

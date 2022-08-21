@@ -47,15 +47,13 @@ public struct BlueprintParserV3 : IBlueprintParser
                 var kvp = line.Split(new[]{':'}, 2, StringSplitOptions.None);
                 var key = kvp.Length >= 2 ? kvp[0].Trim(' ', '-') : null;
                 var value = kvp.Length >= 2 ? kvp[1].Trim() : null;
-                if(indent != 0 && CurrentToken.Count != 0)
-                    while (indent <= CurrentToken.Peek().Indent)
-                    {
-                        CurrentToken.Pop();
-                    }
-                else if ((indent == 0) != (CurrentToken.Count == 0))
+                while (CurrentToken.TryPeek(out var token) && token.Indent >= indent)
                 {
-                    Debug.LogError("Wrong indent detected in Line "+i);
-                    Parts = new Dictionary<ulong, List<PartData>>();
+                    CurrentToken.Pop();
+                }
+                if (CurrentToken.Count == 0 && indent != 0)
+                {
+                    Debug.LogError($"Syntax error in Line {i} ('{line}'). Current Token: {(CurrentToken.TryPeek(out var token) ? $"'{token.Property}@{token.Indent}'" : "None")}'");
                     return;
                 }
                 if (key == "Version")

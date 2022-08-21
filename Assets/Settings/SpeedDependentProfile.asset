@@ -26,7 +26,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: {x: 0.5, y: 0.5}
   scale:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 1
 --- !u!114 &-1119065943942906453
 MonoBehaviour:
@@ -98,7 +98,7 @@ MonoBehaviour:
     m_Value: 0.9
   intensity:
     m_OverrideState: 1
-    m_Value: 20
+    m_Value: 50
   scatter:
     m_OverrideState: 1
     m_Value: 1

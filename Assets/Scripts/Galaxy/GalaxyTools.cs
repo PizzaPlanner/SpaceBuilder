@@ -44,6 +44,60 @@ public static class GalaxyTools
         };
     }
 
+    public static string ToGalacticDistanceWithUnit(double distance)
+    {
+        var unit = "m";
+        if (distance >= 0.01 * Constants.DISTANCE_PARSEC)
+        {
+            distance /= Constants.DISTANCE_PARSEC;
+            unit = "pc";
+        }
+        else if (distance >= Constants.DISTANCE_ASTRONOMICAL_UNIT)
+        {
+            distance /= Constants.DISTANCE_ASTRONOMICAL_UNIT;
+            unit = "au";
+        }
+        else if (distance > 1000_000_000)
+        {
+            distance *= 0.000_000_001f;
+            unit = "Gm";
+        }
+        else if (distance > 1000_000)
+        {
+            distance *= 0.000_001f;
+            unit = "Mm";
+        }
+        else if (distance > 1000)
+        {
+            distance *= 0.001f;
+            unit = "km";
+        }
+
+        return $"{distance:F1}{unit}";
+    }
+
+    public static string ToTimeUnit(double time)
+    {
+        var unit = "s";
+        if (time > 3600 * 24 * 30 * 12)
+        {
+            return $"{time / (3600 * 24 * 30 * 12):F1}y";
+        }
+        else if (time > 3600 * 24)
+        {
+            return $"{time / (3600 * 24):F1}d";
+        }
+        else if (time > 3600)
+        {
+            return $"{time / 3600:F1}h";
+        }
+        else if (time > 60)
+        {
+            return $"{time / 60:F1}m";
+        }
+        else return $"{time:F1}s";
+    }
+
     static FixedString32Bytes iToS(in uint x, int rank)
     {
         var y = (x >> (rank * 2)) & 0xF;
@@ -121,8 +175,8 @@ public static class GalaxyTools
             NumberOfPlanets = (byte)(
                 planetRandom < 0.001f ? 0u :
                 planetRandom < 0.2f ? random.NextUInt(1, 4) :
-                planetRandom < 0.95f ? random.NextUInt(4, 8) :
-                random.NextUInt(8, 12))
+                planetRandom < 0.95f ? random.NextUInt(4, 6) :
+                random.NextUInt(6, 10))
         };
     }
 
@@ -269,7 +323,6 @@ public static class GalaxyTools
     {
         var rpos = math.abs(LocalToGalaxy.RelativePosition(playerSector, sector));
         return math.csum(math.abs(rpos / Constants.MAX_POSITION));
-
     }
 
     [BurstCompile]

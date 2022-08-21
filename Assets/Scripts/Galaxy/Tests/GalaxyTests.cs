@@ -29,7 +29,7 @@ namespace Galaxy.Tests
         }
 
         [Test]
-        public void WtfIsGoingOn()
+        public void SpecificUsecaseTest1()
         {
             // Log Ingame: (6:3A98, 0:0, 0:0)@float3(2.976562f, 0.04003906f, 0.06054688f) + double3(0.0187210395980439, -0.0403389283651856, -0.0737264584656766) = (6:3A98, FFFFFFFF:FFFE, 1:FFFD)@float3(2.995117f, 0f, 10751.99f)
             var from = new LocalToGalaxy
@@ -44,7 +44,30 @@ namespace Galaxy.Tests
             // Expected: (6:3A98, FFFFFFFF:FFFE, 1:FFFE)@float3(2.xxx, MAX-0.0403389283651856, 10751.99f)
             var result = LocalToGalaxy.OffsetBy(from, delta);
             Assert.AreEqual((int)MAX_SUBSECTOR - 1, result.SubSector.z);
-            Assert.AreEqual((int)MAX_POSITION + from.LocalPosition.y + delta.y, result.LocalPosition.y);
+            Assert.AreEqual((int)MAX_POSITION + from.LocalPosition.y + delta.y, result.LocalPosition.y, 1f);
+        }
+
+        [Test]
+        public void LtgDistanceCalculationIsInputOrderAgnostic()
+        {
+            var player = new LocalToGalaxy
+            {
+                Sector = new int3(754224, -1712, 144812),
+                SubSector = new int3(12273, 188061, 175145),
+                LocalPosition = new float3(5728.764f, 5078.215f, 6029.149f)
+            };
+            var target = new LocalToGalaxy
+            {
+                Sector = new int3(754224, -1712, 144812),
+                SubSector = new int3(93751, 130501, 178877),
+                LocalPosition = new float3(0, 0, 0)
+            };
+
+            var distPT = math.length(LocalToGalaxy.RelativePosition(player, target));
+            var distTP = math.length(LocalToGalaxy.RelativePosition(target, player));
+            Assert.AreEqual(distTP, distPT, 1);
+            Assert.IsFalse(GalaxyTools.ShouldUnloadSector(player, target, (int)MAX_SUBSECTOR));
+            Assert.IsFalse(GalaxyTools.ShouldUnloadSector(target, player, (int)MAX_SUBSECTOR));
         }
 
         [Test]

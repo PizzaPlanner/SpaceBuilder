@@ -110,20 +110,18 @@ public partial class LoadSectorSystem : SystemBase
             }).Run();
 
         var playerLtg = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
-        var shouldRecalculateSectors = math.any(playerLtg.Sector != lastPlayerLtg.Sector);
+        var shouldRecalculateSectors = playerLtg != lastPlayerLtg;
         lastPlayerLtg = playerLtg;
         if (shouldRecalculateSectors)
         {
             var css = GetSingleton<CalculateClosestStarSystem.ClosestStarSector>();
-            if (css.DistanceInSubSectors < sectorLoadSettings.MaxLoadedSectorDistancePlanetoid)
+            var starsec = GalaxyTools.GetStarSectorData(css.StarLTG.Sector);
+            for (byte i = 0; i < starsec.NumberOfPlanets; i++)
             {
-                var starsec = GalaxyTools.GetStarSectorData(css.StarLTG.Sector);
-                for (byte i = 0; i < starsec.NumberOfPlanets; i++)
-                {
-                    var planetsec = css.StarLTG;
-                    planetsec.SubSector = GalaxyTools.GetPlanetData(starsec, i).SubSector;
+                var planetsec = css.StarLTG;
+                planetsec.SubSector = GalaxyTools.GetPlanetData(starsec, i).SubSector;
+                if(GalaxyTools.DistanceInSubsectors(playerLtg, planetsec) < sectorLoadSettings.MaxLoadedSectorDistancePlanetoid)
                     sectorsToLoadLocal.Enqueue(planetsec);
-                }
             }
         }
 

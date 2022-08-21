@@ -42,11 +42,13 @@ public partial class UnloadSectorSystem : SystemBase
         {
             Entities
                 .WithNone<UnloadCandidate>()
+                .WithNone<ToGenerate>()
                 .WithAll<SectorLoadingDistance.CelestialBody>()
                 .WithAll<SubSector>()
                 .ForEach((Entity e, in LocalToGalaxy ltg) =>
                 {
-                    if(GalaxyTools.ShouldUnloadSector(playerLtg, ltg, sectorLoadSettings.MaxLoadedSectorDistanceCelestial))
+                    if (GalaxyTools.ShouldUnloadSector(playerLtg, ltg,
+                            sectorLoadSettings.MaxLoadedSectorDistanceCelestial))
                         ecb.AddComponent<UnloadCandidate>(e);
                 }).Schedule();
 
@@ -60,11 +62,13 @@ public partial class UnloadSectorSystem : SystemBase
 
             Entities
                 .WithNone<UnloadCandidate>()
+                .WithNone<ToGenerate>()
                 .WithAll<SectorLoadingDistance.Planetoid>()
                 .WithAll<SubSector>()
                 .ForEach((Entity e, in LocalToGalaxy ltg) =>
                 {
-                    if(GalaxyTools.ShouldUnloadSector(playerLtg, ltg, sectorLoadSettings.MaxLoadedSectorDistancePlanetoid))
+                    if (GalaxyTools.ShouldUnloadSector(playerLtg, ltg,
+                            sectorLoadSettings.MaxLoadedSectorDistancePlanetoid))
                         ecb.AddComponent<UnloadCandidate>(e);
                 }).Schedule();
 
@@ -81,10 +85,11 @@ public partial class UnloadSectorSystem : SystemBase
         {
             Entities
                 .WithNone<UnloadCandidate, SectorLoadingDistance.Planetoid, SectorLoadingDistance.CelestialBody>()
-                .WithAll<SubSector>()
+                .WithNone<ToGenerate>()
                 .ForEach((Entity e, in LocalToGalaxy ltg) =>
                 {
-                    if(GalaxyTools.ShouldUnloadSector(playerLtg, ltg, sectorLoadSettings.MaxLoadedSectorDistanceDefault))
+                    if (GalaxyTools.ShouldUnloadSector(playerLtg, ltg,
+                            sectorLoadSettings.MaxLoadedSectorDistanceDefault))
                         ecb.AddComponent<UnloadCandidate>(e);
                 }).Schedule();
 
@@ -100,7 +105,7 @@ public partial class UnloadSectorSystem : SystemBase
 
 
         Entities
-            .WithAll<LocalToGalaxy>()
+            .WithAll<LocalToGalaxy, SubSector>()
             .ForEach((Entity e, ref UnloadCandidate candidate) =>
             {
                 candidate.Timeout += deltaTime;

@@ -30,6 +30,8 @@ public partial class POIGenerator : SystemBase
         .EnumerateFiles(BaseFolder, $"*{BlueprintUtils.BlueprintFileExtension}", SearchOption.AllDirectories)
         .Select(x => x.Substring(BaseFolder.Length + 1)).ToArray();
 
+    public static string[] GetAllSpawnables => spawnables.GetKeyArray(Allocator.Temp).Select(x => x.Value).ToArray();
+
     protected override void OnCreate()
     {
         if (!Directory.Exists(BaseFolder))
@@ -51,15 +53,16 @@ public partial class POIGenerator : SystemBase
         foreach (var poiString in SpawnablePOIs)
         {
             var prefab = LoadAsPrefab(poiString, EntityManager, out var tags);
+            var poiStringNoExtension =
+                poiString.Substring(0, poiString.Length - BlueprintUtils.BlueprintFileExtension.Length).Replace('\\', '/');
             if (prefab != Entity.Null)
             {
-                var poiStringNoExtension =
-                    poiString.Substring(0, poiString.Length - BlueprintUtils.BlueprintFileExtension.Length);
                 spawnables.Add(poiStringNoExtension, prefab);
                 spawnableTags.Add(prefab, tags);
-                Debug.Log($"Added spawnable {poiStringNoExtension}");
-            }
+            } else
+                Debug.LogError($"Loading spawnable {poiStringNoExtension} failed");
         }
+        Debug.Log($"Loaded {spawnables.Count()} spawnabled:\n- "+string.Join("\n- ", spawnables.GetKeyArray(Allocator.Temp)));
 
         generatablePOIs = new NativeList<Entity>(Allocator.Persistent);
         foreach(var thing in spawnableTags)
@@ -147,8 +150,6 @@ public partial class POIGenerator : SystemBase
             foreach(var tag in data.Tags)
                 if (Enum.TryParse<SpawnableTag>(tag, out var t1))
                     tags |= t1;
-
-        Debug.Log($"Loaded Blueprint {relativePath} as {data.Name}");
 
         return prefab;
     }

@@ -103,6 +103,8 @@ public partial class MapUISystem : SystemBase
             secZS[i].AddToClassList($"segment-{seg}");
         }
 
-        coordinates.Q<Label>().text = $"{GalaxyTools.GetSectorType(ltg.Sector)} > {GalaxyTools.GetSubSectorData(ltg).Type}";
+        var speed = GetComponent<CanTravelSectors>(GetSingletonEntity<LocalPlayer>());
+        coordinates.Q<Label>().text = $"{GalaxyTools.GetSectorType(ltg.Sector)} > {GalaxyTools.GetSubSectorData(ltg).Type}\n" +
+                                      $"{GalaxyTools.ToGalacticDistanceWithUnit(speed.CurrentSpeed)}/s";
     }
 }

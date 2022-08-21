@@ -23,19 +23,19 @@ public class IconDisplayManager : MonoBehaviour
         var cam = GetComponent<Camera>();
         cam.targetTexture = rt;
         cam.enabled = true;
-        // if (!iconWorld.HasDisplayEntity(prefabToShow))
-        // {
-        //     var e = fromWorld.EntityManager.Instantiate(prefabToShow);
-        //     fromWorld.EntityManager.AddComponent<MoveWorldTag>(e);
-        //     using (var fromQuery = fromWorld.EntityManager.CreateEntityQuery(typeof(MoveWorldTag)))
-        //     using (var toQuery = iconWorld.EntityManager.CreateEntityQuery(typeof(MoveWorldTag)))
-        //     {
-        //         iconWorld.EntityManager.MoveEntitiesFrom(fromWorld.EntityManager, fromQuery);
-        //         var movedEntity = toQuery.ToEntityArray(Allocator.Temp)[0];
-        //         iconWorld.MapDisplayEntity(prefabToShow, movedEntity);
-        //     }
-        // }
-        // iconWorld.Display(prefabToShow, position);
+        if (!iconWorld.HasDisplayEntity(prefabToShow))
+        {
+            var e = fromWorld.EntityManager.Instantiate(prefabToShow);
+            fromWorld.EntityManager.AddComponent<MoveWorldTag>(e);
+            using (var fromQuery = fromWorld.EntityManager.CreateEntityQuery(typeof(MoveWorldTag)))
+            using (var toQuery = iconWorld.EntityManager.CreateEntityQuery(typeof(MoveWorldTag)))
+            {
+                iconWorld.EntityManager.MoveEntitiesFrom(fromWorld.EntityManager, fromQuery);
+                var movedEntity = toQuery.ToEntityArray(Allocator.Temp)[0];
+                iconWorld.MapDisplayEntity(prefabToShow, movedEntity);
+            }
+        }
+        iconWorld.Display(prefabToShow, position);
         cam.Render();
         cam.enabled = false;
         cam.targetTexture = null;

@@ -46,6 +46,7 @@ public partial class CalculateClosestStarSystem : SystemBase
     {
         RequireSingletonForUpdate<CameraAnchor>();
         RequireSingletonForUpdate<LocalPlayer>();
+        RequireForUpdate(GetEntityQuery(typeof(SectorChange)));
         EntityManager.CreateEntity(typeof(ClosestStarSector));
     }
 

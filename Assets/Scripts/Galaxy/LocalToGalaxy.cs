@@ -16,7 +16,38 @@ public static class Constants
     public const long MAX_POSITION = 0x2A00; // Must satisfy MAX_POSITION * MAX_POSITION < int.MaxValue
     public const long MAX_SUBSECTOR = 0x0003_FFFF; // Must satisfy MAX_SUBSECTOR * MAX_SUBSECTOR < int.MaxValue
     public const long DISTANCE_PER_SECTOR = MAX_POSITION * MAX_SUBSECTOR;
+    public const float DISTANCE_PARSEC = 3.0857e+16f;
+    public const float DISTANCE_LIGHTYEAR = 9_460_730_472_580_800;
+    public const float DISTANCE_ASTRONOMICAL_UNIT = 149_597_870_700;
 }
+
+// private const ulong MASK_SECTOR    = 0xFFFF_FFFC_0000_0000UL;
+// private const int SHIFT_SECTOR = 35;
+// private const ulong MASK_SUBSECTOR = 0x0000_0003_FFFF_0000UL;
+// private const int SHIFT_SUBSECTOR = 16;
+//
+//
+// private ulong X, Y, Z;
+// public uint3 Sector
+// {
+//     get => new uint3((uint) (X & 0xFFFF_FFFF_0000_0000u), (uint) (Y & 0xFFFF_FFFF_0000_0000u), (uint) (Z & 0xFFFF_FFFF_0000_0000u));
+//     set
+//     {
+//         X = (X & SHIFT_SUBSECTOR) + ((ulong)value.x << SHIFT_SECTOR);
+//         Y = (Y & SHIFT_SUBSECTOR) + ((ulong)value.y << SHIFT_SECTOR);
+//         Z = (Z & SHIFT_SUBSECTOR) + ((ulong)value.z << SHIFT_SECTOR);
+//     }
+// }
+// public uint3 SubSector
+// {
+//     get => new uint3((uint) (X & 0xFFFF_FFFF), (uint) (Y & 0xFFFF_FFFF), (uint) (Z & 0xFFFF_FFFF));
+//     set
+//     {
+//         X = (X & MASK_SECTOR) + ((ulong)value.x << SHIFT_SUBSECTOR);
+//         Y = (Y & MASK_SECTOR) + ((ulong)value.y << SHIFT_SUBSECTOR);
+//         Z = (Z & MASK_SECTOR) + ((ulong)value.z << SHIFT_SUBSECTOR);
+//     }
+// }
 
 [GenerateAuthoringComponent]
 public struct LocalToGalaxy : IComponentData

@@ -92,7 +92,7 @@ public unsafe partial class MovePlayerSystem : SystemBase
                     });
                 }
 
-                cts.CurrentSpeed = math.length(LocalToGalaxy.RelativePosition(ltg, cts.PreviousSector));
+                cts.CurrentSpeed = math.length(LocalToGalaxy.RelativePosition(ltg, cts.PreviousSector)) / deltaTime;
             }).Schedule();
 
         Entities
