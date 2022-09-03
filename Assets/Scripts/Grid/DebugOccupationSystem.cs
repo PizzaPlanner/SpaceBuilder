@@ -11,6 +11,8 @@ public partial class DebugOccupationSystem : SystemBase
     private Mesh mesh;
     private Material occupationMat, ghostMat;
 
+    private bool showAABBs, showOccupations;
+
     protected override void OnCreate()
     {
         Vector3[] vertices = {
@@ -50,30 +52,38 @@ public partial class DebugOccupationSystem : SystemBase
         ghostMat = Resources.Load<GhostPlacementSettings>("GhostPlacementSettings").DebugGhostMaterial;
     }
 
-    private bool showDebug;
     protected override void OnUpdate()
     {
         if (Input.GetKeyDown(KeyCode.Alpha0))
-            showDebug = !showDebug;
+            showOccupations = !showOccupations;
 
-        if(!showDebug)
-            return;
+        if (showOccupations)
+            ShowOccupations();
+        
+        if (Input.GetKeyDown(KeyCode.Alpha9))
+            showAABBs = !showAABBs;
+        
+        if (showAABBs)
+            ShowAABBs();
+    }
 
+    private void ShowOccupations()
+    {
         NativeList<float4x4> matrices = new NativeList<float4x4>(Allocator.Temp);
         Entities.ForEach((DynamicBuffer<OccupationBuffer> buffer, Grid grid, in LocalToWorld ltw) =>
         {
             foreach(var item in buffer)
                 matrices.Add(float4x4.TRS(Grid.PositionFromCell(ltw, item.Location), ltw.Rotation, 1));
         }).Run();
-
+        
         Draw(matrices, occupationMat);
-
+        
         matrices.Clear();
         Entities.ForEach((in Ghost ghost, in GridItem item) =>
         {
             if (item.Grid == Entity.Null)
                 return;
-
+        
             var parentLtw = GetComponent<LocalToWorld>(item.Grid);
             for(int x = item.Area.Min.x; x <= item.Area.Max.x; x++)
             for(int y = item.Area.Min.y; y <= item.Area.Max.y; y++)
@@ -82,26 +92,45 @@ public partial class DebugOccupationSystem : SystemBase
         }).Run();
 
         Draw(matrices, ghostMat);
+    }
 
-        var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
-        if (target.Value != Entity.Null && HasComponent<GridItem>(target.Value))
-        {
-            matrices.Clear();
-
-            var grid = GetComponent<GridItem>(target.Value).Grid;
-            var ltw = GetComponent<LocalToWorld>(grid);
-            foreach(var cell in GetBuffer<CellPathBuffer>(GetSingletonEntity<CellPathBuffer>()))
-                matrices.Add(float4x4.TRS(Grid.PositionFromCell(ltw, cell.Value), ltw.Rotation, 1));
-
-            Draw(matrices, ghostMat);
-        }
-
-        matrices.Clear();
+    private void ShowAABBs()
+    {
+        NativeList<float4x4> matrices = new NativeList<float4x4>(Allocator.Temp);
+        Grid inGrid = default;
+        float4x4 inGridItem = default;
+        var playerPos = GetComponent<LocalToWorld>(GetSingletonEntity<LocalPlayer>()).Position;
+        
         Entities.ForEach((in Grid grid) =>
         {
-            matrices.Add(float4x4.TRS(grid.AABB.Center - grid.AABB.Extents, quaternion.identity, grid.AABB.Extents * 2 / Grid.CELL_SIZE));
+            if (grid.AABB.Contains(playerPos))
+                inGrid = grid;
+            else
+                matrices.Add(float4x4.TRS(grid.AABB.Center - grid.AABB.Extents, quaternion.identity, grid.AABB.Size / Grid.CELL_SIZE));
         }).Run();
         Draw(matrices, ghostMat);
+        
+        matrices.Clear();
+        Entities.ForEach((in GridItem gridItem) =>
+        {
+            var parentLtw = GetComponent<LocalToWorld>(gridItem.Grid);
+            var bbox = gridItem.Area;
+            var mtx = float4x4.TRS(Grid.PositionFromCell(parentLtw, bbox.Min), parentLtw.Rotation,
+                bbox.Size);
+            if (math.any(inGrid.BoundsMax != 0) && (bbox.Contains(Grid.CellFromPosition(parentLtw, playerPos)) || false))
+                inGridItem = mtx;
+            else
+                matrices.Add(mtx);
+                
+        }).Run();
+        Draw(matrices, ghostMat);
+        
+        matrices.Clear();
+        if (!inGridItem.Equals(default))
+        {
+            matrices.Add(inGridItem);
+            Draw(matrices, occupationMat);
+        }
     }
 
     private void Draw(NativeList<float4x4> matrices, Material mat)

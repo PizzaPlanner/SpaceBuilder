@@ -29,6 +29,7 @@ public class CraftingRecipeAuthoring : MonoBehaviour, IConvertGameObjectToEntity
     public struct ItemWithAmount
     {
         public ItemAuthoring Prefab;
+        [Range(1, 9999)]
         public ushort Amount;
     }
 

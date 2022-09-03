@@ -23,7 +23,7 @@ public class ControlledItemsAuthoring : MonoBehaviour, IConvertGameObjectToEntit
 
         foreach(var item in buffer)
             if(item.Target == Entity.Null)
-                Debug.LogError($"A Target of ControlledItems ({entity}) is not set");
+                Debug.LogError($"ControlledItems not configured correctly for {gameObject.name}");
     }
 
     private void OnValidate()

@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -17,42 +18,39 @@ public partial class ElectricitySystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var buffer = bufferSystem.CreateCommandBuffer();
-
+        var ports = GetComponentDataFromEntity<ElectricityPort>(false);
+        var query = GetEntityQuery(typeof(ElectricityPort), typeof(GridItem));
+        var portEntities = query.ToEntityArray(Allocator.TempJob);
+        
         Entities
             .WithName("CalculateNetworkPower")
             .WithNone<NetworkPowerStatusChanged>()
-            .ForEach((Entity e, DynamicBuffer<ConnectionBuffer> connections, ref ElectricityNetwork network) =>
+            .WithAll<Grid>()
+            .ForEach((Entity e, ref ElectricityNetwork network) =>
             {
                 var prevPower = network.Power;
                 network.Power = 0;
-                for (int i = 0; i < connections.Length; i++)
+                for (int i = 0; i < portEntities.Length; i++)
                 {
-                    var port = GetComponent<ElectricityPort>(connections[i].Value);
-                    network.Power += port.On ? port.Value : 0;
-                }
-                if(network.Power != prevPower)
-                    buffer.AddComponent<NetworkPowerStatusChanged>(e);
-            }).Schedule();
-
-        var ports = GetComponentDataFromEntity<ElectricityPort>(false);
-        Entities
-            .WithName("AssignOperationalValues")
-            .WithAll<NetworkPowerStatusChanged>()
-            .ForEach((Entity e, DynamicBuffer<ConnectionBuffer> connections, in ElectricityNetwork network) =>
-            {
-                for (int i = 0; i < connections.Length; i++)
-                {
-                    var entity = connections[i].Value;
-                    if (!ports.HasComponent(entity))
+                    if (GetComponent<GridItem>(portEntities[i]).Grid != e)
                         continue;
 
-                    var component = ports[entity];
-                    component.NetworkOperational = network.Power > 0;
-                    ports[entity] = component;
+                    var port = ports[portEntities[i]];
+                    network.Power += port.On ? port.Value : 0;
                 }
-                buffer.RemoveComponent<NetworkPowerStatusChanged>(e);
+
+                if (network.Power == prevPower)
+                    return;
+                
+                for (int i = 0; i < portEntities.Length; i++)
+                {
+                    if (GetComponent<GridItem>(portEntities[i]).Grid != e)
+                        continue;
+
+                    var port = ports[portEntities[i]];
+                    port.NetworkOperational = network.Power >= 0;
+                    ports[portEntities[i]] = port;
+                }
             }).Schedule();
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

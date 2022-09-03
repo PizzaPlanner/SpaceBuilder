@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEditor.Graphs;
 using UnityEngine;
 
 [UpdateBefore(typeof(TransformSystemGroup))]
@@ -34,9 +35,9 @@ public partial class CalculateBuildingSlotSystem : SystemBase
                 Input.GetKeyDown(KeyCode.Alpha3));
         }
 
+        var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
         if (!inScalingMode)
         {
-            var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
             if (target.Value != Entity.Null && HasComponent<GridItem>(target.Value))
                 bgp.TargetGrid = GetComponent<GridItem>(target.Value).Grid;
             else
@@ -44,43 +45,20 @@ public partial class CalculateBuildingSlotSystem : SystemBase
             SetSingleton(bgp);
         }
 
-        if (bgp.TargetGrid == Entity.Null)
+        if (bgp.TargetGrid == Entity.Null || math.all(target.GridHit.Normal == 0))
+        {
+            SetComponent(ghost, new Ghost {Buildable = false});
             return;
+        }
 
         var occupied = GetBuffer<OccupationBuffer>(bgp.TargetGrid, true);
-        var cellPath = GetBuffer<CellPathBuffer>(GetSingletonEntity<CellPathBuffer>(), true);
-        var cellPathLocal = new NativeList<CellPathBuffer>(cellPath.Length, Allocator.Temp);
-        cellPathLocal.CopyFrom(cellPath.AsNativeArray());
-        if (cellPathLocal.Length == 0 && inScalingMode)
-        {
-            var cameraLtw = GetComponent<LocalToWorld>(GetSingletonEntity<CameraAnchor>());
-            var gridLtw = GetComponent<LocalToWorld>(bgp.TargetGrid);
-            if (GridTools.GetLookedAtPointOnPlanesFromObject(cameraLtw, gridLtw, gridItem.Area.Origin, 5000,
-                    out var position))
-            {
-                cellPathLocal.Add(new CellPathBuffer{Value = position});
-            }
-        }
-
-        if (cellPathLocal.Length == 0)
-        {
-            return;
-        }
-
-        var lastUnoccupied = 0;
-        for (int i = 0; i < cellPathLocal.Length; i++)
-        {
-            var targetIsOccupied = false;
-            foreach (var item in occupied)
-                targetIsOccupied |= math.all(item.Location == cellPathLocal[i].Value);
-            if (!targetIsOccupied)
-            {
-                lastUnoccupied = i;
-            }
-            else break;
-        }
-
-        targetCell = cellPathLocal[lastUnoccupied].Value;
+        var newCell = target.GridHit.Cell + target.GridHit.Normal;
+        var targetIsOccupied = false;
+        foreach (var item in occupied)
+            targetIsOccupied |= math.all(item.Location == newCell);
+        targetCell = targetIsOccupied ? int.MaxValue : newCell;
+        var gridLtw = GetComponent<LocalToWorld>(GetComponent<GridItem>(target.Value).Grid);
+        BoundingBox.Draw(new BoundingBox{Origin = newCell}, gridLtw, 0, targetIsOccupied ? Color.red : Color.white, Color.blue);
 
         var rotation = GetComponent<Rotation>(ghost).Value;
         if (inScalingMode)

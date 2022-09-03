@@ -5,7 +5,6 @@ using Unity.Physics;
 using Unity.Physics.Systems;
 using Unity.Transforms;
 using UnityEngine;
-using YamlDotNet.Serialization;
 using RaycastHit = Unity.Physics.RaycastHit;
 
 [GenerateAuthoringComponent]
@@ -15,13 +14,15 @@ public struct Target : IComponentData
     public Entity PreviousValue;
     public float3 Hit;
     public float3 PreviousHit;
+    public GridHitInfo GridHit;
     public bool CanInteract;
     public bool CanConstruct;
 }
 
-public struct CellPathBuffer : IBufferElementData
+public struct GridHitInfo
 {
-    public int3 Value;
+    public int3 Normal;
+    public int3 Cell;
 }
 
 public partial class PlayerTargetSystem : SystemBase
@@ -49,7 +50,6 @@ public partial class PlayerTargetSystem : SystemBase
         filterConstructable.BelongsTo = ~0u;
 
         EntityManager.CreateEntity(typeof(PhysicsWorld2Singleton));
-        EntityManager.CreateEntity(typeof(CellPathBuffer));
     }
 
     protected override void OnDestroy()
@@ -73,16 +73,25 @@ public partial class PlayerTargetSystem : SystemBase
         var hitLocation = float3.zero;
         var nextTarget = Entity.Null;
 
-        PhysicsWorldBuilder.BuildPhysicsWorldImmediate(this, ref bpWorld, 0, float3.zero, LastSystemVersion);
-
-        // Find Constructable Target
-        var input2 = new RaycastInput
+        RaycastHit constructableHit = default;
+        if (GetEntityQuery(new EntityQueryDesc { Any = new[]
+            {
+                ComponentType.ReadOnly<BuilderMode_Blueprint>(), 
+                ComponentType.ReadOnly<BuilderMode_Build>(), 
+                ComponentType.ReadOnly<BuilderMode_Destroy>()
+            } }).CalculateChunkCount() > 0)
         {
-            Start = camPosition,
-            End = camPosition + camForward * TARGET_MAX_RANGE_CONSTRUCTABLE,
-            Filter = filterConstructable
-        };
-        bpWorld.PhysicsWorld.CollisionWorld.CastRay(input2, out var constructableHit);
+            PhysicsWorldBuilder.BuildPhysicsWorldImmediate(this, ref bpWorld, 0, float3.zero, LastSystemVersion);
+
+            // Find Constructable Target
+            var input2 = new RaycastInput
+            {
+                Start = camPosition,
+                End = camPosition + camForward * TARGET_MAX_RANGE,
+                Filter = filterConstructable
+            };
+            bpWorld.PhysicsWorld.CollisionWorld.CastRay(input2, out constructableHit);
+        }
 
         // Find Other target
         var input = new RaycastInput
@@ -117,47 +126,48 @@ public partial class PlayerTargetSystem : SystemBase
         {
             var isGhost = t.Value != Entity.Null && HasComponent<Ghost>(t.Value);
             t.CanConstruct = !isGhost && t.Value != Entity.Null &&
-                             HasComponent<UnderConstruction>(t.Value);
+                             HasComponent<UnderConstruction>(t.Value) &&
+                             math.distancesq(hitLocation, camPosition) <= TARGET_MAX_RANGE_CONSTRUCTABLE * TARGET_MAX_RANGE_CONSTRUCTABLE;
             t.CanInteract = !t.CanConstruct && !isGhost &&
                             t.Value != Entity.Null &&
                             HasComponent<Interactable>(t.Value) &&
+                            !HasComponent<Blueprinted>(t.Value) &&
                             math.distancesq(hitLocation, camPosition) <= TARGET_MAX_RANGE_INTERACTABLE * TARGET_MAX_RANGE_INTERACTABLE;
+            
+            t.GridHit.Normal = 0;
+            t.GridHit.Cell = int.MaxValue;
+            if (t.Value == Entity.Null || !HasComponent<GridItem>(target.Value)) return;
+            // Calculate which grid cell was hit and on which side
+            var gridItem = GetComponent<GridItem>(target.Value);
+            var gridLtw = GetComponent<LocalToWorld>(gridItem.Grid);
+
+            var centerWorld = math.mul(gridLtw.Rotation, gridItem.Area.Center * Grid.CELL_SIZE) + gridLtw.Position;
+            var diffLocal = math.mul(math.inverse(gridLtw.Rotation), target.Hit - centerWorld);
+            var absDiffLocal = math.abs(diffLocal) / gridItem.Area.Size;
+            bool3 biggest = new bool3(
+                absDiffLocal.x >= absDiffLocal.y && absDiffLocal.x >= absDiffLocal.z,
+                absDiffLocal.y >= absDiffLocal.x && absDiffLocal.y >= absDiffLocal.z,
+                absDiffLocal.z >= absDiffLocal.y && absDiffLocal.z >= absDiffLocal.x
+            );
+            var normalLocal = (int3)math.select(0, math.sign(diffLocal), biggest);
+            t.GridHit.Normal = normalLocal;
+            var planeOriginLocal = math.select(0, gridItem.Area.Max + 1, normalLocal == 1) +
+                              math.select(0, gridItem.Area.Min, normalLocal == -1) +
+                              math.select(0, gridItem.Area.Center, normalLocal == 0);
+            var planeOriginWorld = Grid.GridToWorld(gridLtw, planeOriginLocal);
+            var normalWorld = math.mul(gridLtw.Rotation, normalLocal);
+            
+            if (GridTools.RayIntersectsPlane(camForward, camPosition, planeOriginWorld, normalWorld, 100, out var planeHit))
+            {
+                t.GridHit.Cell = Grid.CellFromPosition(gridLtw, planeHit + camForward * 0.01f);
+                BoundingBox.Draw(new BoundingBox(){Origin = t.GridHit.Cell}, gridLtw, normalLocal, Color.white, Color.blue);
+            }
         }).Run();
 
-        if (target.Value != target.PreviousValue || math.any(target.Hit != target.PreviousHit))
+        if (target.Value != Entity.Null && HasComponent<GridItem>(target.Value))
         {
-            var cellBuffer = EntityManager.GetBuffer<CellPathBuffer>(GetSingletonEntity<CellPathBuffer>());
-            cellBuffer.Clear();
-
-            if (target.Value == Entity.Null || !HasComponent<GridItem>(target.Value))
-                return;
-
-            var grid = GetComponent<GridItem>(target.Value).Grid;
-            var ltw = GetComponent<LocalToWorld>(grid);
-            var start = Grid.CellFromPosition(ltw, Camera.main.transform.position);
-            var end = Grid.CellFromPosition(ltw, target.Hit);
-
-            var startRelative = (camPosition - Grid.PositionFromCell(ltw, start)) / Grid.CELL_SIZE;
-
-            // DDA as described in https://lodev.org/cgtutor/raycasting.html
-            var direction = math.normalizesafe(target.Hit - camPosition);
-            var delta = math.select(math.abs(1 / direction), float.MaxValue, direction == 0);
-            var step = (int3) math.sign(direction);
-            var distToNextSide = math.select(startRelative, 1 - startRelative, step > 0) * delta;
-
-            var next = start;
-            while (math.any(next != end) && cellBuffer.Length <= math.csum(math.abs(end - start)))
-            {
-                var smallFilter = math.select(int3.zero, 1, new bool3(
-                    distToNextSide.x <= distToNextSide.y && distToNextSide.x <= distToNextSide.z,
-                    distToNextSide.y <= distToNextSide.x && distToNextSide.y <= distToNextSide.z,
-                    distToNextSide.z <= distToNextSide.y && distToNextSide.z <= distToNextSide.x));
-                if (math.all(smallFilter == int3.zero))
-                    break;
-                distToNextSide += delta * smallFilter;
-                next += step * smallFilter;
-                cellBuffer.Add(new CellPathBuffer{Value = next});
-            }
+            var gridItem = GetComponent<GridItem>(target.Value);
+            BoundingBox.Draw(gridItem.Area, GetComponent<LocalToWorld>(gridItem.Grid), target.GridHit.Normal, Color.white, Color.blue);
         }
     }
 }

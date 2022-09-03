@@ -20,18 +20,18 @@ PrefabInstance:
     - target: {fileID: -3586686030049976611, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: Cost.Array.size
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -3586686030049976611, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: Cost.Array.data[0].Amount
-      value: 40
+      value: 80
       objectReference: {fileID: 0}
     - target: {fileID: -3586686030049976611, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: Cost.Array.data[0].Prefab
       value: 
-      objectReference: {fileID: 1033483660156426530, guid: ba79cd105b81eeb46962a92fa3d40724,
+      objectReference: {fileID: 528892093010784648, guid: 253d9061a1d7ddd4caf3f5fac77efe1c,
         type: 3}
     - target: {fileID: -3586686030049976611, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}

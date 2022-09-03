@@ -1,0 +1,6 @@
+Version: 3
+Name: 1_1_10 Thing
+Parts:
+  17704343019872175460:
+  - LocalToGrid: [0,0,0,24]
+    Scale: [1,1,10]

@@ -65,17 +65,17 @@ public partial class BuildingSystem : SystemBase
             // Check if space is already occupied
             if (!IsCreateGhostJob && !IsFinishConstructionJob)
             {
-                var canBuild = true;
+                var canBuild = math.all(newGridItem.Area.Max < short.MaxValue) &&
+                               math.all(newGridItem.Area.Min > short.MinValue);
                 foreach (var item in occupations[part.Grid])
                     canBuild &= !(newGridItem.Area.Contains(item.Location) &&
                                   (item.Value & newGridItem.Occupied) > 0);
                 if (!canBuild)
                 {
-                    Debug.Log($"Discarded pending part on occupied area {newGridItem.Area}");
+                    Debug.Log($"Discarded pending part in invalid or occupied area {newGridItem.Area}");
                     return;
                 }
             }
-
 
             // Create Part
             var entity = buffer.Instantiate(prefab);
@@ -92,9 +92,11 @@ public partial class BuildingSystem : SystemBase
                         buffer.AddComponent(entity, new Scale{Value = part.Data.Area.Size.x});
                     else
                         buffer.AddComponent(entity, newGridItem.Area.ToScale(part.Data.Orientation));
-                    newGridItem.Area.Extents = part.Data.Area.Extents;
                     break;
                 }
+                case false:
+                    newGridItem.Area.Extents = gridItems[prefab].Area.Extents;
+                    break;
             }
 
             buffer.SetComponent(entity, new Parent {Value = part.Grid});

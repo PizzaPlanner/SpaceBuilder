@@ -23,7 +23,6 @@ public class BuildingSubPart : MonoBehaviour, IConvertGameObjectToEntity
         });
         dstManager.AddComponentData(entity, new RotationPivot {Value = Grid.CELL_SIZE * 0.5f});
         dstManager.AddComponent<CompositeRotation>(entity);
-        dstManager.AddBuffer<ConnectionBuffer>(entity);
     }
 
     void Start()

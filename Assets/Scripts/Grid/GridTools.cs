@@ -63,17 +63,12 @@ public static class GridTools
         return original;
     }
 
-    public static BoundingBox Rotated(this BoundingBox boundingBox, quaternion rotation)
-    {
-        var center = boundingBox.Center;
-        boundingBox.Origin = (int3)math.round(math.rotate(rotation, boundingBox.Origin - center) + center);
-        boundingBox.Extents = (int3)math.round(math.rotate(rotation, boundingBox.Extents));
-        return boundingBox;
-    }
-
     // Source: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-plane-and-ray-disk-intersection
     public static bool RayIntersectsPlane(float3 ray, float3 rayOrigin, float3 planeOrigin, float3 planeNormal, float maxRange, out float3 hit)
     {
+        // The algorithm assumes planeNormal and ray to point in generally the same direction. We want the planeNormal to point in ~ camera direction. so flip the normal.
+        planeNormal = -planeNormal;
+        
         hit = 0;
         var denom = math.dot(planeNormal, ray);
         if (denom > 1e-6)

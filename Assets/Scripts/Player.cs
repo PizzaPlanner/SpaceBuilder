@@ -70,6 +70,7 @@ public unsafe partial class MovePlayerSystem : SystemBase
 
         var ecb = bufferSystem.CreateCommandBuffer();
         Entities
+            // .WithAll<ReferenceFrame>()
             .WithNone<Docked>()
             .ForEach((Entity e, ref Rotation r, ref CanTravelSectors cts, ref LocalToGalaxy ltg, ref Player player) =>
             {
@@ -96,6 +97,7 @@ public unsafe partial class MovePlayerSystem : SystemBase
             }).Schedule();
 
         Entities
+            // .WithNone<ReferenceFrame>()
             .ForEach((ref Docked docked, ref PhysicsVelocity velocity, in Player player) =>
             {
                 docked.Rotation = math.mul(docked.Rotation, quaternion.EulerXYZ(new float3(0, rotation.y, 0)));

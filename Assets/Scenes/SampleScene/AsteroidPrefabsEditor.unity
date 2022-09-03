@@ -135,6 +135,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Nebula
       objectReference: {fileID: 0}
+    - target: {fileID: 3085529603478266193, guid: 80c79d5135cad9e40aa3ecad6c15549e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3085529603478266220, guid: 80c79d5135cad9e40aa3ecad6c15549e,
         type: 3}
       propertyPath: m_RootOrder
@@ -189,6 +194,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4907366072141829079, guid: 80c79d5135cad9e40aa3ecad6c15549e,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 80c79d5135cad9e40aa3ecad6c15549e, type: 3}
@@ -272,6 +282,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_RootOrder
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 789223630047444486, guid: 7e614e4882f417b45843bd2f83d26347,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 789223630047444486, guid: 7e614e4882f417b45843bd2f83d26347,
         type: 3}

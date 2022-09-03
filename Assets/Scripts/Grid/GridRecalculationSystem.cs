@@ -1,11 +1,7 @@
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
-using UnityEngine.Networking;
-using MeshCollider = Unity.Physics.MeshCollider;
 
 public struct Grid : IComponentData
 {
@@ -18,6 +14,8 @@ public struct Grid : IComponentData
     public static int3 CellFromPosition(LocalToWorld ltw, float3 worldPosition) => (int3) math.floor(math.mul(math.inverse(ltw.Rotation), worldPosition - ltw.Position) / CELL_SIZE);
     public static int3 CellFromPosition(float3 localPosition) => (int3) math.floor(localPosition / CELL_SIZE);
     public static float3 PositionFromCell(LocalToWorld ltw, int3 cell) =>  math.mul(ltw.Rotation, (float3)cell * CELL_SIZE) + ltw.Position;
+    public static float3 GridToWorld(LocalToWorld gridLtw, float3 localPosition) =>  math.mul(gridLtw.Rotation, localPosition * CELL_SIZE) + gridLtw.Position;
+    public static float3 WorldToGrid(LocalToWorld gridLtw, float3 worldPosition) => math.mul(math.inverse(gridLtw.Rotation), worldPosition - gridLtw.Position) / CELL_SIZE;
     public static float3 PositionFromCell(int3 cell) =>  (float3)cell * CELL_SIZE;
 }
 
@@ -25,51 +23,6 @@ public struct OccupationBuffer : IBufferElementData
 {
     public GridItem.Side Value;
     public int3 Location;
-}
-
-public struct RoomBuffer : IBufferElementData
-{
-    public int3 Location;
-    public uint Room;
-}
-
-public struct AirtightBuffer : IBufferElementData
-{
-    public GridItem.Side Value;
-    public int3 Location;
-}
-
-public struct ConnectionBuffer : IBufferElementData
-{
-    public Entity Value;
-    public ConnectionType Type;
-    public GridItem.Side Side;
-
-    public static bool Connects(ConnectionBuffer connection, GridItem.Side mySide, GridItem.Side theirSide)
-    {
-        int positive = (int)(GridItem.Side.Front | GridItem.Side.Up | GridItem.Side.Right);
-        int negative = (int)(GridItem.Side.Back | GridItem.Side.Down | GridItem.Side.Left);
-        int shared = (int)connection.Side & (int)mySide & (positive | negative);
-        int theirs = (int)theirSide & (positive | negative);
-        return (
-            ((shared & positive) << 1) & theirs & negative) +
-            (shared & negative & ((theirs & positive) << 1)) != 0;
-    }
-}
-
-[System.Flags]
-public enum ConnectionType
-{
-    Related = 1<<0,
-    Logic = 1<<1,
-    Power = 1<<2,
-    Gas = 1<<3
-}
-
-public struct ConnectionBufferSided : IBufferElementData
-{
-    public Entity Value;
-    public GridItem.Side Side;
 }
 
 public struct NeedsUpdate : IComponentData { }
@@ -85,52 +38,13 @@ public partial class GridRecalculationSystem : SystemBase
         RequireForUpdate(GetEntityQuery(typeof(GridNeedsUpdate)));
     }
 
-    protected unsafe override void OnUpdate()
+    protected override unsafe void OnUpdate()
     {
         Debug.Log("Recalculating Grids!");
         Entities.WithAll<Grid>().ForEach((DynamicBuffer<OccupationBuffer> obuff) =>
         {
             obuff.Clear();
         }).Run();
-
-        Entities.WithAll<Grid>().ForEach((DynamicBuffer<AirtightBuffer> abuff) =>
-        {
-            abuff.Clear();
-        }).Run();
-
-        Entities.WithAll<Grid>().ForEach((DynamicBuffer<RoomBuffer> rbuff) =>
-        {
-            rbuff.Clear();
-        }).Run();
-
-        var gridItemEntities = GetEntityQuery(
-            ComponentType.Exclude<Blueprinted>(),
-            ComponentType.ReadOnly<GridItem>(),
-            ComponentType.ReadWrite<ConnectionBuffer>());
-
-        var entities = gridItemEntities.ToEntityArray(Allocator.Temp);
-        var gridItems = gridItemEntities.ToComponentDataArray<GridItem>(Allocator.Temp);
-        for (int e1 = 0; e1 < entities.Length; e1++)
-        {
-            var nbbuffer = GetBuffer<ConnectionBuffer>(entities[e1], false);
-            nbbuffer.Clear();
-            for (int e2 = 0; e2 < entities.Length; e2++)
-            {
-                if (gridItems[e1].Grid != gridItems[e2].Grid) continue;
-                if (e1 == e2) continue;
-                var distance = gridItems[e2].Area.Origin - gridItems[e1].Area.Origin;
-                if (math.dot(distance, distance) != 1) continue;
-                GridItem.Side side = 0;
-                if (distance.x == 1) side |= GridItem.Side.Right;
-                else if (distance.x == -1) side |= GridItem.Side.Left;
-                else if (distance.y == 1) side |= GridItem.Side.Up;
-                else if (distance.y == -1) side |= GridItem.Side.Down;
-                else if (distance.z == 1) side |= GridItem.Side.Front;
-                else if (distance.z == -1) side |= GridItem.Side.Back;
-                if(side != 0)
-                    nbbuffer.Add(new ConnectionBuffer {Value = entities[e2], Side = side});
-            }
-        }
 
         Entities.ForEach((ref Grid grid) =>
         {
@@ -139,7 +53,6 @@ public partial class GridRecalculationSystem : SystemBase
         }).Run();
 
         var occupationBuffers = GetBufferFromEntity<OccupationBuffer>();
-        var airtightBuffers = GetBufferFromEntity<AirtightBuffer>();
         var grids = GetComponentDataFromEntity<Grid>();
         Entities
             .WithName("CalculateOccupation")
@@ -176,31 +89,6 @@ public partial class GridRecalculationSystem : SystemBase
                 gTemp.BoundsMin = math.min(gTemp.BoundsMin, item.Area.Min);
                 gTemp.BoundsMax = math.max(gTemp.BoundsMax, item.Area.Max);
                 grids[item.Grid] = gTemp;
-            }
-
-            if (airtightBuffers.HasComponent(item.Grid))
-            {
-                var min = item.Area.Min;
-                var max = item.Area.Max;
-                var b = airtightBuffers[item.Grid];
-                for (int x = min.x; x <= max.x; x++)
-                for (int y = min.y; y <= max.y; y++)
-                for (int z = min.z; z <= max.z; z++)
-                {
-                    var pos = new int3(x, y, z);
-                    bool found = false;
-                    for (int i = 0; i < b.Length; i++)
-                    {
-                        if (math.all(b[i].Location == pos))
-                        {
-                            b[i] = new AirtightBuffer() {Location = pos, Value = b[i].Value | item.Airtight};
-                            found = true;
-                        }
-                    }
-
-                    if (!found)
-                        b.Add(new AirtightBuffer() {Location = pos, Value = item.Airtight});
-                }
             }
         }).Run();
 
