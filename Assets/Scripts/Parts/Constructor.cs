@@ -1,6 +1,6 @@
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
+using Unity.Physics;
 using Unity.Transforms;
 
 [GenerateAuthoringComponent]
@@ -126,6 +126,7 @@ public partial class FinishConstructionSystem : SystemBase
             buffer = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>().CreateCommandBuffer(),
             grids = GetComponentDataFromEntity<Grid>(true),
             gridItems = GetComponentDataFromEntity<GridItem>(true),
+            colliders = GetComponentDataFromEntity<PhysicsCollider>(true),
             occupations = GetBufferFromEntity<OccupationBuffer>(true),
             prefabMap = IdentifiableMappingSystem.EntitiesById,
             IsFinishConstructionJob = true

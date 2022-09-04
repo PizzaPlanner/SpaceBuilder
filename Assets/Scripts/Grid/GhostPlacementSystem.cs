@@ -1,6 +1,7 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -163,6 +164,7 @@ public partial class GhostPlacementSystem : SystemBase
                 buffer = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>().CreateCommandBuffer(),
                 grids = GetComponentDataFromEntity<Grid>(true),
                 gridItems = GetComponentDataFromEntity<GridItem>(true),
+                colliders = GetComponentDataFromEntity<PhysicsCollider>(true),
                 occupations = GetBufferFromEntity<OccupationBuffer>(true),
                 prefabMap = IdentifiableMappingSystem.EntitiesById,
                 IsCreateGhostJob = true

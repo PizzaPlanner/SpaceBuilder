@@ -2,9 +2,12 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
+using Unity.Physics.Extensions;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
+using BoxCollider = Unity.Physics.BoxCollider;
+using MeshCollider = Unity.Physics.MeshCollider;
 
 public struct GridChangedEvent : IComponentData
 {
@@ -34,6 +37,7 @@ public partial class BuildingSystem : SystemBase
         [ReadOnly] public NativeParallelHashMap<ulong, Entity> prefabMap;
         [ReadOnly] public ComponentDataFromEntity<Grid> grids;
         [ReadOnly] public ComponentDataFromEntity<GridItem> gridItems;
+        [ReadOnly] public ComponentDataFromEntity<PhysicsCollider> colliders;
         [ReadOnly] public BufferFromEntity<OccupationBuffer> occupations;
 
         public bool IsCreateGhostJob;
@@ -89,6 +93,22 @@ public partial class BuildingSystem : SystemBase
                     break;
                 case true when math.any(part.Data.Area.Extents != 0):
                 {
+                    if (math.any(part.Data.Area.Size != 1) && colliders.HasComponent(prefab))
+                    {
+                        var collider = colliders[prefab].Value;
+                        switch (collider.Value.Type)
+                        {
+                            case ColliderType.Convex:
+                                buffer.SetComponent(entity, new PhysicsCollider{ Value = collider.As<ConvexCollider>().Scaled(part.Data.Area.Size) });
+                                break;
+                            case ColliderType.Box:
+                                buffer.SetComponent(entity, new PhysicsCollider{ Value = collider.As<BoxCollider>().Scaled(part.Data.Area.Size) });
+                                break;
+                            default:
+                                Debug.LogError($"No collider scaling method provided for type {collider.Value.Type}");
+                                break;
+                        }
+                    }
                     if(part.Data.Area.Size.x == part.Data.Area.Size.y && part.Data.Area.Size.x == part.Data.Area.Size.z)
                         buffer.AddComponent(entity, new Scale{Value = part.Data.Area.Size.x});
                     else
@@ -149,6 +169,7 @@ public partial class BuildingSystem : SystemBase
             buffer = buffer,
             grids = GetComponentDataFromEntity<Grid>(true),
             gridItems = GetComponentDataFromEntity<GridItem>(true),
+            colliders = GetComponentDataFromEntity<PhysicsCollider>(true),
             occupations = GetBufferFromEntity<OccupationBuffer>(true),
             prefabMap = IdentifiableMappingSystem.EntitiesById,
             IsCreateGhostJob = false,

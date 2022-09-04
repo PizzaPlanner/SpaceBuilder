@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using Material = UnityEngine.Material;
 
 
 public partial class DebugOccupationSystem : SystemBase
@@ -108,16 +109,17 @@ public partial class DebugOccupationSystem : SystemBase
             BoundingBox.Draw(shownItem, gridLtw, 0, ghost.Buildable ? Color.green : Color.red, Color.blue);
         }).WithoutBurst().Run();
         
-        Entities.ForEach((in Target target) =>
-        {
-            if (target.GridHit.Grid != Entity.Null)
+        Entities
+            .WithAll<LocalPlayer>()
+            .ForEach((in Target target) =>
             {
+                if (target.GridHit.Grid == Entity.Null) return;
+                
                 var gridItem = GetComponent<GridItem>(target.Value);
                 var gridLtw = GetComponent<LocalToWorld>(target.GridHit.Grid);
                 BoundingBox.Draw(gridItem.Area, gridLtw, target.GridHit.Normal, Color.white, Color.blue);
                 BoundingBox.Draw(new BoundingBox(){Origin = target.GridHit.Cell}, gridLtw, target.GridHit.Normal, Color.white, Color.blue);
-            }
-        }).WithoutBurst().Run();
+            }).WithoutBurst().Run();
     }
     
     private void ShowAABBs()
