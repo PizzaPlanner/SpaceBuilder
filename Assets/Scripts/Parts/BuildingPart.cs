@@ -48,7 +48,8 @@ public struct BoundingBox
     public readonly float3 Center => math.lerp(Min, Max + 1, 0.5f);
 
     public readonly bool IsValid => math.all(Max < short.MaxValue) &&
-                                    math.all(Min > short.MinValue);
+                                    math.all(Min > short.MinValue) && 
+                                    math.length(Size) < 20*20*20;
     
     public readonly bool Contains(int3 value)
     {

@@ -11,10 +11,12 @@ public struct GhostPlacementBuilder : IComponentData
 {
     public Entity TargetGrid;
     public GridItem Original;
-    public BoundingBox ScaleArea;
-    public bool3 Scaling;
+    public int ScaleUp;
     public int3 DragStartCell;
+    public int3 DragEndCell;
     public int3 DragStartNormal;
+
+    public BoundingBox DragArea => new BoundingBox { Origin = DragStartCell, Extents = DragEndCell - DragStartCell };
 }
 
 public struct Ghost : IComponentData
@@ -203,9 +205,9 @@ public partial class GhostPlacementSystem : SystemBase
                     }
                     else
                     {
-                        for (int x = bgp.ScaleArea.Min.x; x <= bgp.ScaleArea.Max.x; x++)
-                        for (int y = bgp.ScaleArea.Min.y; y <= bgp.ScaleArea.Max.y; y++)
-                        for (int z = bgp.ScaleArea.Min.z; z <= bgp.ScaleArea.Max.z; z++)
+                        for (int x = bgp.DragArea.Min.x; x <= bgp.DragArea.Max.x; x++)
+                        for (int y = bgp.DragArea.Min.y; y <= bgp.DragArea.Max.y; y++)
+                        for (int z = bgp.DragArea.Min.z; z <= bgp.DragArea.Max.z; z++)
                         {
                             var pendingBuild = new PendingPart
                             {

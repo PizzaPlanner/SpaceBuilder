@@ -153,12 +153,19 @@ public partial class PlayerTargetSystem : SystemBase
             );
             var normalLocal = (int3)math.select(0, math.sign(diffLocal), biggest);
             var planeOriginLocal = math.select(0, gridItem.Area.Max + 1, normalLocal == 1) +
-                              math.select(0, gridItem.Area.Min, normalLocal == -1) +
-                              math.select(0, gridItem.Area.Center, normalLocal == 0);
-            var planeOriginWorld = Grid.GridToWorld(gridLtw, planeOriginLocal);
-            var normalWorld = math.mul(gridLtw.Rotation, normalLocal);
+                                   math.select(0, gridItem.Area.Min, normalLocal == -1) +
+                                   math.select(0, gridItem.Area.Center, normalLocal == 0);
             
-            if (GridTools.RayIntersectsPlane(camForward, camPosition, planeOriginWorld, normalWorld, 100, out var planeHit))
+            // var planeOriginWorld = Grid.GridToWorld(gridLtw, planeOriginLocal);
+            // var normalWorld = math.mul(gridLtw.Rotation, normalLocal);
+            //
+            // if (GridTools.RayIntersectsPlane(camForward, camPosition, planeOriginWorld, normalWorld, 100, out var planeHit))
+            // {
+            //     t.GridHit.Cell = Grid.CellFromPosition(gridLtw, planeHit + camForward * 0.01f);
+            //     t.GridHit.Normal = normalLocal;
+            //     t.GridHit.Grid = gridItem.Grid;
+            // }
+            if (GridTools.ViewIntersectsPlaneFromGridCell(new float3x2(camPosition, camForward), gridLtw, planeOriginLocal, normalLocal, out var planeHit))
             {
                 t.GridHit.Cell = Grid.CellFromPosition(gridLtw, planeHit + camForward * 0.01f);
                 t.GridHit.Normal = normalLocal;

@@ -105,7 +105,7 @@ public partial class DebugOccupationSystem : SystemBase
                 return;
             
             var gridLtw = GetComponent<LocalToWorld>(builder.TargetGrid);
-            var shownItem = builder.Original.Scalable ? builder.ScaleArea : item.Area;
+            var shownItem = builder.Original.Scalable ? builder.DragArea : item.Area;
             BoundingBox.Draw(shownItem, gridLtw, 0, ghost.Buildable ? Color.green : Color.red, Color.blue);
         }).WithoutBurst().Run();
         

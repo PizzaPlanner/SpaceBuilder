@@ -26,14 +26,6 @@ public partial class CalculateBuildingSlotSystem : SystemBase
         var bgp = GetComponent<GhostPlacementBuilder>(ghost);
 
         var inScalingMode = gridItem.Scalable && Input.GetMouseButton(0);
-        if (inScalingMode)
-        {
-            // In which directions do we want to scale?
-            bgp.Scaling ^= new bool3(
-                Input.GetKeyDown(KeyCode.Alpha1),
-                Input.GetKeyDown(KeyCode.Alpha2),
-                Input.GetKeyDown(KeyCode.Alpha3));
-        }
 
         var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
         if (!inScalingMode)
@@ -60,36 +52,36 @@ public partial class CalculateBuildingSlotSystem : SystemBase
         {
             if (inScalingMode)
             {
-                var camera = Camera.main.transform;
-                var camPosition = (float3)camera.position;
-                var camForward = (float3) camera.forward;
                 var gridLtw = GetComponent<LocalToWorld>(bgp.TargetGrid);
-                var planeOriginWorld = Grid.GridToWorld(gridLtw, new BoundingBox{Origin = bgp.DragStartCell}.Center);
-                var normalWorld = math.mul(gridLtw.Rotation, bgp.DragStartNormal);
-                var dragEndCell = bgp.DragStartCell; 
-                if (GridTools.RayIntersectsPlane(camForward, camPosition, planeOriginWorld, normalWorld, 100, out var planeHit))
-                {
-                    dragEndCell = Grid.CellFromPosition(gridLtw, planeHit);
-                }
-                bgp.ScaleArea.Extents = math.select(0, dragEndCell - bgp.DragStartCell, true);
+                if(GridTools.ViewIntersectsPlaneFromGridCell(
+                       new float3x2(Camera.main.transform.position, Camera.main.transform.forward), 
+                       gridLtw,  
+                       new BoundingBox{ Origin = bgp.DragStartCell }.Center, 
+                       bgp.DragStartNormal, out var hit))
+                    bgp.DragEndCell = Grid.CellFromPosition(gridLtw, hit) + bgp.DragStartNormal * bgp.ScaleUp;
+                else
+                    bgp.DragEndCell = bgp.DragStartCell;
+
+                var scroll = (int)math.sign(Input.GetAxis("Mouse ScrollWheel"));
+                if (scroll != 0)
+                    bgp.ScaleUp = math.clamp(bgp.ScaleUp + scroll, 0, 255);
             }
             else
             {
-                bgp.ScaleArea.Origin = targetCell;
                 bgp.DragStartCell = targetCell;
+                bgp.DragEndCell = targetCell;
                 bgp.DragStartNormal = target.GridHit.Normal;
-                bgp.ScaleArea.Extents = 0;
+                bgp.ScaleUp = 0;
             }
-            gridItem.Area = bgp.ScaleArea.AdjustedToObjectRotation(rotation);
+            gridItem.Area = bgp.DragArea.AdjustedToObjectRotation(rotation);
             SetComponent(ghost, gridItem.Area.ToScale(rotation));
         }
         else
         {
             gridItem.Area.Origin = targetCell;
             gridItem.Area.Extents = bgp.Original.Area.Extents.Rotated(rotation);
-            bgp.ScaleArea.Origin = targetCell;
-            bgp.ScaleArea.Extents = 0;
             bgp.DragStartCell = targetCell;
+            bgp.DragEndCell = targetCell;
             bgp.DragStartNormal = target.GridHit.Normal;
         }
         
@@ -147,7 +139,7 @@ public partial class BuildingWireframeDisplaySystem : SystemBase
         var gridItem = GetComponent<GridItem>(e);
         var ghost = GetComponent<Ghost>(e);
         var gridLtw = GetComponent<LocalToWorld>(gpb.TargetGrid);
-        var areaToDisplay = gpb.Original.Scalable ? gpb.ScaleArea : gridItem.Area; 
+        var areaToDisplay = gpb.Original.Scalable ? gpb.DragArea : gridItem.Area; 
         Transform wireframe = GhostBuilder.Wireframe.transform;
         wireframe.position = Grid.PositionFromCell(gridLtw, areaToDisplay.Min);
         wireframe.rotation = gridLtw.Rotation;
@@ -158,7 +150,6 @@ public partial class BuildingWireframeDisplaySystem : SystemBase
         if (Input.GetMouseButton(0))
         {
             GhostBuilder.Wireframe.ShowAxes(false, wireframe.rotation);
-            GhostBuilder.Wireframe.ShowScaleAxes(gpb.Scaling);
         }
         else
         {
