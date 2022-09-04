@@ -64,10 +64,8 @@ public partial class BuildingSystem : SystemBase
             var originalGridItem = gridItems[prefab];
             var newGridItem = originalGridItem;
             newGridItem.Grid = part.Grid;
-            newGridItem.Area = part.Data.Area;
-
-            if(!originalGridItem.Scalable)
-                newGridItem.Area.Extents = gridItems[prefab].Area.Extents.Rotated(part.Data.Orientation);
+            newGridItem.Area.Origin = part.Data.Area.Origin;
+            newGridItem.Area.Extents = originalGridItem.Scalable ? part.Data.Area.Extents : gridItems[prefab].Area.Extents.Rotated(part.Data.Orientation);
             
             // Check if space is already occupied
             if (!IsCreateGhostJob && !IsFinishConstructionJob)
@@ -91,18 +89,19 @@ public partial class BuildingSystem : SystemBase
                 case true when IsCreateGhostJob:
                     buffer.AddComponent(entity, newGridItem.Area.ToScale(part.Data.Orientation));
                     break;
-                case true when math.any(part.Data.Area.Extents != 0):
+                case true when math.any(newGridItem.Area.Extents != 0):
                 {
-                    if (math.any(part.Data.Area.Size != 1) && colliders.HasComponent(prefab))
+                    if (math.any(newGridItem.Area.Size != 1) && colliders.HasComponent(prefab))
                     {
                         var collider = colliders[prefab].Value;
+                        var scale = newGridItem.Area.ToScale(part.Data.Orientation).Value;
                         switch (collider.Value.Type)
                         {
                             case ColliderType.Convex:
-                                buffer.SetComponent(entity, new PhysicsCollider{ Value = collider.As<ConvexCollider>().Scaled(part.Data.Area.Size) });
+                                buffer.SetComponent(entity, new PhysicsCollider{ Value = collider.As<ConvexCollider>().Scaled(scale) });
                                 break;
                             case ColliderType.Box:
-                                buffer.SetComponent(entity, new PhysicsCollider{ Value = collider.As<BoxCollider>().Scaled(part.Data.Area.Size) });
+                                buffer.SetComponent(entity, new PhysicsCollider{ Value = collider.As<BoxCollider>().Scaled(scale) });
                                 break;
                             default:
                                 Debug.LogError($"No collider scaling method provided for type {collider.Value.Type}");

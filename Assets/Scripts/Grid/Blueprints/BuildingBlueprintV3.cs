@@ -158,11 +158,7 @@ public struct BlueprintParserV3 : IBlueprintParser
             var gridItem = em.GetComponentData<GridItem>(child.Value);
             var identifieable = em.GetComponentData<Identifieable>(child.Value);
             var rotation = em.GetComponentData<Rotation>(child.Value);
-            var scale = (int3)1;
-            if (em.HasComponent<Scale>(child.Value))
-                scale = (int)math.round(em.GetComponentData<Scale>(child.Value).Value);
-            else if (em.HasComponent<NonUniformScale>(child.Value))
-                scale = (int3)math.round(em.GetComponentData<NonUniformScale>(child.Value).Value);
+            var scale = gridItem.Scalable ? gridItem.Area.Size : 1;
 
             ItemData[] inventory = null;
             if (em.HasComponent<Inventory>(child.Value))

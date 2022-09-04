@@ -5075,6 +5075,22 @@ PrefabInstance:
       propertyPath: Value
       value: 20000
       objectReference: {fileID: 0}
+    - target: {fileID: -3586686030049976611, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: Cost.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -3586686030049976611, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: Cost.Array.data[0].Amount
+      value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: -3586686030049976611, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: Cost.Array.data[0].Prefab
+      value: 
+      objectReference: {fileID: 528892093010784648, guid: 253d9061a1d7ddd4caf3f5fac77efe1c,
+        type: 3}
     - target: {fileID: -1185016455883590714, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: m_SphereRadius
