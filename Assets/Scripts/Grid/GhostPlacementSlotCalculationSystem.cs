@@ -60,11 +60,24 @@ public partial class CalculateBuildingSlotSystem : SystemBase
         {
             if (inScalingMode)
             {
-                bgp.ScaleArea.Extents = math.select(0, targetCell - bgp.ScaleArea.Origin, bgp.Scaling);
+                var camera = Camera.main.transform;
+                var camPosition = (float3)camera.position;
+                var camForward = (float3) camera.forward;
+                var gridLtw = GetComponent<LocalToWorld>(bgp.TargetGrid);
+                var planeOriginWorld = Grid.GridToWorld(gridLtw, new BoundingBox{Origin = bgp.DragStartCell}.Center);
+                var normalWorld = math.mul(gridLtw.Rotation, bgp.DragStartNormal);
+                var dragEndCell = bgp.DragStartCell; 
+                if (GridTools.RayIntersectsPlane(camForward, camPosition, planeOriginWorld, normalWorld, 100, out var planeHit))
+                {
+                    dragEndCell = Grid.CellFromPosition(gridLtw, planeHit);
+                }
+                bgp.ScaleArea.Extents = math.select(0, dragEndCell - bgp.DragStartCell, true);
             }
             else
             {
                 bgp.ScaleArea.Origin = targetCell;
+                bgp.DragStartCell = targetCell;
+                bgp.DragStartNormal = target.GridHit.Normal;
                 bgp.ScaleArea.Extents = 0;
             }
             gridItem.Area = bgp.ScaleArea.AdjustedToObjectRotation(rotation);
@@ -76,6 +89,8 @@ public partial class CalculateBuildingSlotSystem : SystemBase
             gridItem.Area.Extents = bgp.Original.Area.Extents.Rotated(rotation);
             bgp.ScaleArea.Origin = targetCell;
             bgp.ScaleArea.Extents = 0;
+            bgp.DragStartCell = targetCell;
+            bgp.DragStartNormal = target.GridHit.Normal;
         }
         
         var canBuild = gridItem.Area.IsValid;

@@ -13,6 +13,8 @@ public struct GhostPlacementBuilder : IComponentData
     public GridItem Original;
     public BoundingBox ScaleArea;
     public bool3 Scaling;
+    public int3 DragStartCell;
+    public int3 DragStartNormal;
 }
 
 public struct Ghost : IComponentData
