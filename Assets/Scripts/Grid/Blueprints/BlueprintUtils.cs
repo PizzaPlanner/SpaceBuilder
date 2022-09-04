@@ -94,7 +94,7 @@ public struct BuildingPartInfo : IBufferElementData
     public ulong Id;
     public BoundingBox Area;
     public RightAngleRotation Orientation;
-    public ushort BuildStatus;
+    public uint BuildStatus;
     public Color Color;
 }
 

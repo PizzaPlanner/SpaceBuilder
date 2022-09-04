@@ -1,13 +1,16 @@
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
 
 [GenerateAuthoringComponent]
 public struct Constructor : IComponentData
 {
-    public float DelayPerItem;
     public float DelayPerBuilding;
+    public float InitialDelayPerItem;
+    public float MinDelayPerItem;
+    public float TimeSpentOnItem;
     public double LastTick;
 }
 
@@ -16,6 +19,7 @@ public partial struct ConstructionJob : IJobEntity
     public EntityCommandBuffer ecb;
     [ReadOnly] public BufferFromEntity<ConstructionInputBuffer> constructionBuffers;
     [ReadOnly] public ComponentDataFromEntity<Identifieable> identifieables;
+    [ReadOnly] public ComponentDataFromEntity<GridItem> gridItems;
     public ComponentDataFromEntity<UnderConstruction> underConstructions;
     public double time;
     public void Execute(ref Constructor printer, in DynamicBuffer<Inventory> inventory, in Target target)
@@ -26,18 +30,34 @@ public partial struct ConstructionJob : IJobEntity
         if (!constructionBuffers.HasComponent(target.Value))
             return;
 
+        if (target.Value != target.PreviousValue)
+        {
+            printer.LastTick = time + printer.DelayPerBuilding;
+            printer.TimeSpentOnItem = 0;
+        }
+
         var parts = constructionBuffers[target.Value];
         var current = underConstructions[target.Value];
-        var maxProgress = 0;
+        var partScale = 1u;
+        if (gridItems.HasComponent(target.Value) && gridItems[target.Value].Scalable)
+        {
+            var size = gridItems[target.Value].Area.Size;
+            partScale = (uint)(size.x * size.y * size.z);
+        }
+        var maxProgress = 0u;
         var progress = current.Progress;
 
         var itemToConsume = Entity.Null;
-        for (int i = 0; i < parts.Length && progress < ushort.MaxValue; i++)
+        for (int i = 0; i < parts.Length && progress < uint.MaxValue; i++)
         {
-            maxProgress += parts[i].Amount;
-            if (progress >= parts[i].Amount)
+            var partCost = parts[i].Amount * partScale;
+            
+            maxProgress += partCost;
+            if (progress >= partCost)
             {
-                progress -= parts[i].Amount;
+                progress -= partCost;
+                if(progress == 0)
+                    printer.TimeSpentOnItem = 0;
             }
             else
             {
@@ -47,11 +67,11 @@ public partial struct ConstructionJob : IJobEntity
                         itemToConsume = inventory[j].Slot.Item;
                         break;
                     }
-                progress = ushort.MaxValue;
+                progress = uint.MaxValue;
             }
         }
 
-        if (time - printer.LastTick > printer.DelayPerItem && itemToConsume != Entity.Null)
+        if (time - printer.LastTick > math.lerp(printer.InitialDelayPerItem, printer.MinDelayPerItem, printer.TimeSpentOnItem / 5) && itemToConsume != Entity.Null)
         {
             ecb.AddComponent(itemToConsume, new RemoveItem {Quantity = 1});
             current.Progress++;
@@ -59,10 +79,12 @@ public partial struct ConstructionJob : IJobEntity
             {
                 ecb.AddComponent<FinishConstruction>(target.Value);
                 printer.LastTick = time + printer.DelayPerBuilding;
+                printer.TimeSpentOnItem = 0;
             }
             else
             {
                 underConstructions[target.Value] = current;
+                printer.TimeSpentOnItem += (float)(time - printer.LastTick);
                 printer.LastTick = time;
             }
         }
@@ -83,6 +105,7 @@ public partial class ProgressConstructionSystem : SystemBase
         {
             constructionBuffers = GetBufferFromEntity<ConstructionInputBuffer>(true),
             identifieables = GetComponentDataFromEntity<Identifieable>(true),
+            gridItems = GetComponentDataFromEntity<GridItem>(true),
             underConstructions = GetComponentDataFromEntity<UnderConstruction>(),
             time = Time.ElapsedTime,
             ecb = bufferSystem.CreateCommandBuffer()

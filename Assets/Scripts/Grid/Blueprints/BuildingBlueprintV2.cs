@@ -32,7 +32,7 @@ public struct BlueprintParserV2 : IBlueprintParser
                 Id = identifieable.ItemId,
                 Orientation = new RightAngleRotation(rotation.Value),
                 Area = gridItem.Area,
-                BuildStatus = em.HasComponent<UnderConstruction>(child.Value) ? em.GetComponentData<UnderConstruction>(child.Value).Progress : ushort.MaxValue
+                BuildStatus = em.HasComponent<UnderConstruction>(child.Value) ? em.GetComponentData<UnderConstruction>(child.Value).Progress : uint.MaxValue
             });
         }
 
@@ -83,7 +83,7 @@ Parts:{RInt}\|int3\({RInt}, {RInt}, {RInt}\)\|quaternion\({RFloat}, {RFloat}, {R
                             float.Parse(match.Groups[6].Value, CultureInfo.InvariantCulture),
                             float.Parse(match.Groups[7].Value, CultureInfo.InvariantCulture),
                             float.Parse(match.Groups[8].Value, CultureInfo.InvariantCulture))),
-                        BuildStatus = ushort.Parse(match.Groups[9].Value)
+                        BuildStatus = uint.Parse(match.Groups[9].Value)
                     };
                     parts.Add(part);
                 }

@@ -23,7 +23,7 @@ public struct BlueprintParserV3 : IBlueprintParser
         public RightAngleRotation Orientation;
         public int3 Color;
         public int3 Scale;
-        public ushort Status;
+        public uint Status;
         public List<ItemData> Inventory;
     }
 
@@ -84,11 +84,11 @@ public struct BlueprintParserV3 : IBlueprintParser
                 else if (CurrentToken.Peek().Property is List<PartData> parts)
                 {
                     if(lines[i].Substring(0, indent).Contains("-"))
-                        parts.Add(new PartData{Status = ushort.MaxValue, Scale = 1});
+                        parts.Add(new PartData{Status = uint.MaxValue, Scale = 1});
 
                     var current = parts.Last();
                     if (key == "Status")
-                        current.Status = ushort.Parse(value);
+                        current.Status = uint.Parse(value);
                     else if (key == "Color")
                     {
                         var color = value.Trim(' ', '[', ']').Split(',');
@@ -191,7 +191,7 @@ public struct BlueprintParserV3 : IBlueprintParser
                 Position = gridItem.Area.Origin,
                 Status = em.HasComponent<UnderConstruction>(child.Value)
                     ? em.GetComponentData<UnderConstruction>(child.Value).Progress
-                    : ushort.MaxValue,
+                    : uint.MaxValue,
                 Inventory = inventory?.ToList(),
                 Color = new int3(color.x, color.y, color.z),
                 Scale = scale
@@ -203,7 +203,7 @@ Parts:
 {string.Join("\n", data.Parts.Keys.Select(x => $@"  {x}:
 {string.Join("\n", data.Parts[x].Select(y => $@"
   - LocalToGrid: [{y.Position.x},{y.Position.y},{y.Position.z},{y.Orientation}]
-    {(y.Status != ushort.MaxValue ? $"Status: {y.Status}" : "")}
+    {(y.Status != uint.MaxValue ? $"Status: {y.Status}" : "")}
     {(math.any(y.Color != int3.zero) ? $"Color: [{y.Color.x},{y.Color.y},{y.Color.z}]" : "")}
     {(math.any(y.Scale != 1) ? $"Scale: [{y.Scale.x},{y.Scale.y},{y.Scale.z}]" : "")}
 {(y.Inventory == null || y.Inventory.Count == 0 ? "" : $@"    Inventory:

@@ -11,7 +11,7 @@ public struct ConstructionInputBuffer : IBufferElementData
 
 public struct UnderConstruction : IComponentData
 {
-    public ushort Progress;
+    public uint Progress;
 }
 
 public struct FinishConstruction : IComponentData { }
@@ -43,8 +43,9 @@ public partial class ConstructionSystem : SystemBase
         EntityManager.AddComponentData(GetSingletonEntity<LocalPlayer>(), new Constructor
         {
             LastTick = double.MaxValue,
-            DelayPerBuilding = 0.5f,
-            DelayPerItem = 0.1f
+            DelayPerBuilding = 0.4f,
+            InitialDelayPerItem = 0.15f,
+            MinDelayPerItem = 0.01f
         });
     }
 
@@ -60,7 +61,7 @@ public partial class ConstructionSystem : SystemBase
     protected override void OnUpdate()
     {
         var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
-        if (!target.CanConstruct)
+        if (!target.CanConstruct || target.Value != target.PreviousValue)
         {
             var constructor = GetComponent<Constructor>(GetSingletonEntity<LocalPlayer>());
             constructor.LastTick = double.MaxValue;
@@ -74,6 +75,7 @@ public partial class ConstructionSystem : SystemBase
         {
             var constructor = GetComponent<Constructor>(GetSingletonEntity<LocalPlayer>());
             constructor.LastTick = Time.ElapsedTime + constructor.DelayPerBuilding;
+            constructor.TimeSpentOnItem = 0;
             SetComponent(GetSingletonEntity<LocalPlayer>(), constructor);
         } else if (Input.GetKeyUp(KeyCode.F))
         {
@@ -86,23 +88,30 @@ public partial class ConstructionSystem : SystemBase
 
         var current = GetComponent<UnderConstruction>(target.Value);
         var progress = current.Progress;
-        var maxProgress = 0;
+        var maxProgress = 0u;
+        var partScale = 1u;
+        if (HasComponent<GridItem>(target.Value) && GetComponent<GridItem>(target.Value).Scalable)
+        {
+            var size = GetComponent<GridItem>(target.Value).Area.Size;
+            partScale = (uint)(size.x * size.y * size.z);
+        }
 
         var playerInventory = GetBuffer<Inventory>(GetSingletonEntity<LocalPlayer>());
         var parts = GetBuffer<ConstructionInputBuffer>(target.Value);
         var itemToConsume = Entity.Null;
         for (int i = 0; i < parts.Length; i++)
         {
-            maxProgress += parts[i].Amount;
-            if (progress == ushort.MaxValue)
+            var partAmount = parts[i].Amount * partScale; 
+            maxProgress += partAmount;
+            if (progress == uint.MaxValue)
             {
-                var label = new Label($"0/{parts[i].Amount}\t\t{GetComponent<Name>(IdentifiableMappingSystem.EntitiesById[parts[i].ItemId]).Value.Value}");
+                var label = new Label($"0/{partAmount}\t\t{GetComponent<Name>(IdentifiableMappingSystem.EntitiesById[parts[i].ItemId]).Value.Value}");
                 itemList.Add(label);
             }
-            else if (progress >= parts[i].Amount)
+            else if (progress >= partAmount)
             {
-                progress -= parts[i].Amount;
-                var label = new Label($"{parts[i].Amount}/{parts[i].Amount}\t\t{GetComponent<Name>(IdentifiableMappingSystem.EntitiesById[parts[i].ItemId]).Value.Value}");
+                progress -= partAmount;
+                var label = new Label($"{partAmount}/{partAmount}\t\t{GetComponent<Name>(IdentifiableMappingSystem.EntitiesById[parts[i].ItemId]).Value.Value}");
                 label.style.color = Color.grey;
                 itemList.Add(label);
             }
@@ -115,10 +124,10 @@ public partial class ConstructionSystem : SystemBase
                         break;
                     }
 
-                var label = new Label($"{progress}/{parts[i].Amount}\t\t{GetComponent<Name>(IdentifiableMappingSystem.EntitiesById[parts[i].ItemId]).Value.Value}");
+                var label = new Label($"{progress}/{partAmount}\t\t{GetComponent<Name>(IdentifiableMappingSystem.EntitiesById[parts[i].ItemId]).Value.Value}");
                 label.style.color = itemToConsume == Entity.Null ? Color.red : Color.green;
                 itemList.Add(label);
-                progress = ushort.MaxValue;
+                progress = uint.MaxValue;
             }
         }
 
