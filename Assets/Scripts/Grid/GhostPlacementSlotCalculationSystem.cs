@@ -38,14 +38,11 @@ public partial class CalculateBuildingSlotSystem : SystemBase
         var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
         if (!inScalingMode)
         {
-            if (target.Value != Entity.Null && HasComponent<GridItem>(target.Value))
-                bgp.TargetGrid = GetComponent<GridItem>(target.Value).Grid;
-            else
-                bgp.TargetGrid = Entity.Null;
+            bgp.TargetGrid = target.GridHit.Grid;
             SetSingleton(bgp);
         }
 
-        if (bgp.TargetGrid == Entity.Null || math.all(target.GridHit.Normal == 0))
+        if (bgp.TargetGrid == Entity.Null)
         {
             SetComponent(ghost, new Ghost {Buildable = false});
             return;
@@ -57,32 +54,37 @@ public partial class CalculateBuildingSlotSystem : SystemBase
         foreach (var item in occupied)
             targetIsOccupied |= math.all(item.Location == newCell);
         targetCell = targetIsOccupied ? int.MaxValue : newCell;
-        var gridLtw = GetComponent<LocalToWorld>(GetComponent<GridItem>(target.Value).Grid);
-        BoundingBox.Draw(new BoundingBox{Origin = newCell}, gridLtw, 0, targetIsOccupied ? Color.red : Color.white, Color.blue);
 
         var rotation = GetComponent<Rotation>(ghost).Value;
-        if (inScalingMode)
+        if (bgp.Original.Scalable)
         {
-            bgp.Area.Extents = math.select(0, targetCell - bgp.Area.Origin, bgp.Scaling);
+            if (inScalingMode)
+            {
+                bgp.ScaleArea.Extents = math.select(0, targetCell - bgp.ScaleArea.Origin, bgp.Scaling);
+            }
+            else
+            {
+                bgp.ScaleArea.Origin = targetCell;
+                bgp.ScaleArea.Extents = 0;
+            }
+            gridItem.Area = bgp.ScaleArea.AdjustedToObjectRotation(rotation);
+            SetComponent(ghost, gridItem.Area.ToScale(rotation));
         }
         else
         {
-            bgp.Area.Origin = targetCell;
-            bgp.Area.Extents = 0;
+            gridItem.Area.Origin = targetCell;
+            gridItem.Area.Extents = bgp.Original.Area.Extents.Rotated(rotation);
+            bgp.ScaleArea.Origin = targetCell;
+            bgp.ScaleArea.Extents = 0;
         }
-
-        gridItem.Area = bgp.Area.AdjustedToObjectRotation(rotation);
-        if(bgp.Original.Scalable)
-            SetComponent(ghost, gridItem.Area.ToScale(rotation));
-
-        var newPos = new Translation {Value = Grid.PositionFromCell(gridItem.Area.Origin)};
-        var canBuild = true;
+        
+        var canBuild = gridItem.Area.IsValid;
         foreach (var item in occupied)
-            canBuild &= !(gridItem.Area.Contains(item.Location) && (item.Value & gridItem.Occupied) > 0);
+            canBuild &= !gridItem.Area.Contains(item.Location);
 
         SetComponent(ghost, new Ghost {Buildable = canBuild});
+        SetComponent(ghost, new Translation {Value = Grid.PositionFromCell(gridItem.Area.Origin)});
         SetComponent(ghost, gridItem);
-        SetComponent(ghost, newPos);
         SetSingleton(bgp);
         if (!HasComponent<NeedsUpdate>(ghost))
             EntityManager.AddComponent<NeedsUpdate>(ghost);
@@ -130,13 +132,14 @@ public partial class BuildingWireframeDisplaySystem : SystemBase
         var gridItem = GetComponent<GridItem>(e);
         var ghost = GetComponent<Ghost>(e);
         var gridLtw = GetComponent<LocalToWorld>(gpb.TargetGrid);
+        var areaToDisplay = gpb.Original.Scalable ? gpb.ScaleArea : gridItem.Area; 
         Transform wireframe = GhostBuilder.Wireframe.transform;
-        wireframe.position = Grid.PositionFromCell(gridLtw, gpb.Area.Min);
+        wireframe.position = Grid.PositionFromCell(gridLtw, areaToDisplay.Min);
         wireframe.rotation = gridLtw.Rotation;
         var baseGrid = GhostBuilder.Wireframe.BaseGrid;
         baseGrid.localScale = (float3)Grid.CELL_SIZE;
         var objGrid = GhostBuilder.Wireframe.ObjectGrid;
-        objGrid.localScale = (float3)gpb.Area.Size * Grid.CELL_SIZE;
+        objGrid.localScale = (float3)areaToDisplay.Size * Grid.CELL_SIZE;
         if (Input.GetMouseButton(0))
         {
             GhostBuilder.Wireframe.ShowAxes(false, wireframe.rotation);

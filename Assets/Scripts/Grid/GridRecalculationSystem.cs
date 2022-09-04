@@ -73,12 +73,12 @@ public partial class GridRecalculationSystem : SystemBase
                     {
                         if (math.all(b[i].Location == pos))
                         {
-                            b[i] = new OccupationBuffer { Location = pos, Value = b[i].Value | item.Occupied};
+                            b[i] = new OccupationBuffer { Location = pos };
                             found = true;
                         }
                     }
                     if (!found)
-                        b.Add(new OccupationBuffer { Location = pos, Value = item.Occupied});
+                        b.Add(new OccupationBuffer { Location = pos });
 
                 }
             }

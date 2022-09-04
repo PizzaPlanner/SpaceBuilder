@@ -56,13 +56,6 @@ public static class GridTools
     public static int3 Rotated(this int3 value, quaternion rotation) =>
         (int3)math.round(math.mul(rotation, value));
 
-    public static GridItem Rotated(this GridItem original, quaternion rotation)
-    {
-        original.Airtight = original.Airtight.Rotate(rotation);
-        original.Occupied = original.Occupied.Rotate(rotation);
-        return original;
-    }
-
     // Source: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-plane-and-ray-disk-intersection
     public static bool RayIntersectsPlane(float3 ray, float3 rayOrigin, float3 planeOrigin, float3 planeNormal, float maxRange, out float3 hit)
     {

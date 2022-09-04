@@ -10,7 +10,7 @@ public struct GhostPlacementBuilder : IComponentData
 {
     public Entity TargetGrid;
     public GridItem Original;
-    public BoundingBox Area;
+    public BoundingBox ScaleArea;
     public bool3 Scaling;
 }
 
@@ -143,7 +143,7 @@ public partial class GhostPlacementSystem : SystemBase
                 return;
 
             var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
-            if (target.Value == Entity.Null || !HasComponent<GridItem>(target.Value))
+            if (target.GridHit.Grid == Entity.Null)
                 return;
 
             var pp = EntityManager.CreateEntity(typeof(PendingPart), typeof(Ghost));
@@ -155,7 +155,7 @@ public partial class GhostPlacementSystem : SystemBase
                     Orientation = new RightAngleRotation(currentRotation),
                     BuildStatus = 0
                 },
-                Grid = GetComponent<GridItem>(target.Value).Grid
+                Grid = target.GridHit.Grid
             });
             var ppquery = GetEntityQuery(typeof(Ghost), typeof(PendingPart));
             new BuildingSystem.BuildJob
@@ -199,9 +199,9 @@ public partial class GhostPlacementSystem : SystemBase
                     }
                     else
                     {
-                        for (int x = bgp.Area.Min.x; x <= bgp.Area.Max.x; x++)
-                        for (int y = bgp.Area.Min.y; y <= bgp.Area.Max.y; y++)
-                        for (int z = bgp.Area.Min.z; z <= bgp.Area.Max.z; z++)
+                        for (int x = bgp.ScaleArea.Min.x; x <= bgp.ScaleArea.Max.x; x++)
+                        for (int y = bgp.ScaleArea.Min.y; y <= bgp.ScaleArea.Max.y; y++)
+                        for (int z = bgp.ScaleArea.Min.z; z <= bgp.ScaleArea.Max.z; z++)
                         {
                             var pendingBuild = new PendingPart
                             {
@@ -234,7 +234,7 @@ public partial class GhostPlacementSystem : SystemBase
             if (Input.GetKey(KeyCode.Alpha3))
                 currentRotation = math.mul(currentRotation, quaternion.RotateZ(math.PI * sign * 0.5f));
 
-            SetComponent(placement, bgp.Original.Rotated(currentRotation));
+            SetComponent(placement, bgp.Original);
             EntityManager.SetComponentData(GetSingletonEntity<GhostPlacementBuilder>(), new Rotation{Value = currentRotation});
         }
     }

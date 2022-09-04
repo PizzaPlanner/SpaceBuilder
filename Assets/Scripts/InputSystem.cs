@@ -184,19 +184,18 @@ public partial class InputSystem : SystemBase
                 input.ScrollMode = ScrollMode.Inventory;
         }
 
-        if (Input.GetKeyDown(KeyCode.F1) && HasComponent<Docked>(GetSingletonEntity<LocalPlayer>()))
+        if (Input.GetKeyDown(KeyCode.F1))
         {
-
-            var grid = GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target;
-            if (grid != Entity.Null)
-            {
-                var bp = BlueprintUtils.Save(grid, EntityManager);
+            var targetGrid = GetComponent<Target>(GetSingletonEntity<LocalPlayer>()).GridHit.Grid;
+            if (targetGrid == Entity.Null)
+                return;
+            
+            var bp = BlueprintUtils.Save(targetGrid, EntityManager);
 #if UNITY_EDITOR
-                var name = GetComponent<Name>(grid).Value.Value;
-                File.WriteAllText(Application.dataPath + $"/Blueprints/{name}.txt", bp);
-                Debug.Log($"Saved Blueprint {name}");
+            var name = GetComponent<Name>(targetGrid).Value.Value;
+            File.WriteAllText(Application.dataPath + $"/Blueprints/{name}.txt", bp);
+            Debug.Log($"Saved Blueprint {name}");
 #endif
-            }
         }
 
         SetSingleton(input);

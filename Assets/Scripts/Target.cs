@@ -23,6 +23,7 @@ public struct GridHitInfo
 {
     public int3 Normal;
     public int3 Cell;
+    public Entity Grid;
 }
 
 public partial class PlayerTargetSystem : SystemBase
@@ -136,6 +137,7 @@ public partial class PlayerTargetSystem : SystemBase
             
             t.GridHit.Normal = 0;
             t.GridHit.Cell = int.MaxValue;
+            t.GridHit.Grid = Entity.Null;
             if (t.Value == Entity.Null || !HasComponent<GridItem>(target.Value)) return;
             // Calculate which grid cell was hit and on which side
             var gridItem = GetComponent<GridItem>(target.Value);
@@ -150,7 +152,6 @@ public partial class PlayerTargetSystem : SystemBase
                 absDiffLocal.z >= absDiffLocal.y && absDiffLocal.z >= absDiffLocal.x
             );
             var normalLocal = (int3)math.select(0, math.sign(diffLocal), biggest);
-            t.GridHit.Normal = normalLocal;
             var planeOriginLocal = math.select(0, gridItem.Area.Max + 1, normalLocal == 1) +
                               math.select(0, gridItem.Area.Min, normalLocal == -1) +
                               math.select(0, gridItem.Area.Center, normalLocal == 0);
@@ -160,15 +161,10 @@ public partial class PlayerTargetSystem : SystemBase
             if (GridTools.RayIntersectsPlane(camForward, camPosition, planeOriginWorld, normalWorld, 100, out var planeHit))
             {
                 t.GridHit.Cell = Grid.CellFromPosition(gridLtw, planeHit + camForward * 0.01f);
-                BoundingBox.Draw(new BoundingBox(){Origin = t.GridHit.Cell}, gridLtw, normalLocal, Color.white, Color.blue);
+                t.GridHit.Normal = normalLocal;
+                t.GridHit.Grid = gridItem.Grid;
             }
         }).Run();
-
-        if (target.Value != Entity.Null && HasComponent<GridItem>(target.Value))
-        {
-            var gridItem = GetComponent<GridItem>(target.Value);
-            BoundingBox.Draw(gridItem.Area, GetComponent<LocalToWorld>(gridItem.Grid), target.GridHit.Normal, Color.white, Color.blue);
-        }
     }
 }
 

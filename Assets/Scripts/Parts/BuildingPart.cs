@@ -19,9 +19,7 @@ public struct GridItem : IComponentData
         Back = 1<<5,
         Center = 1<<6
     }
-
-    public Side Occupied;
-    public Side Airtight;
+    
     public BoundingBox Area;
     public bool Scalable;
     public Entity Grid;
@@ -49,6 +47,9 @@ public struct BoundingBox
     public readonly int3 Max => math.max(Origin, Origin + Extents);
     public readonly float3 Center => math.lerp(Min, Max + 1, 0.5f);
 
+    public readonly bool IsValid => math.all(Max < short.MaxValue) &&
+                                    math.all(Min > short.MinValue);
+    
     public readonly bool Contains(int3 value)
     {
         return value.x >= Min.x && value.x <= Max.x &&
@@ -94,8 +95,6 @@ public struct BoundingBox
 public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
 {
     [SerializeField] private uint3 SizeInGrid;
-    [SerializeField] private GridItem.Side Occupied;
-    [SerializeField] private GridItem.Side Airtight;
     [SerializeField] private bool Scalable;
     private void OnDrawGizmos()
     {
@@ -107,8 +106,6 @@ public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
         dstManager.AddComponentData(entity, new GridItem
         {
             Area = new BoundingBox{Origin = int3.zero, Extents = (int3)SizeInGrid - 1},
-            Occupied = Occupied,
-            Airtight = Airtight,
             Scalable = math.all(SizeInGrid == 1) && Scalable
         });
         dstManager.AddComponentData(entity, new RotationPivot {Value = Grid.CELL_SIZE * 0.5f});

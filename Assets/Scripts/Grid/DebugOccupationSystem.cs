@@ -65,6 +65,8 @@ public partial class DebugOccupationSystem : SystemBase
         
         if (showAABBs)
             ShowAABBs();
+        
+        ShowTargetBoundingBoxes();
     }
 
     private void ShowOccupations()
@@ -94,6 +96,30 @@ public partial class DebugOccupationSystem : SystemBase
         Draw(matrices, ghostMat);
     }
 
+    private void ShowTargetBoundingBoxes()
+    {
+        Entities.ForEach((in Ghost ghost, in GhostPlacementBuilder builder, in GridItem item) =>
+        {
+            if (builder.TargetGrid == Entity.Null)
+                return;
+            
+            var gridLtw = GetComponent<LocalToWorld>(builder.TargetGrid);
+            var shownItem = builder.Original.Scalable ? builder.ScaleArea : item.Area;
+            BoundingBox.Draw(shownItem, gridLtw, 0, ghost.Buildable ? Color.green : Color.red, Color.blue);
+        }).WithoutBurst().Run();
+        
+        Entities.ForEach((in Target target) =>
+        {
+            if (target.GridHit.Grid != Entity.Null)
+            {
+                var gridItem = GetComponent<GridItem>(target.Value);
+                var gridLtw = GetComponent<LocalToWorld>(target.GridHit.Grid);
+                BoundingBox.Draw(gridItem.Area, gridLtw, target.GridHit.Normal, Color.white, Color.blue);
+                BoundingBox.Draw(new BoundingBox(){Origin = target.GridHit.Cell}, gridLtw, target.GridHit.Normal, Color.white, Color.blue);
+            }
+        }).WithoutBurst().Run();
+    }
+    
     private void ShowAABBs()
     {
         NativeList<float4x4> matrices = new NativeList<float4x4>(Allocator.Temp);
