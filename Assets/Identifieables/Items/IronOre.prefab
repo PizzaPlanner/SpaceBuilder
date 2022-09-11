@@ -10,7 +10,7 @@ PrefabInstance:
     - target: {fileID: 1156827602194712045, guid: 29155d667eb191940879755d96c4abe9,
         type: 3}
       propertyPath: ItemId
-      value: -2471003305502191436
+      value: 15975740768207360180
       objectReference: {fileID: 0}
     - target: {fileID: 1567129564002499769, guid: 29155d667eb191940879755d96c4abe9,
         type: 3}
@@ -75,7 +75,7 @@ PrefabInstance:
     - target: {fileID: 4037564657443737580, guid: 29155d667eb191940879755d96c4abe9,
         type: 3}
       propertyPath: MaxStackSize
-      value: 999
+      value: 1000
       objectReference: {fileID: 0}
     - target: {fileID: 4188579125311382446, guid: 29155d667eb191940879755d96c4abe9,
         type: 3}

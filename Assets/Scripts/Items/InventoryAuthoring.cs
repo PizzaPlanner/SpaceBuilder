@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 public struct Inventory : IBufferElementData
 {
-    public Slot Slot;
+    public Entity Item;
 }
 
 public static class InventoryHelper
@@ -14,28 +14,15 @@ public static class InventoryHelper
     {
         ushort has = 0;
         for(int i = 0; i < buffer.Length; i++)
-            if (buffer[i].Slot.Item != Entity.Null && idBuffer[buffer[i].Slot.Item].ItemId == itemId)
+            if (buffer[i].Item != Entity.Null && idBuffer[buffer[i].Item].ItemId == itemId)
             {
-                var item = buffer[i].Slot.Item;
+                var item = buffer[i].Item;
                 has += stackBuffer.HasComponent(item) ? stackBuffer[item].Size : (ushort)1;
             }
 
         return has >= amount;
     }
 }
-
-public struct Slot
-{
-    public Entity Item;
-    public SlotType Type;
-}
-
-public enum SlotType
-{
-    All,
-    Tool,
-}
-
 public class InventoryAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 {
     public int Size;
@@ -45,8 +32,11 @@ public class InventoryAuthoring : MonoBehaviour, IConvertGameObjectToEntity
         var buffer = dstManager.AddBuffer<Inventory>(entity);
         for (int i = 0; i < Size; i++)
         {
-            buffer.Add(new Inventory{ Slot = new Slot {Type = SlotType.All}});
+            buffer.Add(new Inventory());
         }
+
+        dstManager.AddBuffer<RemoveItem>(entity);
+        dstManager.AddBuffer<AddItem>(entity);
     }
 }
 
@@ -203,7 +193,7 @@ public partial class InventoryUISystem : SystemBase
 
         buttons[nextButton].Selected = true;
 
-        var item = GetBuffer<Inventory>(GetSingletonEntity<LocalPlayer>())[buttons[nextButton].Slot].Slot.Item;
+        var item = GetBuffer<Inventory>(GetSingletonEntity<LocalPlayer>())[buttons[nextButton].Slot].Item;
         if(item != Entity.Null)
             EntityManager.AddComponent<SelectedItem>(item);
     }

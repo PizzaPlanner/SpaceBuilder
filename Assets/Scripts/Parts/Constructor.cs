@@ -22,12 +22,15 @@ public partial struct ConstructionJob : IJobEntity
     [ReadOnly] public ComponentDataFromEntity<GridItem> gridItems;
     public ComponentDataFromEntity<UnderConstruction> underConstructions;
     public double time;
-    public void Execute(ref Constructor printer, in DynamicBuffer<Inventory> inventory, in Target target)
+    public void Execute(ref Constructor printer, in DynamicBuffer<Inventory> inventory, in Target target, DynamicBuffer<RemoveItem> removeItems)
     {
         if (!target.CanConstruct)
             return;
 
         if (!constructionBuffers.HasComponent(target.Value))
+            return;
+
+        if (removeItems.Length > 0)
             return;
 
         if (target.Value != target.PreviousValue)
@@ -62,27 +65,32 @@ public partial struct ConstructionJob : IJobEntity
             else
             {
                 for(int j = 0; j < inventory.Length; j++)
-                    if (inventory[j].Slot.Item != Entity.Null && identifieables[inventory[j].Slot.Item].ItemId == parts[i].ItemId)
+                    if (inventory[j].Item != Entity.Null && identifieables[inventory[j].Item].ItemId == parts[i].ItemId)
                     {
-                        itemToConsume = inventory[j].Slot.Item;
+                        itemToConsume = inventory[j].Item;
                         break;
                     }
                 progress = uint.MaxValue;
             }
         }
 
-        if (time - printer.LastTick > math.lerp(printer.InitialDelayPerItem, printer.MinDelayPerItem, printer.TimeSpentOnItem / 5) && itemToConsume != Entity.Null)
+        if (current.Progress >= maxProgress)
         {
-            ecb.AddComponent(itemToConsume, new RemoveItem {Quantity = 1});
-            current.Progress++;
-            if (current.Progress >= maxProgress)
+            ecb.AddComponent<FinishConstruction>(target.Value);
+            printer.LastTick = time + printer.DelayPerBuilding;
+            printer.TimeSpentOnItem = 0;
+            return;
+        }
+        
+        if (time - printer.LastTick > math.lerp(printer.InitialDelayPerItem, printer.MinDelayPerItem, printer.TimeSpentOnItem / 5))
+        {
+            if (itemToConsume != Entity.Null)
             {
-                ecb.AddComponent<FinishConstruction>(target.Value);
-                printer.LastTick = time + printer.DelayPerBuilding;
-                printer.TimeSpentOnItem = 0;
-            }
-            else
-            {
+                // TODO: This causes a lot of issues if multiple constructors work on the same item!
+                // If the item for the request doesnt exist another constructor can still manually finish construction, effectively cheating an item
+                removeItems.Add(new RemoveItem { Quantity = 1, ItemId = identifieables[itemToConsume].ItemId });
+                current.Progress++;
+                
                 underConstructions[target.Value] = current;
                 printer.TimeSpentOnItem += (float)(time - printer.LastTick);
                 printer.LastTick = time;

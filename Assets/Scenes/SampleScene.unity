@@ -621,7 +621,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fdbaf758733048ab806979812755fa3d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Script: give "Iron Ingot" 100
+  Script: give "Iron Ingot" 10000
   Executor: {fileID: 0}
 --- !u!1 &1601316477
 GameObject:
@@ -667,7 +667,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fdbaf758733048ab806979812755fa3d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Script: give Anvil 100
+  Script: give Anvil 1
   Executor: {fileID: 0}
 --- !u!1 &2015872655
 GameObject:

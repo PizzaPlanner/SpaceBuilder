@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Unity.Entities;
+using Unity.Transforms;
 using UnityEngine;
 
 public class IconReference : IComponentData
@@ -25,5 +26,6 @@ public class ItemAuthoring : MonoBehaviour, IConvertGameObjectToEntity
             return;
 
         dstManager.AddComponentData(entity, new IconReference {Icon = Icon});
+        dstManager.AddComponentData(entity, new Parent());
     }
 }

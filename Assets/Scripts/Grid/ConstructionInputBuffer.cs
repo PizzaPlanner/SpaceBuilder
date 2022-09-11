@@ -118,9 +118,9 @@ public partial class ConstructionSystem : SystemBase
             else
             {
                 for(int j = 0; j < playerInventory.Length; j++)
-                    if (playerInventory[j].Slot.Item != Entity.Null && GetComponent<Identifieable>(playerInventory[j].Slot.Item).ItemId == parts[i].ItemId)
+                    if (playerInventory[j].Item != Entity.Null && GetComponent<Identifieable>(playerInventory[j].Item).ItemId == parts[i].ItemId)
                     {
-                        itemToConsume = playerInventory[j].Slot.Item;
+                        itemToConsume = playerInventory[j].Item;
                         break;
                     }
 

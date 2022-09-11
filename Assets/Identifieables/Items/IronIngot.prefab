@@ -75,7 +75,7 @@ PrefabInstance:
     - target: {fileID: 4037564657443737580, guid: 29155d667eb191940879755d96c4abe9,
         type: 3}
       propertyPath: MaxStackSize
-      value: 250
+      value: 1000
       objectReference: {fileID: 0}
     - target: {fileID: 4188579125311382446, guid: 29155d667eb191940879755d96c4abe9,
         type: 3}

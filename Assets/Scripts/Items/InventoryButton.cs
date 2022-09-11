@@ -55,9 +55,10 @@ public class InventoryElement : VisualElement
         // TODO: This is not triggered for new items after crafting?
         this.Query<InventoryButton>().ForEach(x =>
         {
-            var entity = buffer[x.Slot].Slot.Item;
-            x.IsEmpty = entity == Entity.Null || !ids.HasComponent(entity);
-            if (entity == Entity.Null)
+            var entity = buffer[x.Slot].Item;
+            var empty = entity == Entity.Null;
+            x.IsEmpty = empty;
+            if (empty)
                 return;
 
             x.Name = names.HasComponent(entity) ? names[entity].Value.Value : "";

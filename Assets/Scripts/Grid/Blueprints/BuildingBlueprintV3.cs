@@ -167,7 +167,7 @@ public struct BlueprintParserV3 : IBlueprintParser
                 inventory = new ItemData[buffer.Length];
                 for (int i = 0; i < inventory.Length; i++)
                 {
-                    var item = buffer[i].Slot.Item;
+                    var item = buffer[i].Item;
                     if (item == Entity.Null)
                         continue;
 

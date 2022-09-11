@@ -25,12 +25,6 @@ public partial class CraftingSystem : SystemBase
 {
     private EntityCommandBufferSystem bufferSystem;
 
-    struct RemoveFromEntity
-    {
-        public Entity Entity;
-        public ushort Amount;
-    }
-
     protected override void OnCreate()
     {
         bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
@@ -63,7 +57,7 @@ public partial class CraftingSystem : SystemBase
                 {
                     bool hasReq = false;
                     foreach (var item in cInventory)
-                        hasReq |= item.Slot.Item != Entity.Null && GetComponent<Identifieable>(item.Slot.Item).ItemId == requirement.ItemId;
+                        hasReq |= item.Item != Entity.Null && GetComponent<Identifieable>(item.Item).ItemId == requirement.ItemId;
                     if (!hasReq)
                     {
                         crafting.RemoveAt(0);
@@ -71,11 +65,11 @@ public partial class CraftingSystem : SystemBase
                     }
                 }
             }
-
-            var itemsToRemoveFrom = new NativeList<RemoveFromEntity>(Allocator.Temp);
+            
             if (iBuffers.HasComponent(current.Recipe))
             {
                 var iInventory = GetBuffer<Inventory>(crafter.InputInventory);
+                var iRemoves = GetBuffer<RemoveItem>(crafter.InputInventory);
                 var iRecipe = iBuffers[current.Recipe];
 
                 foreach (var requirement in iRecipe)
@@ -84,19 +78,19 @@ public partial class CraftingSystem : SystemBase
                     foreach (var item in iInventory)
                     {
                         if (hasAmount >= requirement.Amount ||
-                            item.Slot.Item == Entity.Null ||
-                            GetComponent<Identifieable>(item.Slot.Item).ItemId != requirement.ItemId)
+                            item.Item == Entity.Null ||
+                            GetComponent<Identifieable>(item.Item).ItemId != requirement.ItemId)
                             continue;
 
-                        var iEntity = item.Slot.Item;
+                        var iEntity = item.Item;
                         var stackSize = HasComponent<Stackable>(iEntity) ? GetComponent<Stackable>(iEntity).Size : (ushort)1;
-                        if (HasComponent<RemoveItem>(iEntity))
-                            stackSize -= GetComponent<RemoveItem>(iEntity).Quantity;
 
-                        if(stackSize > 0 && current.TimeLeft <= 0)
-                            itemsToRemoveFrom.Add(new RemoveFromEntity{
-                                Amount = (ushort)math.min(requirement.Amount - hasAmount, stackSize),
-                                Entity = iEntity});
+                        if (stackSize > 0 && current.TimeLeft <= 0)
+                            iRemoves.Add(new RemoveItem
+                            {
+                                Quantity = (ushort)math.min(requirement.Amount - hasAmount, stackSize),
+                                ItemId = requirement.ItemId
+                            });
 
                         hasAmount += stackSize;
                     }
@@ -109,16 +103,11 @@ public partial class CraftingSystem : SystemBase
                 }
             }
 
-            if (current.TimeLeft <= 0)
+            if (current.TimeLeft <= 0 && (!iBuffers.HasComponent(current.Recipe) || GetBuffer<RemoveItem>(crafter.InputInventory).Length == 0))
             {
-                foreach (var remove in itemsToRemoveFrom)
-                    buffer.AddComponent(remove.Entity, new RemoveItem{Quantity = remove.Amount});
-
+                var addBuffer = GetBuffer<AddItem>(crafter.OutputInventory);
                 foreach (var output in GetBuffer<CraftingOutput>(current.Recipe))
-                {
-                    var add = buffer.CreateEntity();
-                    buffer.AddComponent(add, new GetItemAction{Inventory = crafter.OutputInventory, Quantity = output.Amount, ItemId = output.ItemId});
-                }
+                    addBuffer.Add(new AddItem { Quantity = output.Amount, ItemId = output.ItemId });
 
                 crafting.RemoveAt(0);
             }

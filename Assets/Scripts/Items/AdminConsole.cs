@@ -204,13 +204,8 @@ public struct GiveItemConsoleCommand : AdminConsole.IConsoleCommand
         ushort amount = 1;
         if (parameters.Length > 1)
             ushort.TryParse(parameters[1], out amount);
-        var e = EntityManager.CreateEntity(typeof(GetItemAction));
-        EntityManager.SetComponentData(e, new GetItemAction
-        {
-            Inventory = executor,
-            Quantity = amount,
-            ItemId = id
-        });
+        var buffer = EntityManager.GetBuffer<AddItem>(executor);
+        buffer.Add(new AddItem { Quantity = amount, ItemId = id });
     }
 
     public string[] GetHints(int parameter)
