@@ -56,7 +56,7 @@ public class InventoryElement : VisualElement
         this.Query<InventoryButton>().ForEach(x =>
         {
             var entity = buffer[x.Slot].Slot.Item;
-            x.IsEmpty = entity == Entity.Null;
+            x.IsEmpty = entity == Entity.Null || !ids.HasComponent(entity);
             if (entity == Entity.Null)
                 return;
 

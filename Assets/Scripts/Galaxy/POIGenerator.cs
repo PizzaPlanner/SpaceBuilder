@@ -139,6 +139,8 @@ public partial class POIGenerator : SystemBase
             typeof(LocalToGalaxy),
             typeof(BuildingPartInfo),
             typeof(OccupationBuffer),
+            typeof(Walls),
+            typeof(Rooms),
             typeof(Grid), typeof(Name), typeof(Prefab));
         manager.SetComponentData(prefab, new Name {Value = data.Name});
         var bpBuffer = manager.GetBuffer<BuildingPartInfo>(prefab);

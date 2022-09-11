@@ -311,7 +311,7 @@ public partial class AdminConsoleSystem : SystemBase
         var lastword = tf.value.Split(' ').LastOrDefault() ?? "";
         var withoutLastword = tf.value.Substring(0, tf.value.Length - lastword.Length);
 
-        var possibleWords = uiRoot.Q<AdminConsole>().GetPossibleWords(withoutLastword);
+        var possibleWords = uiRoot.Q<AdminConsole>().GetPossibleWords(withoutLastword).Select(x => x.Contains(" ") ? $"\"{x}\"" : x).ToArray();
         var nextword = "";
         for (int i = 0; i < possibleWords.Length; i++)
         {

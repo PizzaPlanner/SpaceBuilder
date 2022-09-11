@@ -156,5 +156,7 @@ public partial class FinishConstructionSystem : SystemBase
         }.Run(ppquery);
         EntityManager.DestroyEntity(pp);
         EntityManager.AddComponent<Disabled>(bp);
+
+        EntityManager.CreateEntity(typeof(GridNeedsUpdate));
     }
 }

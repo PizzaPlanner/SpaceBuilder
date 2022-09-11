@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -41,9 +42,11 @@ public partial class GridRecalculationSystem : SystemBase
     protected override unsafe void OnUpdate()
     {
         Debug.Log("Recalculating Grids!");
-        Entities.WithAll<Grid>().ForEach((DynamicBuffer<OccupationBuffer> obuff) =>
+        Entities.WithAll<Grid>().ForEach((DynamicBuffer<OccupationBuffer> obuff, DynamicBuffer<Walls> walls, DynamicBuffer<Rooms> rooms) =>
         {
             obuff.Clear();
+            walls.Clear();
+            rooms.Clear();
         }).Run();
 
         Entities.ForEach((ref Grid grid) =>
@@ -53,33 +56,33 @@ public partial class GridRecalculationSystem : SystemBase
         }).Run();
 
         var occupationBuffers = GetBufferFromEntity<OccupationBuffer>();
+        var wallBuffers = GetBufferFromEntity<Walls>();
         var grids = GetComponentDataFromEntity<Grid>();
         Entities
             .WithName("CalculateOccupation")
-            .ForEach((in GridItem item) =>
+            .ForEach((Entity e, in GridItem item) =>
         {
             if (occupationBuffers.HasComponent(item.Grid))
             {
                 var min = item.Area.Min;
                 var max = item.Area.Max;
-                var b = occupationBuffers[item.Grid];
+                var occupations = occupationBuffers[item.Grid];
+                var walls = wallBuffers[item.Grid];
                 for (int x = min.x; x <= max.x; x++)
                 for (int y = min.y; y <= max.y; y++)
                 for (int z = min.z; z <= max.z; z++)
                 {
                     var pos = new int3(x, y, z);
                     bool found = false;
-                    for (int i = 0; i < b.Length; i++)
-                    {
-                        if (math.all(b[i].Location == pos))
-                        {
-                            b[i] = new OccupationBuffer { Location = pos };
-                            found = true;
-                        }
-                    }
-                    if (!found)
-                        b.Add(new OccupationBuffer { Location = pos });
+                    for (int i = 0; i < occupations.Length; i++)
+                        found |= math.all(occupations[i].Location == pos);
 
+                    if (!found)
+                    {
+                        occupations.Add(new OccupationBuffer { Location = pos });
+                        if(item.IsWall && !HasComponent<Blueprinted>(e))
+                            walls.Add(new Walls { Cell = pos });
+                    }
                 }
             }
 
@@ -90,6 +93,40 @@ public partial class GridRecalculationSystem : SystemBase
                 gTemp.BoundsMax = math.max(gTemp.BoundsMax, item.Area.Max);
                 grids[item.Grid] = gTemp;
             }
+        }).Run();
+
+        var cellToRoomMap = new NativeParallelHashMap<int3, short>(0, Allocator.TempJob);
+        var exposedRooms = new NativeList<short>(Allocator.TempJob);
+        var cellsNeedUpdate = new NativeQueue<int3>(Allocator.TempJob);
+        Entities
+            .WithDisposeOnCompletion(cellToRoomMap)
+            .WithDisposeOnCompletion(exposedRooms)
+            .WithDisposeOnCompletion(cellsNeedUpdate)
+            .ForEach((DynamicBuffer<Walls> walls, DynamicBuffer<Rooms> rooms, in Grid grid) =>
+        {
+            cellToRoomMap.Clear();
+            cellsNeedUpdate.Clear();
+            exposedRooms.Clear();
+            var bbox = new BoundingBox { Origin = grid.BoundsMin, Extents = grid.BoundsMax - grid.BoundsMin }; 
+            cellToRoomMap.Capacity = bbox.Size.x * bbox.Size.y * bbox.Size.z;
+            for (int x = bbox.Min.x; x <= bbox.Max.x; x++)
+            for (int y = bbox.Min.y; y <= bbox.Max.y; y++)
+            for (int z = bbox.Min.z; z <= bbox.Max.z; z++)
+                if (!RoomSystem.IsWall(new int3(x, y, z), walls))
+                {
+                    cellToRoomMap[new int3(x, y, z)] = -1;
+                    cellsNeedUpdate.Enqueue(new int3(x, y, z));
+                }
+            
+            while(cellsNeedUpdate.TryDequeue(out var cell))
+                RoomSystem.FindRoom(cell, bbox, cellToRoomMap, cellsNeedUpdate);
+
+            foreach (var item in cellToRoomMap)
+                if (math.any(item.Key == bbox.Min | item.Key == bbox.Max) && !exposedRooms.Contains(item.Value))
+                    exposedRooms.Add(item.Value);
+            
+            foreach (var item in cellToRoomMap)
+                rooms.Add(new Rooms{Cell = item.Key, Id = item.Value, IsExposedToSpace = exposedRooms.Contains(item.Value)});
         }).Run();
 
         var buffer = bufferSystem.CreateCommandBuffer();

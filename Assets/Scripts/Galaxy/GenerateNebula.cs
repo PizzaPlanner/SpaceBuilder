@@ -1,12 +1,4 @@
-using System.Linq;
-using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Rendering;
-using Unity.Transforms;
-using UnityEngine;
-using UnityEngine.VFX;
-using Random = Unity.Mathematics.Random;
 
 public struct GenerateNebula : IComponentData { }
 

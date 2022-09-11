@@ -194,7 +194,7 @@ public partial class TRSToLocalToGalaxySystem : SystemBase
     protected override void OnCreate()
     {
         bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-        RequireSingletonForUpdate<LocalPlayer>();
+        RequireSingletonForUpdate<ReferenceFrame>();
     }
 
     protected override void OnUpdate()
@@ -220,13 +220,20 @@ public partial class TRSToLocalToGalaxySystem : SystemBase
                 cts.PreviousSector = ltg;
             }).Run();
 
-        var playerPosition = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
+        var refFrame = GetSingleton<ReferenceFrame>();
+        var refFramePrevRotInverse = math.inverse(refFrame.PreviousLtw.Value);
         Entities
-            .WithNone<LocalPlayer>()
+            .WithNone<ReferenceFrameOrigin>()
             .WithNone<Parent>()
-            .ForEach((Entity e, ref Translation t, in LocalToGalaxy ltg) =>
+            .WithNone<Docked>()
+            .ForEach((Entity e, ref Translation t, ref Rotation r, in LocalToGalaxy ltg) =>
             {
-                t.Value = (float3)LocalToGalaxy.RelativePosition(playerPosition, ltg);
+                var ltgDiff = LocalToGalaxy.RelativePosition(refFrame.PreviousLtg, ltg);
+                var relativeRotation = math.mul(new quaternion(refFramePrevRotInverse), r.Value);
+                var localTRS = float4x4.TRS((float3)ltgDiff, relativeRotation, 1);
+                
+                t.Value = (float3)ltgDiff;
+                r.Value = math.mul(relativeRotation, refFrame.CurrentLtw.Rotation);
             }).ScheduleParallel();
 
         bufferSystem.AddJobHandleForProducer(Dependency);

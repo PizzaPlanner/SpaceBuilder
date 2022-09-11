@@ -21,20 +21,16 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: DebugGhost
-  m_Shader: {fileID: 4800000, guid: 650dd9526735d5b46b79224bc6e94025, type: 3}
-  m_ValidKeywords:
-  - _SURFACE_TYPE_TRANSPARENT
-  m_InvalidKeywords:
-  - _EMISSION
+  m_Shader: {fileID: -6465566751694194690, guid: a046e473550d9a24380d45b0048e3df7,
+    type: 3}
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 3050
-  stringTagMap:
-    RenderType: Transparent
-  disabledShaderPasses:
-  - DepthOnly
-  - SHADOWCASTER
+  stringTagMap: {}
+  disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -112,7 +108,7 @@ Material:
     - _BUILTIN_ZTest: 4
     - _BUILTIN_ZWrite: 0
     - _BUILTIN_ZWriteControl: 0
-    - _Blend: 2
+    - _Blend: 3
     - _BlendOp: 0
     - _BumpScale: 1
     - _CameraFadingEnabled: 0
@@ -131,7 +127,7 @@ Material:
     - _DistortionEnabled: 0
     - _DistortionStrength: 1
     - _DistortionStrengthScaled: 0.1
-    - _DstBlend: 1
+    - _DstBlend: 0
     - _EnvironmentReflections: 1
     - _FlipbookBlending: 0
     - _FlipbookMode: 0
@@ -147,6 +143,7 @@ Material:
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _Power: 1
+    - _QueueControl: 0
     - _QueueOffset: 50
     - _Range: 0.001
     - _Range2: 0.45
@@ -162,7 +159,7 @@ Material:
     - _SpecSource: 0
     - _SpecularHighlights: 1
     - _Speed: 0.2
-    - _SrcBlend: 5
+    - _SrcBlend: 2
     - _Stencil: 0
     - _StencilComp: 8
     - _StencilOp: 0
@@ -176,7 +173,7 @@ Material:
     - _BaseColor: {r: 0, g: 0.5141034, b: 1, a: 1}
     - _BaseColorAddSubDiff: {r: 0, g: 0, b: 0, a: 0}
     - _CameraFadeParams: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 0, g: 0.51410335, b: 1, a: 1}
+    - _Color: {r: 0, g: 0.5141031, b: 1, a: 0.011764706}
     - _EmissionColor: {r: 0, g: 0.7490196, b: 0.7490196, a: 1}
     - _Offset: {r: 1, g: 1, b: 0, a: 0}
     - _Scale: {r: 200, g: 200, b: 0, a: 0}

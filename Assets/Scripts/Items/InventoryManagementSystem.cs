@@ -1,16 +1,17 @@
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 
 public struct GetItemAction : IComponentData
 {
     public Entity Inventory;
     public ulong ItemId;
-    public ushort Quantity;
+    public uint Quantity;
 }
 
 public struct RemoveItem : IComponentData
 {
-    public ushort Quantity;
+    public uint Quantity;
 }
 
 public partial class InventoryManagementSystem : SystemBase
@@ -31,18 +32,24 @@ public partial class InventoryManagementSystem : SystemBase
         Entities.ForEach((Entity e, in GetItemAction action) =>
         {
             buffer.DestroyEntity(e);
-            var inventory = GetBuffer<Inventory>(action.Inventory, true);
-            for(int i = 0; i < inventory.Length; i++)
+            var quantityLeft = action.Quantity;
+            var inventory = GetBuffer<Inventory>(action.Inventory, false);
+            for(int i = 0; i < inventory.Length && quantityLeft > 0; i++)
                 if (inventory[i].Slot.Item == Entity.Null || (GetComponent<Identifieable>(inventory[i].Slot.Item).ItemId == action.ItemId && HasComponent<Stackable>(inventory[i].Slot.Item)))
                 {
                     var slot = inventory[i].Slot;
                     if (slot.Item != Entity.Null)
                     {
                         var stack = GetComponent<Stackable>(inventory[i].Slot.Item);
-                        if (stack.Size + action.Quantity <= stack.MaxSize)
+                        if (stack.Size + quantityLeft <= stack.MaxSize)
                         {
-                            SetComponent(slot.Item, new Stackable{Size = (ushort)(stack.Size + action.Quantity), MaxSize = stack.MaxSize});
-                            return;
+                            SetComponent(slot.Item, new Stackable{Size = (ushort)(stack.Size + quantityLeft), MaxSize = stack.MaxSize});
+                            quantityLeft = 0;
+                        }
+                        else
+                        {
+                            quantityLeft = (uint)(stack.MaxSize - stack.Size);
+                            SetComponent(slot.Item, new Stackable{Size = stack.MaxSize, MaxSize = stack.MaxSize});
                         }
                     }
                     else
@@ -54,12 +61,18 @@ public partial class InventoryManagementSystem : SystemBase
                             EntityManager.AddComponentData(slot.Item , new Parent{Value = action.Inventory});
                             EntityManager.AddComponent<LocalToParent>(e);
                         }
-                        if(HasComponent<Stackable>(slot.Item))
-                            SetComponent(slot.Item, new Stackable{MaxSize = GetComponent<Stackable>(prefab).MaxSize, Size = action.Quantity});
+
+                        if (HasComponent<Stackable>(slot.Item))
+                        {
+                            var maxStack = GetComponent<Stackable>(prefab).MaxSize;
+                            var currStack = (ushort)math.min(maxStack, quantityLeft);
+                            SetComponent(slot.Item, new Stackable { MaxSize = maxStack, Size = currStack });
+                            quantityLeft -= currStack;
+                        }
+                        else
+                            quantityLeft -= 1;
                         EntityManager.AddComponentData(slot.Item, new Interacted{Interactor = action.Inventory});
-                        var inventoryAgain = GetBuffer<Inventory>(action.Inventory);
-                        inventoryAgain[i] = new Inventory {Slot = slot};
-                        return;
+                        inventory[i] = new Inventory {Slot = slot};
                     }
                 }
         }).WithoutBurst().WithStructuralChanges().Run();
@@ -83,10 +96,12 @@ public partial class InventoryManagementSystem : SystemBase
                 buffer.DestroyEntity(e);
             }).Run();
 
+        // TODO: This is wrong
         Entities
             .ForEach((Entity e, ref Stackable stack, in Item item, in RemoveItem remove) =>
             {
-                if (remove.Quantity >= stack.Size)
+                var quantityLeft = remove.Quantity;
+                if (quantityLeft >= stack.Size)
                 {
                     if (HasComponent<Parent>(e) && GetComponent<Parent>(e).Value != Entity.Null)
                     {
@@ -104,7 +119,7 @@ public partial class InventoryManagementSystem : SystemBase
                 }
                 else
                 {
-                    stack.Size -= remove.Quantity;
+                    stack.Size -= (ushort)remove.Quantity;
                     buffer.RemoveComponent<RemoveItem>(e);
                 }
             }).Run();

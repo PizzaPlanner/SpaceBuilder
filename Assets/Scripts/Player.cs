@@ -70,7 +70,6 @@ public unsafe partial class MovePlayerSystem : SystemBase
 
         var ecb = bufferSystem.CreateCommandBuffer();
         Entities
-            // .WithAll<ReferenceFrame>()
             .WithNone<Docked>()
             .ForEach((Entity e, ref Rotation r, ref CanTravelSectors cts, ref LocalToGalaxy ltg, ref Player player) =>
             {
@@ -97,11 +96,10 @@ public unsafe partial class MovePlayerSystem : SystemBase
             }).Schedule();
 
         Entities
-            // .WithNone<ReferenceFrame>()
-            .ForEach((ref Docked docked, ref PhysicsVelocity velocity, in Player player) =>
+            .ForEach((ref Docked docked, in Player player) =>
             {
                 docked.Rotation = math.mul(docked.Rotation, quaternion.EulerXYZ(new float3(0, rotation.y, 0)));
-                velocity.Linear = movement * (player.Running ? player.MovementSpeedRun : player.MovementSpeedDefault);
+                docked.Position += movement * (player.Running ? player.MovementSpeedRun : player.MovementSpeedDefault);
             }).Schedule();
     }
 }
@@ -118,12 +116,12 @@ public partial class UpdateDockedCharacterPositionRotationSystem : SystemBase
         {
             var parentLtw = GetComponent<LocalToWorld>(docked.Target);
             docked.TargetRotation = parentLtw.Rotation;
-            // docked.TargetPosition = parentLtw.Position;
+            docked.TargetPosition = parentLtw.Position;
         }).ScheduleParallel();
 
-        Entities.ForEach((ref LocalToWorld ltw, in Docked docked) =>
+        Entities.ForEach((ref LocalToWorld ltw, in Docked docked, in LocalToGalaxy ltg) =>
         {
-            ltw.Value = math.mul(float4x4.TRS(ltw.Position, docked.TargetRotation, 1), float4x4.TRS(0, docked.Rotation, 1));
+            ltw.Value = math.mul(float4x4.TRS(docked.TargetPosition, docked.TargetRotation, 1), float4x4.TRS(docked.Position, docked.Rotation, 1));
         }).ScheduleParallel();
 
         // Entities

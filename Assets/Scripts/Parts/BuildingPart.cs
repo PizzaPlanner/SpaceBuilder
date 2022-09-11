@@ -23,6 +23,7 @@ public struct GridItem : IComponentData
     public BoundingBox Area;
     public bool Scalable;
     public Entity Grid;
+    public bool IsWall;
 }
 
 public struct BoundingBox
@@ -97,6 +98,7 @@ public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
 {
     [SerializeField] private uint3 SizeInGrid;
     [SerializeField] private bool Scalable;
+    [SerializeField] private bool IsWall;
     private void OnDrawGizmos()
     {
         Gizmos.DrawWireCube((float3)SizeInGrid * 0.5f * Grid.CELL_SIZE, (float3)SizeInGrid * Grid.CELL_SIZE);
@@ -107,7 +109,8 @@ public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
         dstManager.AddComponentData(entity, new GridItem
         {
             Area = new BoundingBox{Origin = int3.zero, Extents = (int3)SizeInGrid - 1},
-            Scalable = math.all(SizeInGrid == 1) && Scalable
+            Scalable = math.all(SizeInGrid == 1) && Scalable,
+            IsWall = IsWall
         });
         dstManager.AddComponentData(entity, new RotationPivot {Value = Grid.CELL_SIZE * 0.5f});
         dstManager.AddComponent<CompositeRotation>(entity);

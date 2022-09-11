@@ -12,7 +12,7 @@ public partial class DebugOccupationSystem : SystemBase
     private Mesh mesh;
     private Material occupationMat, ghostMat;
 
-    private bool showAABBs, showOccupations;
+    private bool showAABBs, showOccupations, showRooms;
 
     protected override void OnCreate()
     {
@@ -67,6 +67,12 @@ public partial class DebugOccupationSystem : SystemBase
         if (showAABBs)
             ShowAABBs();
         
+        if (Input.GetKeyDown(KeyCode.Alpha8))
+            showRooms = !showRooms;
+        
+        if (showRooms)
+            ShowRooms();
+        
         ShowTargetBoundingBoxes();
     }
 
@@ -95,6 +101,23 @@ public partial class DebugOccupationSystem : SystemBase
         }).Run();
 
         Draw(matrices, ghostMat);
+    }
+    
+    private void ShowRooms()
+    {
+        NativeList<float4x4> matricesUnexposed = new NativeList<float4x4>(Allocator.Temp);
+        NativeList<float4x4> matricesExposed = new NativeList<float4x4>(Allocator.Temp);
+        Entities.ForEach((DynamicBuffer<Rooms> rooms, Grid grid, in LocalToWorld ltw) =>
+        {
+            foreach(var item in rooms)
+                if(item.IsExposedToSpace)
+                    matricesExposed.Add(float4x4.TRS(Grid.PositionFromCell(ltw, item.Cell), ltw.Rotation, 1));
+                else
+                    matricesUnexposed.Add(float4x4.TRS(Grid.PositionFromCell(ltw, item.Cell), ltw.Rotation, 1));
+        }).Run();
+        
+        Draw(matricesExposed, occupationMat);
+        Draw(matricesUnexposed, ghostMat);
     }
 
     private void ShowTargetBoundingBoxes()

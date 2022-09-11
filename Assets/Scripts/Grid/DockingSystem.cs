@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -29,6 +30,7 @@ public partial class DockingSystem : SystemBase
     protected override void OnCreate()
     {
         RequireSingletonForUpdate<LocalPlayer>();
+        RequireSingletonForUpdate<ReferenceFrame>();
     }
 
     protected override void OnStartRunning()
@@ -38,14 +40,14 @@ public partial class DockingSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var entity = GetSingletonEntity<LocalPlayer>();
-        var grids = GetBuffer<CloseGrids>(entity);
+        var localPlayer = GetSingletonEntity<LocalPlayer>();
+        var grids = GetBuffer<CloseGrids>(localPlayer);
         var isDocked = HasComponent<Docked>(GetSingletonEntity<LocalPlayer>());
 
         if (grids.Length == 0 || !EntityManager.Exists(grids[0].Grid))
         {
             if(isDocked)
-                Dock(entity, Entity.Null);
+                Dock(localPlayer, Entity.Null);
             swapRoot.Q("Station", "dockingbutton").Q<Label>().text = "<None>";
             swapRoot.Q("Station", "dockingbutton").SetEnabled(false);
             swapRoot.Q("Swap").SetEnabled(false);
@@ -56,16 +58,21 @@ public partial class DockingSystem : SystemBase
                 ? GetComponent<Docked>(GetSingletonEntity<LocalPlayer>()).Target
                 : grids[0].Grid;
             swapRoot.Q("Station", "dockingbutton").Q<Label>().text = GetComponent<Name>(gridToDisplay).Value.ToString();
-            swapRoot.Q("Station", "dockingbutton").SetEnabled(true);
-            swapRoot.Q("Swap").SetEnabled(true);
+            var rooms = GetBuffer<Rooms>(grids[0].Grid);
+            var playerLtw = GetComponent<LocalToWorld>(localPlayer);
+            var playerLtg = Grid.CellFromPosition(GetComponent<LocalToWorld>(gridToDisplay), playerLtw.Position);
+            var isPlayerInRoom = false;
+            foreach (var cell in rooms)
+                isPlayerInRoom |= math.all(cell.Cell == playerLtg) && !cell.IsExposedToSpace;
+            
+            swapRoot.Q("Station", "dockingbutton").SetEnabled(isPlayerInRoom);
+            swapRoot.Q("Swap").SetEnabled(isPlayerInRoom);
+            
+            if(isPlayerInRoom && !isDocked)
+                Dock(localPlayer, gridToDisplay);
+            else if(!isPlayerInRoom && isDocked)
+                Dock(localPlayer, Entity.Null);
         }
-
-        if (!Input.GetKeyDown(KeyCode.G))
-            return;
-
-        var previousParent = HasComponent<Docked>(entity) ? GetComponent<Docked>(entity).Target : Entity.Null;
-        var dockedGrid = previousParent == Entity.Null && grids.Length > 0 ? grids[0].Grid : Entity.Null;
-        Dock(entity, dockedGrid);
     }
 
     void Dock(Entity entity, Entity newParent)
@@ -83,19 +90,21 @@ public partial class DockingSystem : SystemBase
         {
             var parentLtw = GetComponent<LocalToWorld>(newParent);
             var ltw = GetComponent<LocalToWorld>(entity);
+            var newLtw = new LocalToWorld{Value = math.mul(math.inverse(parentLtw.Value), ltw.Value) };
             var docked = new Docked
             {
                 Target = newParent,
-                Rotation = ltw.Rotation,
-                Position = ltw.Position - parentLtw.Position
+                Rotation = newLtw.Rotation,
+                Position = newLtw.Position
             };
 
             if (!HasComponent<Docked>(entity))
                 EntityManager.AddComponentData(entity, docked);
             else
                 EntityManager.SetComponentData(entity, docked);
-            if (!HasComponent<AlignUpVector>(entity))
-                EntityManager.AddComponent<AlignUpVector>(entity);
+            
+            // if (!HasComponent<AlignUpVector>(entity))
+            //     EntityManager.AddComponent<AlignUpVector>(entity);
         }
         else
         {
@@ -104,10 +113,6 @@ public partial class DockingSystem : SystemBase
                 EntityManager.RemoveComponent<Docked>(entity);
             if(HasComponent<AlignUpVector>(entity))
                 EntityManager.RemoveComponent<AlignUpVector>(entity);
-
-            var ltw = GetComponent<LocalToWorld>(entity);
-            SetComponent(entity, new Translation{Value = ltw.Position});
-            SetComponent(entity, new Rotation{Value = ltw.Rotation});
         }
     }
 }
@@ -133,7 +138,7 @@ public partial class RotateTowardsDockedLtwSystem : SystemBase
                 var myLtw = GetComponent<LocalToWorld>(e);
                 var forward = myLtw.Forward;
                 forward.y = 0;
-                var target = quaternion.LookRotation(forward, math.up());
+                var target = quaternion.LookRotation(forward, math.mul(otherLtw.Rotation, math.up()));
                 docked.Rotation = math.slerp(docked.Rotation, target, up.Progress);
                 up.Progress += deltaTime;
                 if(up.Progress >= 1)
