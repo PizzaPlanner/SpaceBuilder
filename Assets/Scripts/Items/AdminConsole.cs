@@ -194,6 +194,7 @@ public struct MoveSectorCommand : AdminConsole.IConsoleCommand
 public struct GiveItemConsoleCommand : AdminConsole.IConsoleCommand
 {
     public Func<string, ulong> GetId;
+    public Func<EntityCommandBuffer> GetEcb;
     public EntityManager EntityManager;
     public string BaseCommand => "give";
     public void Execute(string[] parameters, Entity executor)
@@ -204,8 +205,8 @@ public struct GiveItemConsoleCommand : AdminConsole.IConsoleCommand
         ushort amount = 1;
         if (parameters.Length > 1)
             ushort.TryParse(parameters[1], out amount);
-        var buffer = EntityManager.GetBuffer<AddItem>(executor);
-        buffer.Add(new AddItem { Quantity = amount, ItemId = id });
+
+        ItemTransactionBuilder.Schedule(GetEcb(), TransactionType.Add, executor).With(id, amount);
     }
 
     public string[] GetHints(int parameter)
@@ -260,10 +261,14 @@ public struct SpawnCommand : AdminConsole.IConsoleCommand
 public partial class AdminConsoleSystem : SystemBase
 {
     private VisualElement DebugOverlay;
+
+    private EntityCommandBufferSystem _bufferSystem;
     protected override void OnCreate()
     {
         RequireSingletonForUpdate<LocalPlayer>();
         RequireSingletonForUpdate<IdentifiableMappingSystem.Loaded>();
+
+        _bufferSystem = World.GetExistingSystem<EndInitializationEntityCommandBufferSystem>();
     }
 
     private AdminConsole uiRoot;
@@ -273,7 +278,7 @@ public partial class AdminConsoleSystem : SystemBase
         {
             uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q<AdminConsole>();
             uiRoot.LocalPlayer = GetSingletonEntity<LocalPlayer>();
-            uiRoot.Register(new GiveItemConsoleCommand{EntityManager = EntityManager, GetId = GetId});
+            uiRoot.Register(new GiveItemConsoleCommand{EntityManager = EntityManager, GetId = GetId, GetEcb = GetCommandBuffer});
             uiRoot.Register(new NoclipConsoleCommand{EntityManager = EntityManager});
             uiRoot.Register(new SpawnCommand(){EntityManager = EntityManager});
             uiRoot.Register(new MoveSectorCommand{EntityManager = EntityManager});
@@ -283,6 +288,11 @@ public partial class AdminConsoleSystem : SystemBase
         DebugOverlay ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("DebugUI");
     }
 
+    EntityCommandBuffer GetCommandBuffer()
+    {
+        return _bufferSystem.CreateCommandBuffer();
+    }
+    
     public ulong GetId(string s)
     {
         if (ulong.TryParse(s, out var id))

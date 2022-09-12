@@ -20,17 +20,17 @@ public partial struct ConstructionJob : IJobEntity
     [ReadOnly] public BufferFromEntity<ConstructionInputBuffer> constructionBuffers;
     [ReadOnly] public ComponentDataFromEntity<Identifieable> identifieables;
     [ReadOnly] public ComponentDataFromEntity<GridItem> gridItems;
+    [ReadOnly] public ComponentDataFromEntity<ConstructorReview> reviews;
+    [ReadOnly] public ComponentDataFromEntity<Completed> reviewResults;
+    [ReadOnly] public NativeArray<Entity> reviewEntities;
     public ComponentDataFromEntity<UnderConstruction> underConstructions;
     public double time;
-    public void Execute(ref Constructor printer, in DynamicBuffer<Inventory> inventory, in Target target, DynamicBuffer<RemoveItem> removeItems)
+    public void Execute(Entity e, ref Constructor printer, in DynamicBuffer<Inventory> inventory, in Target target)
     {
         if (!target.CanConstruct)
             return;
 
         if (!constructionBuffers.HasComponent(target.Value))
-            return;
-
-        if (removeItems.Length > 0)
             return;
 
         if (target.Value != target.PreviousValue)
@@ -82,22 +82,43 @@ public partial struct ConstructionJob : IJobEntity
             return;
         }
         
+        for (int i = 0; i < reviewEntities.Length; i++)
+        {
+            if (!reviews.TryGetComponent(reviewEntities[i], out var review) || review.Constructor != e)
+                continue;
+
+            ecb.DestroyEntity(reviewEntities[i]);
+            
+            printer.TimeSpentOnItem += (float)(time - printer.LastTick);
+            printer.LastTick = time;
+            if (reviewResults[reviewEntities[i]].Success)
+            {
+                current.Progress = review.Progress; 
+                underConstructions[target.Value] = current;
+            }
+
+            return;
+        }
+        
         if (time - printer.LastTick > math.lerp(printer.InitialDelayPerItem, printer.MinDelayPerItem, printer.TimeSpentOnItem / 5))
         {
             if (itemToConsume != Entity.Null)
             {
                 // TODO: This causes a lot of issues if multiple constructors work on the same item!
                 // If the item for the request doesnt exist another constructor can still manually finish construction, effectively cheating an item
-                removeItems.Add(new RemoveItem { Quantity = 1, ItemId = identifieables[itemToConsume].ItemId });
-                current.Progress++;
-                
-                underConstructions[target.Value] = current;
-                printer.TimeSpentOnItem += (float)(time - printer.LastTick);
-                printer.LastTick = time;
+                ItemTransactionBuilder.Schedule(ecb, TransactionType.Remove, e)
+                    .With(identifieables[itemToConsume].ItemId, 1)
+                    .RequiresManualReview(new ConstructorReview{ Constructor = e, Progress = current.Progress + 1 });
             }
         }
     }
+    public struct ConstructorReview : ITransactionReviewData
+    {
+        public Entity Constructor;
+        public uint Progress;
+    } 
 }
+
 
 public partial class ProgressConstructionSystem : SystemBase
 {
@@ -109,6 +130,14 @@ public partial class ProgressConstructionSystem : SystemBase
 
     protected override void OnUpdate()
     {
+        var query = GetEntityQuery(
+            ComponentType.Exclude<PendingTransaction>(),
+            ComponentType.ReadWrite<Constructor>(),
+            ComponentType.ReadOnly<Inventory>(),
+            ComponentType.ReadOnly<Target>());
+
+        var reviews = GetEntityQuery(typeof(ConstructionJob.ConstructorReview), typeof(Completed)).ToEntityArray(Allocator.TempJob);
+        
         new ConstructionJob
         {
             constructionBuffers = GetBufferFromEntity<ConstructionInputBuffer>(true),
@@ -116,8 +145,11 @@ public partial class ProgressConstructionSystem : SystemBase
             gridItems = GetComponentDataFromEntity<GridItem>(true),
             underConstructions = GetComponentDataFromEntity<UnderConstruction>(),
             time = Time.ElapsedTime,
-            ecb = bufferSystem.CreateCommandBuffer()
-        }.Schedule();
+            ecb = bufferSystem.CreateCommandBuffer(),
+            reviewEntities = reviews,
+            reviews = GetComponentDataFromEntity<ConstructionJob.ConstructorReview>(),
+            reviewResults = GetComponentDataFromEntity<Completed>(),
+        }.Schedule(query);
 
         bufferSystem.AddJobHandleForProducer(Dependency);
     }

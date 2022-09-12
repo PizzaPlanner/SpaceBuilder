@@ -8,6 +8,11 @@ public struct Inventory : IBufferElementData
     public Entity Item;
 }
 
+public struct PendingTransaction : IComponentData
+{
+    public Entity Transaction;
+}
+
 public static class InventoryHelper
 {
     public static bool Contains(this DynamicBuffer<Inventory> buffer, ComponentDataFromEntity<Identifieable> idBuffer, ComponentDataFromEntity<Stackable> stackBuffer, ulong itemId, ushort amount)
@@ -34,9 +39,6 @@ public class InventoryAuthoring : MonoBehaviour, IConvertGameObjectToEntity
         {
             buffer.Add(new Inventory());
         }
-
-        dstManager.AddBuffer<RemoveItem>(entity);
-        dstManager.AddBuffer<AddItem>(entity);
     }
 }
 

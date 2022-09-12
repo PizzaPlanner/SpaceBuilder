@@ -1,22 +1,81 @@
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
+using UnityEngine;
 
-public struct RemoveItem : IBufferElementData
+public enum TransactionType
 {
-    public uint Quantity;
-    public ulong ItemId;
-    public Entity MoveToTargetInventory;
+    Add,
+    Remove
 }
 
-public struct AddItem : IBufferElementData
+public struct ItemTransactionBuilder
+{
+    private EntityCommandBuffer ecb;
+    private Entity entity;
+    private bool isManuallyReviewed;
+
+    public static ItemTransactionBuilder Schedule(EntityCommandBuffer ecb, TransactionType type,
+        Entity targetInventory)
+    {
+        var tx = new InventoryManagementSystem.ItemTransaction { Type = type, TargetInventory = targetInventory };
+        var txe = ecb.CreateEntity();
+        ecb.AddComponent(txe, tx);
+        
+        ecb.AddBuffer<ModifyItem>(txe);
+        return new ItemTransactionBuilder { ecb = ecb, entity = txe };
+    }
+    
+    public ItemTransactionBuilder With(ulong itemId, uint quantity)
+    {
+        ecb.AppendToBuffer(entity, new ModifyItem{ Quantity = quantity, ItemId = itemId });
+        return this;
+    }
+
+    public ItemTransactionBuilder RequiresManualReview<T>() where T : unmanaged, ITransactionReviewData
+    {
+        if(!isManuallyReviewed)
+            ecb.AddComponent<RequiresManualReview>(entity);
+        isManuallyReviewed = true;
+        ecb.AddComponent<T>(entity);
+        return this;
+    }
+    
+    public ItemTransactionBuilder RequiresManualReview<T>(T data) where T : unmanaged, ITransactionReviewData
+    {
+        if(!isManuallyReviewed)
+            ecb.AddComponent<RequiresManualReview>(entity);
+        isManuallyReviewed = true;
+        ecb.AddComponent(entity, data);
+        return this;
+    }
+}
+
+public interface ITransactionReviewData : IComponentData { }
+public struct RequiresManualReview : IComponentData { }
+
+public struct Completed : IComponentData
+{
+    public bool Success;
+}
+
+public struct ModifyItem : IBufferElementData
 {
     public uint Quantity;
+    public uint QuantityFilled;
     public ulong ItemId;
+
+    public uint QuantityLeft => Quantity - QuantityFilled;
 }
 
 public partial class InventoryManagementSystem : SystemBase
 {
+    public struct ItemTransaction : IComponentData
+    {
+        public Entity TargetInventory;
+        public TransactionType Type;
+    }
+    
     // Workaround for not getting the correct entity when using an ECB
     private struct RegisterWithInventory : IComponentData
     {
@@ -30,11 +89,7 @@ public partial class InventoryManagementSystem : SystemBase
     {
         bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
         RequireSingletonForUpdate<IdentifiableMappingSystem.Loaded>();
-        RequireForUpdate(GetEntityQuery(new EntityQueryDesc
-        {
-            Any = new[] { ComponentType.ReadWrite<AddItem>(), ComponentType.ReadWrite<RemoveItem>() }, 
-            All = new[] { ComponentType.ReadWrite<Inventory>() }
-        }));
+        RequireForUpdate(GetEntityQuery(typeof(ItemTransaction), typeof(ModifyItem)));
     }
 
     protected override void OnUpdate()
@@ -51,117 +106,154 @@ public partial class InventoryManagementSystem : SystemBase
             
             ecb.RemoveComponent<RegisterWithInventory>(e);
         }).Run();
-        
-        Entities.ForEach((Entity e, DynamicBuffer<AddItem> addBuffer, DynamicBuffer<Inventory> inventory) =>
+
+        var inventoryBuffer = GetBufferFromEntity<Inventory>(false);
+        var addedTransactionsThisFrame = new NativeList<Entity>(Allocator.TempJob);
+        var stackables = GetComponentDataFromEntity<Stackable>(false);
+        var identifiables = GetComponentDataFromEntity<Identifieable>(true);
+        Entities
+            .WithReadOnly(identifiables)
+            .WithDisposeOnCompletion(addedTransactionsThisFrame)
+            .WithNone<Completed>()
+            .ForEach((Entity e, DynamicBuffer<ModifyItem> addBuffer, ref ItemTransaction transaction) =>
         {
-            for (int addIdx = 0; addIdx < addBuffer.Length; addIdx++)
+            // Only do one transaction per target inventory at a time
+            if (addedTransactionsThisFrame.Contains(transaction.TargetInventory))
+                return;
+            
+            // Fail if the target is not an inventory
+            if (!inventoryBuffer.HasComponent(transaction.TargetInventory))
             {
-                var quantityLeft = addBuffer[addIdx].Quantity;
-                var idToAdd = addBuffer[addIdx].ItemId;
+                return;
+            }
 
-                // Check where the new item would fit
-                for (int i = 0; i < inventory.Length && quantityLeft > 0; i++)
-                {
-
-                    if (inventory[i].Item != Entity.Null &&
-                        (GetComponent<Identifieable>(inventory[i].Item).ItemId != idToAdd ||
-                         !HasComponent<Stackable>(inventory[i].Item)))
-                        // Item can not fit in this slot
-                        continue;
-
-                    var slot = inventory[i];
-                    if (slot.Item != Entity.Null)
-                    {
-                        var stack = GetComponent<Stackable>(slot.Item);
-                        var room = (ushort)(stack.MaxSize - stack.Size);
-                        var toAdd = (ushort)math.min(room, quantityLeft);
-                        stack.Size += toAdd;
-                        SetComponent(slot.Item, stack);
-                        quantityLeft -= toAdd;
-                    }
-                    else
-                    {
-                        // Empty slot, make new item
-                        var prefab = prefabMap[idToAdd];
-                        var newItem = ecb.Instantiate(prefab);
-                        ecb.AddComponent(newItem, new RegisterWithInventory{Inventory = e, Slot = i});
-                        if (HasComponent<Stackable>(prefab))
-                        {
-                            var maxStack = GetComponent<Stackable>(prefab).MaxSize;
-                            var currStack = (ushort)math.min(maxStack, quantityLeft);
-                            ecb.SetComponent(newItem, new Stackable { MaxSize = maxStack, Size = currStack });
-                            quantityLeft -= currStack;
-                        }
-                        else
-                            quantityLeft -= 1;
-                        
-                    }
-                }
-
-                var addOp = addBuffer[addIdx];
-                addOp.Quantity = quantityLeft;
-                addBuffer[addIdx] = addOp;
+            // Block the target inventory with this as the next pending transaction
+            if (!HasComponent<PendingTransaction>(transaction.TargetInventory))
+            {
+                ecb.AddComponent(transaction.TargetInventory, new PendingTransaction { Transaction = e });
+                return;
             }
             
-            for(int i = addBuffer.Length - 1; i >= 0; i--)
-                if(addBuffer[i].Quantity == 0)
-                    addBuffer.RemoveAt(i);
-        }).Run();
-
-        Entities.ForEach((Entity e, DynamicBuffer<RemoveItem> removeBuffer, DynamicBuffer<Inventory> inventory) =>
-        {
-            for (int addIdx = 0; addIdx < removeBuffer.Length; addIdx++)
+            // Mark as waiting and stop if there is another transaction ongoing
+            if (GetComponent<PendingTransaction>(transaction.TargetInventory).Transaction != e)
             {
-                var quantityLeft = removeBuffer[addIdx].Quantity;
-                var idToRemove = removeBuffer[addIdx].ItemId;
-
-                for (int i = 0; i < inventory.Length && quantityLeft > 0; i++)
-                {
-                    if (inventory[i].Item == Entity.Null ||
-                        GetComponent<Identifieable>(inventory[i].Item).ItemId != idToRemove)
-                        // Can not remove from this slot
-                        continue;
-
-                    var slot = inventory[i];
-                    var toRemove = (ushort)1;
-                    var isSlotEmpty = true;
-                    if (HasComponent<Stackable>(slot.Item))
-                    {
-                        var stack = GetComponent<Stackable>(inventory[i].Item);
-                        toRemove = (ushort)math.min(stack.Size, quantityLeft);
-                        stack.Size -= toRemove;
-                        isSlotEmpty = stack.Size == 0;
-                        SetComponent(slot.Item, stack);
-                        quantityLeft -= toRemove;
-                    }
-                    else
-                        quantityLeft -= 1;
-
-                    // Add removed items to other inventory
-                    if (removeBuffer[addIdx].MoveToTargetInventory != Entity.Null)
-                        ecb.AppendToBuffer(removeBuffer[addIdx].MoveToTargetInventory,
-                            new AddItem { ItemId = idToRemove, Quantity = toRemove });
-
-                    if(isSlotEmpty)
-                    {
-                        ecb.DestroyEntity(slot.Item);
-                        slot.Item = Entity.Null;
-                        inventory[i] = slot;
-                    }
-                }
-                
-                var addOp = removeBuffer[addIdx];
-                addOp.Quantity = quantityLeft;
-                removeBuffer[addIdx] = addOp;
+                return;
             }
             
-            for(int i = removeBuffer.Length - 1; i >= 0; i--)
-                if(removeBuffer[i].Quantity == 0)
-                    removeBuffer.RemoveAt(i);
-        }).Run();
+            var inventory = inventoryBuffer[transaction.TargetInventory];
 
-        EntityManager.CreateEntity(typeof(InventoryUISystem.InventoryChanged));
+            var success = true;
+            for (int addIdx = 0; addIdx < addBuffer.Length && success; addIdx++)
+            {
+                var operation = addBuffer[addIdx];
+                var prefab = prefabMap[operation.ItemId];
+                // TODO: This needs reversion logic or verify success beforehand
+                success &= transaction.Type switch
+                {
+                    TransactionType.Add => AddItemToInventory(ecb, ref operation, stackables, identifiables, inventory, transaction.TargetInventory, prefab),
+                    TransactionType.Remove => RemoveItemFromInventory(ecb, ref operation, stackables, identifiables, inventory),
+                };
+
+                addBuffer[addIdx] = operation;
+            }
+            
+            ecb.RemoveComponent<PendingTransaction>(transaction.TargetInventory);
+
+            if (!HasComponent<RequiresManualReview>(e))
+                ecb.DestroyEntity(e);
+            else
+                ecb.AddComponent(e, new Completed { Success = success });
+            
+            if(!success)
+                Debug.LogError($"Item Transaction '{transaction.Type}' on {transaction.TargetInventory} failed");
+        }).Schedule();
+
+        Job.WithCode(() =>
+        {
+            var change = ecb.CreateEntity();
+            ecb.AddComponent(change, new InventoryUISystem.InventoryChanged());
+        }).Schedule();
 
         bufferSystem.AddJobHandleForProducer(Dependency);
+    }
+
+    static bool AddItemToInventory(EntityCommandBuffer ecb, ref ModifyItem operation, 
+        ComponentDataFromEntity<Stackable> stackables, 
+        ComponentDataFromEntity<Identifieable> identifiables, 
+        DynamicBuffer<Inventory> inventory,
+        Entity inventoryEntity,
+        Entity itemPrefab)
+    {
+        // Check where the new item would fit
+        for (int i = 0; i < inventory.Length && operation.QuantityLeft > 0; i++)
+        {
+            if (inventory[i].Item != Entity.Null &&
+                (identifiables[inventory[i].Item].ItemId != operation.ItemId ||
+                 !stackables.HasComponent(inventory[i].Item)))
+                // Item can not fit in this slot
+                continue;
+
+            var slot = inventory[i];
+            if (slot.Item != Entity.Null)
+            {
+                var stack = stackables[slot.Item];
+                var room = (ushort)(stack.MaxSize - stack.Size);
+                var toAdd = (ushort)math.min(room, operation.QuantityLeft);
+                stack.Size += toAdd;
+                stackables[slot.Item] = stack;
+                operation.QuantityFilled += toAdd;
+            }
+            else
+            {
+                // Empty slot, make new item
+                var newItem = ecb.Instantiate(itemPrefab);
+                ecb.AddComponent(newItem, new RegisterWithInventory { Inventory = inventoryEntity, Slot = i });
+                if (stackables.HasComponent(itemPrefab))
+                {
+                    var maxStack = stackables[itemPrefab].MaxSize;
+                    var currStack = (ushort)math.min(maxStack, operation.QuantityLeft);
+                    ecb.SetComponent(newItem, new Stackable { MaxSize = maxStack, Size = currStack });
+                    operation.QuantityFilled += currStack;
+                }
+                else
+                    operation.QuantityFilled += 1;
+            }
+        }
+
+        return operation.QuantityLeft == 0;
+    }
+
+    static bool RemoveItemFromInventory(EntityCommandBuffer ecb, ref ModifyItem operation,
+        ComponentDataFromEntity<Stackable> stackables,
+        ComponentDataFromEntity<Identifieable> identifiables,
+        DynamicBuffer<Inventory> inventory)
+    {
+        for (int i = 0; i < inventory.Length && operation.QuantityLeft > 0; i++)
+        {
+            if (inventory[i].Item == Entity.Null || identifiables[inventory[i].Item].ItemId != operation.ItemId)
+                // Can not remove from this slot
+                continue;
+
+            var slot = inventory[i];
+            var isSlotEmpty = true;
+            if (stackables.HasComponent(slot.Item))
+            {
+                var stack = stackables[slot.Item];
+                var toRemove = (ushort)math.min(stack.Size, operation.QuantityLeft);
+                stack.Size -= toRemove;
+                isSlotEmpty = stack.Size == 0;
+                stackables[slot.Item] = stack;
+                operation.QuantityFilled += toRemove;
+            }
+            else
+                operation.QuantityFilled += 1;
+
+            if (!isSlotEmpty) continue;
+            ecb.DestroyEntity(slot.Item);
+            slot.Item = Entity.Null;
+            inventory[i] = slot;
+        }
+        
+        return operation.QuantityLeft == 0;
     }
 }
