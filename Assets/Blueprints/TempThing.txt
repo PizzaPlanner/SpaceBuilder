@@ -2,39 +2,32 @@ Version: 3
 Name: TempThing
 Parts:
   17704343019872175460:
-  - LocalToGrid: [-23,0,-5,24]
-    Scale: [24,1,11]
-  - LocalToGrid: [-23,1,5,21]
+  - LocalToGrid: [-23,10,-5,24]
+    Scale: [1,17,36]
+  - LocalToGrid: [-22,10,30,24]
+    Scale: [22,17,1]
+  - LocalToGrid: [-8,1,-4,24]
+    Scale: [1,8,9]
+  - LocalToGrid: [-23,1,-4,24]
+    Scale: [1,8,9]
+  - LocalToGrid: [-23,1,-5,24]
     Scale: [24,8,1]
   - LocalToGrid: [-23,9,-5,24]
     Scale: [24,1,11]
-  - LocalToGrid: [-23,1,-5,24]
+  - LocalToGrid: [-23,1,5,21]
     Scale: [24,8,1]
-  - LocalToGrid: [-23,1,-4,24]
-    Scale: [1,8,9]
-  - LocalToGrid: [-8,1,-4,24]
-    Scale: [1,8,9]
+  - LocalToGrid: [-23,0,-5,24]
+    Scale: [24,1,11]
+  - LocalToGrid: [0,10,-5,24]
+    Scale: [1,17,36]
   - LocalToGrid: [-23,9,6,24]
-    Status: 611
     Scale: [24,1,25]
-  8955605736830352580:
-  - LocalToGrid: [-19,10,-3,29]
-    Inventory:
-    - null
-    - null
-    - null
-    - null
-    - null
+  - LocalToGrid: [-22,10,-5,24]
+    Scale: [22,17,1]
+  - LocalToGrid: [-23,27,-5,24]
+    Scale: [24,1,36]
   14771598438067556484:
   - LocalToGrid: [-11,1,-2,29]
-  6591531698997879124:
-  - LocalToGrid: [1,0,-5,2C]
-    Scale: [1,10,1]
-  - LocalToGrid: [1,0,5,21]
-    Scale: [1,10,1]
-  8099354944611683652:
-  - LocalToGrid: [-1,7,6,A1]
-  - LocalToGrid: [-1,3,-6,21]
   7654762231379342132:
   - LocalToGrid: [-9,10,1,24]
     Inventory:
@@ -48,6 +41,22 @@ Parts:
     - null
     - null
     - null
+    - null
+    - null
+    - null
+    - null
+    - null
+  8099354944611683652:
+  - LocalToGrid: [-1,3,-6,21]
+  - LocalToGrid: [-1,7,6,A1]
+  6591531698997879124:
+  - LocalToGrid: [1,0,5,21]
+    Scale: [1,10,1]
+  - LocalToGrid: [1,0,-5,2C]
+    Scale: [1,10,1]
+  8955605736830352580:
+  - LocalToGrid: [-19,10,-3,29]
+    Inventory:
     - null
     - null
     - null

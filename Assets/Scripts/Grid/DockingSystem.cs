@@ -1,10 +1,7 @@
-using System;
 using Rival;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics;
 using Unity.Transforms;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -60,14 +57,14 @@ public partial class DockingSystem : SystemBase
             swapRoot.Q("Station", "dockingbutton").Q<Label>().text = GetComponent<Name>(gridToDisplay).Value.ToString();
             var rooms = GetBuffer<Rooms>(grids[0].Grid);
             var playerLtw = GetComponent<LocalToWorld>(localPlayer);
-            var playerLtg = Grid.CellFromPosition(GetComponent<LocalToWorld>(gridToDisplay), playerLtw.Position);
+            var playerGridCell = Grid.CellFromPosition(GetComponent<LocalToWorld>(gridToDisplay), playerLtw.Position);
             var isPlayerInRoom = false;
             foreach (var cell in rooms)
-                isPlayerInRoom |= math.all(cell.Cell == playerLtg) && !cell.IsExposedToSpace;
+                isPlayerInRoom |= math.all(cell.Cell == playerGridCell) && !cell.IsExposedToSpace;
             
             swapRoot.Q("Station", "dockingbutton").SetEnabled(isPlayerInRoom);
             swapRoot.Q("Swap").SetEnabled(isPlayerInRoom);
-            
+
             if(isPlayerInRoom && !isDocked)
                 Dock(localPlayer, gridToDisplay);
             else if(!isPlayerInRoom && isDocked)
@@ -90,27 +87,46 @@ public partial class DockingSystem : SystemBase
         {
             var parentLtw = GetComponent<LocalToWorld>(newParent);
             var ltw = GetComponent<LocalToWorld>(entity);
-            var newLtw = new LocalToWorld{Value = math.mul(math.inverse(parentLtw.Value), ltw.Value) };
+            var ltp = new LocalToWorld{Value = math.mul(math.inverse(parentLtw.Value), ltw.Value) };
             var docked = new Docked
             {
                 Target = newParent,
-                Rotation = newLtw.Rotation,
-                Position = newLtw.Position
+                Rotation = ltp.Rotation,
+                Position = ltp.Position,
+                TargetPosition = parentLtw.Position,
+                TargetRotation = parentLtw.Rotation
             };
 
             if (!HasComponent<Docked>(entity))
+            {
                 EntityManager.AddComponentData(entity, docked);
+                // EntityManager.AddComponentData(entity, new Parent { Value = newParent });
+                // EntityManager.AddComponentData(entity, new LocalToParent());
+            }
             else
+            {
                 EntityManager.SetComponentData(entity, docked);
+                // EntityManager.SetComponentData(entity, new Parent { Value = newParent });
+                // EntityManager.SetComponentData(entity, new LocalToParent());
+            }
             
             // if (!HasComponent<AlignUpVector>(entity))
             //     EntityManager.AddComponent<AlignUpVector>(entity);
         }
         else
         {
-
-            if(HasComponent<Docked>(entity))
+            if (HasComponent<Docked>(entity))
+            {
+                var docked = GetComponent<Docked>(entity);
+                var oldParent = docked.Target;
+                var parentLtg = GetComponent<LocalToGalaxy>(oldParent);
+                var parentRotation = GetComponent<LocalToWorld>(oldParent).Rotation;
+                SetComponent(entity, LocalToGalaxy.OffsetBy(parentLtg, math.mul(parentRotation, docked.Position)));
+                
                 EntityManager.RemoveComponent<Docked>(entity);
+                // EntityManager.RemoveComponent<Parent>(entity);
+                // EntityManager.RemoveComponent<LocalToParent>(entity);
+            }
             if(HasComponent<AlignUpVector>(entity))
                 EntityManager.RemoveComponent<AlignUpVector>(entity);
         }

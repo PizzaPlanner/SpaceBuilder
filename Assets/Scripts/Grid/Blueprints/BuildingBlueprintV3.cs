@@ -87,44 +87,50 @@ public struct BlueprintParserV3 : IBlueprintParser
                         parts.Add(new PartData{Status = uint.MaxValue, Scale = 1});
 
                     var current = parts.Last();
-                    if (key == "Status")
-                        current.Status = uint.Parse(value);
-                    else if (key == "Color")
+                    switch (key)
                     {
-                        var color = value.Trim(' ', '[', ']').Split(',');
-                        if (color.Length != 3)
+                        case "Status":
+                            current.Status = uint.Parse(value);
+                            break;
+                        case "Color":
                         {
-                            Debug.LogError($"Invalid syntax in Line {i}");
-                            continue;
+                            var color = value.Trim(' ', '[', ']').Split(',');
+                            if (color.Length != 3)
+                            {
+                                Debug.LogError($"Invalid syntax in Line {i}");
+                                continue;
+                            }
+                            current.Color = new int3(int.Parse(color[0]), int.Parse(color[1]), int.Parse(color[2]));
+                            break;
                         }
-                        current.Color = new int3(int.Parse(color[0]), int.Parse(color[1]), int.Parse(color[2]));
-                    }
-                    else if (key == "LocalToGrid")
-                    {
-                        var pos = value.Trim(' ', '[', ']').Split(',');
-                        if (pos.Length != 4)
+                        case "LocalToGrid":
                         {
-                            Debug.LogError($"Invalid syntax in Line {i}");
-                            continue;
+                            var pos = value.Trim(' ', '[', ']').Split(',');
+                            if (pos.Length != 4)
+                            {
+                                Debug.LogError($"Invalid syntax in Line {i}");
+                                continue;
+                            }
+                            current.Position = new int3(int.Parse(pos[0]), int.Parse(pos[1]), int.Parse(pos[2]));
+                            current.Orientation =
+                                new RightAngleRotation(byte.Parse(pos[3], NumberStyles.AllowHexSpecifier));
+                            break;
                         }
-                        current.Position = new int3(int.Parse(pos[0]), int.Parse(pos[1]), int.Parse(pos[2]));
-                        current.Orientation =
-                            new RightAngleRotation(byte.Parse(pos[3], NumberStyles.AllowHexSpecifier));
-                    }
-                    else if (key == "Scale")
-                    {
-                        var scale = value.Trim(' ', '[', ']').Split(',');
-                        if (scale.Length != 3)
+                        case "Scale":
                         {
-                            Debug.LogError($"Invalid syntax in Line {i}");
-                            continue;
+                            var scale = value.Trim(' ', '[', ']').Split(',');
+                            if (scale.Length != 3)
+                            {
+                                Debug.LogError($"Invalid syntax in Line {i}");
+                                continue;
+                            }
+                            current.Scale = new int3(int.Parse(scale[0]), int.Parse(scale[1]), int.Parse(scale[2]));
+                            break;
                         }
-                        current.Scale = new int3(int.Parse(scale[0]), int.Parse(scale[1]), int.Parse(scale[2]));
-                    }
-                    else if (key == "Inventory")
-                    {
-                        current.Inventory = new List<ItemData>();
-                        CurrentToken.Push((current.Inventory, indent));
+                        case "Inventory":
+                            current.Inventory = new List<ItemData>();
+                            CurrentToken.Push((current.Inventory, indent));
+                            break;
                     }
                 }
                 else if (CurrentToken.Peek().Property is List<ItemData> inventory)
@@ -133,10 +139,15 @@ public struct BlueprintParserV3 : IBlueprintParser
                         inventory.Add(new ItemData());
 
                     var current = inventory.Last();
-                    if (key == "Id")
-                        current.Id = ulong.Parse(value);
-                    if (key == "Stack")
-                        current.Stack = ushort.Parse(value);
+                    switch (key)
+                    {
+                        case "Id":
+                            current.Id = ulong.Parse(value);
+                            break;
+                        case "Stack":
+                            current.Stack = ushort.Parse(value);
+                            break;
+                    }
                 }
             }
         }
@@ -235,6 +246,7 @@ Parts:
                     Color = math.all(item.Color == int3.zero) ? default :  new Color(item.Color.x / 255f, item.Color.y / 255f, item.Color.z / 255f)
                 }));
         }
+        // TODO: Load Inventory
         return new BlueprintData {Name = ds.Name, Parts = parts, Tags = ds.Tags};
     }
 

@@ -98,8 +98,9 @@ public unsafe partial class MovePlayerSystem : SystemBase
         Entities
             .ForEach((ref Docked docked, in Player player) =>
             {
+                var movementInversedByParent = math.mul(math.inverse(docked.TargetRotation), movement); 
                 docked.Rotation = math.mul(docked.Rotation, quaternion.EulerXYZ(new float3(0, rotation.y, 0)));
-                docked.Position += movement * (player.Running ? player.MovementSpeedRun : player.MovementSpeedDefault);
+                docked.Position += movementInversedByParent * (player.Running ? player.MovementSpeedRun : player.MovementSpeedDefault) * deltaTime;
             }).Schedule();
     }
 }

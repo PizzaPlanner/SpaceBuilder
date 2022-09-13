@@ -123,7 +123,9 @@ public partial class PlayerTargetSystem : SystemBase
             target.Hit = hitLocation;
         SetComponent(GetSingletonEntity<LocalPlayer>(), target);
 
-        Entities.ForEach((ref Target t) =>
+        Entities
+            .WithAll<LocalPlayer>()
+            .ForEach((ref Target t) =>
         {
             var isGhost = t.Value != Entity.Null && HasComponent<Ghost>(t.Value);
             t.CanConstruct = !isGhost && t.Value != Entity.Null &&
@@ -177,7 +179,8 @@ public partial class RepairStationTargetSystem : SystemBase
             .WithDisposeOnCompletion(entities)
             .WithDisposeOnCompletion(grids)
             .WithNone<UnderConstruction>()
-            .ForEach((ref Target target, in Constructor c, in GridItem item) =>
+            .WithAll<Constructor>()
+            .ForEach((ref Target target, in GridItem item) =>
         {
             target.PreviousValue = target.Value;
             target.Value = Entity.Null;
