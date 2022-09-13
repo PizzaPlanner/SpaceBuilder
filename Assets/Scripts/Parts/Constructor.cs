@@ -14,114 +14,16 @@ public struct Constructor : IComponentData
     public double LastTick;
 }
 
-public partial struct ConstructionJob : IJobEntity
-{
-    public EntityCommandBuffer ecb;
-    [ReadOnly] public BufferFromEntity<ConstructionInputBuffer> constructionBuffers;
-    [ReadOnly] public ComponentDataFromEntity<Identifieable> identifieables;
-    [ReadOnly] public ComponentDataFromEntity<GridItem> gridItems;
-    [ReadOnly] public ComponentDataFromEntity<ConstructorReview> reviews;
-    [ReadOnly] public ComponentDataFromEntity<Completed> reviewResults;
-    [ReadOnly] public NativeArray<Entity> reviewEntities;
-    public ComponentDataFromEntity<UnderConstruction> underConstructions;
-    public double time;
-    public void Execute(Entity e, ref Constructor printer, in DynamicBuffer<Inventory> inventory, in Target target)
-    {
-        if (!target.CanConstruct)
-            return;
-
-        if (!constructionBuffers.HasComponent(target.Value))
-            return;
-
-        if (target.Value != target.PreviousValue)
-        {
-            printer.LastTick = time + printer.DelayPerBuilding;
-            printer.TimeSpentOnItem = 0;
-        }
-
-        var parts = constructionBuffers[target.Value];
-        var current = underConstructions[target.Value];
-        var partScale = 1u;
-        if (gridItems.HasComponent(target.Value) && gridItems[target.Value].Scalable)
-        {
-            var size = gridItems[target.Value].Area.Size;
-            partScale = (uint)(size.x * size.y * size.z);
-        }
-        var maxProgress = 0u;
-        var progress = current.Progress;
-
-        var itemToConsume = Entity.Null;
-        for (int i = 0; i < parts.Length && progress < uint.MaxValue; i++)
-        {
-            var partCost = parts[i].Amount * partScale;
-            
-            maxProgress += partCost;
-            if (progress >= partCost)
-            {
-                progress -= partCost;
-                if(progress == 0)
-                    printer.TimeSpentOnItem = 0;
-            }
-            else
-            {
-                for(int j = 0; j < inventory.Length; j++)
-                    if (inventory[j].Item != Entity.Null && identifieables[inventory[j].Item].ItemId == parts[i].ItemId)
-                    {
-                        itemToConsume = inventory[j].Item;
-                        break;
-                    }
-                progress = uint.MaxValue;
-            }
-        }
-
-        if (current.Progress >= maxProgress)
-        {
-            ecb.AddComponent<FinishConstruction>(target.Value);
-            printer.LastTick = time + printer.DelayPerBuilding;
-            printer.TimeSpentOnItem = 0;
-            return;
-        }
-        
-        for (int i = 0; i < reviewEntities.Length; i++)
-        {
-            if (!reviews.TryGetComponent(reviewEntities[i], out var review) || review.Constructor != e)
-                continue;
-
-            ecb.DestroyEntity(reviewEntities[i]);
-            
-            printer.TimeSpentOnItem += (float)(time - printer.LastTick);
-            printer.LastTick = time;
-            if (reviewResults[reviewEntities[i]].Success)
-            {
-                current.Progress = review.Progress; 
-                underConstructions[target.Value] = current;
-            }
-
-            return;
-        }
-        
-        if (time - printer.LastTick > math.lerp(printer.InitialDelayPerItem, printer.MinDelayPerItem, printer.TimeSpentOnItem / 5))
-        {
-            if (itemToConsume != Entity.Null)
-            {
-                // TODO: This causes a lot of issues if multiple constructors work on the same item!
-                // If the item for the request doesnt exist another constructor can still manually finish construction, effectively cheating an item
-                ItemTransactionBuilder.Schedule(ecb, TransactionType.Remove, e)
-                    .With(identifieables[itemToConsume].ItemId, 1)
-                    .RequiresManualReview(new ConstructorReview{ Constructor = e, Progress = current.Progress + 1 });
-            }
-        }
-    }
-    public struct ConstructorReview : ITransactionReviewData
-    {
-        public Entity Constructor;
-        public uint Progress;
-    } 
-}
-
-
 public partial class ProgressConstructionSystem : SystemBase
 {
+    struct ConstructorReview : ITransactionReviewData
+    {
+        public Entity Target;
+        public Entity Constructor;
+        public double ConstructorLastTick;
+        public uint MaxProgress;
+    }
+
     private EntityCommandBufferSystem bufferSystem;
     protected override void OnCreate()
     {
@@ -130,26 +32,118 @@ public partial class ProgressConstructionSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var query = GetEntityQuery(
-            ComponentType.Exclude<PendingTransaction>(),
-            ComponentType.ReadWrite<Constructor>(),
-            ComponentType.ReadOnly<Inventory>(),
-            ComponentType.ReadOnly<Target>());
+        var ecb = bufferSystem.CreateCommandBuffer();
+        var time = Time.ElapsedTime;
 
-        var reviews = GetEntityQuery(typeof(ConstructionJob.ConstructorReview), typeof(Completed)).ToEntityArray(Allocator.TempJob);
-        
-        new ConstructionJob
+        Entities.ForEach((Entity e, in ConstructorReview review, in Completed result) =>
         {
-            constructionBuffers = GetBufferFromEntity<ConstructionInputBuffer>(true),
-            identifieables = GetComponentDataFromEntity<Identifieable>(true),
-            gridItems = GetComponentDataFromEntity<GridItem>(true),
-            underConstructions = GetComponentDataFromEntity<UnderConstruction>(),
-            time = Time.ElapsedTime,
-            ecb = bufferSystem.CreateCommandBuffer(),
-            reviewEntities = reviews,
-            reviews = GetComponentDataFromEntity<ConstructionJob.ConstructorReview>(),
-            reviewResults = GetComponentDataFromEntity<Completed>(),
-        }.Schedule(query);
+            ecb.DestroyEntity(e);
+
+            var printer = GetComponent<Constructor>(review.Constructor);
+            printer.LastTick = review.ConstructorLastTick;
+            printer.TimeSpentOnItem += (float)(time - printer.LastTick);
+            SetComponent(review.Constructor, printer);
+                
+            if (!result.Success)
+                return;
+
+            var refundItems = !HasComponent<UnderConstruction>(review.Target);
+            if (!refundItems)
+            {
+                var current = GetComponent<UnderConstruction>(review.Target);
+                current.Progress++;
+                SetComponent(review.Target, current);
+
+                if(current.Progress == review.MaxProgress)
+                {
+                    // Finish construction
+                    ecb.AddComponent<FinishConstruction>(review.Target);
+                    printer.LastTick = time + printer.DelayPerBuilding;
+                    printer.TimeSpentOnItem = 0;
+                    SetComponent(review.Constructor, printer);
+                } 
+                else
+                    refundItems = current.Progress > review.MaxProgress;
+            }
+
+            if (!refundItems) return;
+            
+            // Give items back, since part was already fully constructed
+            var tx = ItemTransactionBuilder.Schedule(ecb, TransactionType.Add, review.Constructor);
+            foreach(var item in GetBuffer<ModifyItem>(e))
+                tx.With(item.ItemId, item.QuantityFilled);
+        }).Run();
+        
+        var constructionBuffers = GetBufferFromEntity<ConstructionInputBuffer>(true);
+        var underConstructions = GetComponentDataFromEntity<UnderConstruction>(true);
+        var gridItems = GetComponentDataFromEntity<GridItem>(true);
+        var identifieables = GetComponentDataFromEntity<Identifieable>(true);
+        
+        Entities
+            .WithReadOnly(underConstructions)
+            .WithReadOnly(gridItems)
+            .WithReadOnly(identifieables)
+            .WithNone<PendingTransaction>()
+            .ForEach((Entity e, ref Constructor printer, in DynamicBuffer<Inventory> inventory, in Target target) =>
+            {
+                if (!target.CanConstruct)
+                    return;
+                
+                if (!constructionBuffers.HasComponent(target.Value))
+                    return;
+
+                if (target.Value != target.PreviousValue)
+                {
+                    printer.LastTick = time + printer.DelayPerBuilding;
+                    printer.TimeSpentOnItem = 0;
+                }
+
+                var parts = constructionBuffers[target.Value];
+                var current = underConstructions[target.Value];
+                var partScale = 1u;
+                if (gridItems.TryGetComponent(target.Value, out var item) && item.Scalable)
+                {
+                    var size = item.Area.Size;
+                    partScale = (uint)(size.x * size.y * size.z);
+                }
+                var maxProgress = 0u;
+                var progress = current.Progress;
+
+                var itemIdToConsume = 0ul;
+                for (int i = 0; i < parts.Length && progress < uint.MaxValue; i++)
+                {
+                    var partCost = parts[i].Amount * partScale;
+            
+                    maxProgress += partCost;
+                    if (progress >= partCost)
+                    {
+                        progress -= partCost;
+                        if(progress == 0)
+                            printer.TimeSpentOnItem = 0;
+                    }
+                    else
+                    {
+                        if (inventory.TryFindItem(identifieables, parts[i].ItemId, out _))
+                            itemIdToConsume = parts[i].ItemId;
+                        progress = uint.MaxValue;
+                    }
+                }
+
+                if (!(time - printer.LastTick > math.lerp(printer.InitialDelayPerItem, printer.MinDelayPerItem,
+                        printer.TimeSpentOnItem / 5))) return;
+                if (itemIdToConsume == 0ul) return;
+                
+                ItemTransactionBuilder.Schedule(ecb, TransactionType.Remove, e)
+                    .With(itemIdToConsume, 1)
+                    .RequiresManualReview(new ConstructorReview
+                    {
+                        Constructor = e,
+                        Target = target.Value,
+                        ConstructorLastTick = printer.LastTick,
+                        MaxProgress = maxProgress
+                    });
+                printer.LastTick = double.PositiveInfinity;
+            }).Schedule();
 
         bufferSystem.AddJobHandleForProducer(Dependency);
     }

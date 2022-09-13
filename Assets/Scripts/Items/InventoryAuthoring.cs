@@ -27,6 +27,19 @@ public static class InventoryHelper
 
         return has >= amount;
     }
+    
+    public static bool TryFindItem(this DynamicBuffer<Inventory> inventory, ComponentDataFromEntity<Identifieable> idBuffer, ulong itemId, out int slot)
+    {
+        slot = -1;
+        for(int j = 0; j < inventory.Length; j++)
+            if (inventory[j].Item != Entity.Null && idBuffer.TryGetComponent(inventory[j].Item, out var item) && item.ItemId == itemId)
+            {
+                slot = j;
+                return true;
+            }
+
+        return false;
+    }
 }
 public class InventoryAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 {
