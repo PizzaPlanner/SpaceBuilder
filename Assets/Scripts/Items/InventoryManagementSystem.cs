@@ -3,69 +3,40 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-public enum TransactionType
+[UpdateBefore(typeof(InventoryManagementSystem))]
+public partial class UpdateInventoryAddedSystem : SystemBase
 {
-    Add,
-    Remove
-}
+    
+    private EntityCommandBufferSystem bufferSystem;
 
-public struct ItemTransactionBuilder
-{
-    private EntityCommandBuffer ecb;
-    private Entity entity;
-    private bool isManuallyReviewed;
-
-    public static ItemTransactionBuilder Schedule(EntityCommandBuffer ecb, TransactionType type,
-        Entity targetInventory)
+    protected override void OnCreate()
     {
-        var tx = new InventoryManagementSystem.ItemTransaction { Type = type, TargetInventory = targetInventory };
-        var txe = ecb.CreateEntity();
-        ecb.AddComponent(txe, tx);
-        
-        ecb.AddBuffer<ModifyItem>(txe);
-        return new ItemTransactionBuilder { ecb = ecb, entity = txe };
+        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
     }
     
-    public ItemTransactionBuilder With(ulong itemId, uint quantity)
+    protected override void OnUpdate()
     {
-        ecb.AppendToBuffer(entity, new ModifyItem{ Quantity = quantity, ItemId = itemId });
-        return this;
-    }
-
-    public ItemTransactionBuilder RequiresManualReview<T>() where T : unmanaged, ITransactionReviewData
-    {
-        if(!isManuallyReviewed)
-            ecb.AddComponent<RequiresManualReview>(entity);
-        isManuallyReviewed = true;
-        ecb.AddComponent<T>(entity);
-        return this;
-    }
-    
-    public ItemTransactionBuilder RequiresManualReview<T>(T data) where T : unmanaged, ITransactionReviewData
-    {
-        if(!isManuallyReviewed)
-            ecb.AddComponent<RequiresManualReview>(entity);
-        isManuallyReviewed = true;
-        ecb.AddComponent(entity, data);
-        return this;
+        var ecb = bufferSystem.CreateCommandBuffer();
+        Entities.ForEach((Entity e, in RegisterWithInventory rwi) =>
+        {
+            var inventory = GetBuffer<Inventory>(rwi.Inventory);
+            var slot = inventory[rwi.Slot]; 
+            slot.Item = e;
+            inventory[rwi.Slot] = slot;
+            
+            ecb.RemoveComponent<RegisterWithInventory>(e);
+            
+            var change = ecb.CreateEntity();
+            ecb.AddComponent(change, new InventoryUISystem.InventoryChanged());
+        }).Run();
     }
 }
 
-public interface ITransactionReviewData : IComponentData { }
-public struct RequiresManualReview : IComponentData { }
-
-public struct Completed : IComponentData
+// Workaround for not getting the correct entity when using an ECB
+public struct RegisterWithInventory : IComponentData
 {
-    public bool Success;
-}
-
-public struct ModifyItem : IBufferElementData
-{
-    public uint Quantity;
-    public uint QuantityFilled;
-    public ulong ItemId;
-
-    public uint QuantityLeft => Quantity - QuantityFilled;
+    public Entity Inventory;
+    public int Slot;
 }
 
 public partial class InventoryManagementSystem : SystemBase
@@ -75,15 +46,8 @@ public partial class InventoryManagementSystem : SystemBase
         public Entity TargetInventory;
         public TransactionType Type;
     }
-    
-    // Workaround for not getting the correct entity when using an ECB
-    private struct RegisterWithInventory : IComponentData
-    {
-        public Entity Inventory;
-        public int Slot;
-    }
-    
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
+
+    private EntityCommandBufferSystem bufferSystem;
 
     protected override void OnCreate()
     {
@@ -96,21 +60,12 @@ public partial class InventoryManagementSystem : SystemBase
     {
         var ecb = bufferSystem.CreateCommandBuffer();
         var prefabMap = IdentifiableMappingSystem.EntitiesById;
-        
-        Entities.ForEach((Entity e, in RegisterWithInventory rwi) =>
-        {
-            var inventory = GetBuffer<Inventory>(rwi.Inventory);
-            var slot = inventory[rwi.Slot]; 
-            slot.Item = e;
-            inventory[rwi.Slot] = slot;
-            
-            ecb.RemoveComponent<RegisterWithInventory>(e);
-        }).Run();
 
         var inventoryBuffer = GetBufferFromEntity<Inventory>(false);
         var addedTransactionsThisFrame = new NativeList<Entity>(Allocator.TempJob);
         var stackables = GetComponentDataFromEntity<Stackable>(false);
         var identifiables = GetComponentDataFromEntity<Identifieable>(true);
+        
         Entities
             .WithReadOnly(identifiables)
             .WithDisposeOnCompletion(addedTransactionsThisFrame)
@@ -166,12 +121,11 @@ public partial class InventoryManagementSystem : SystemBase
             
             if(!success)
                 Debug.LogError($"Item Transaction '{transaction.Type}' on {transaction.TargetInventory} failed");
-        }).Schedule();
-
-        Job.WithCode(() =>
-        {
-            var change = ecb.CreateEntity();
-            ecb.AddComponent(change, new InventoryUISystem.InventoryChanged());
+            else
+            {
+                var change = ecb.CreateEntity();
+                ecb.AddComponent(change, new InventoryUISystem.InventoryChanged());
+            }
         }).Schedule();
 
         bufferSystem.AddJobHandleForProducer(Dependency);
