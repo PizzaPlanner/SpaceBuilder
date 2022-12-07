@@ -17,15 +17,9 @@ public struct Stackable : IComponentData
 [UpdateBefore(typeof(InventoryManagementSystem))]
 public partial class PickupItemSystem : SystemBase
 {
-    private EntityCommandBufferSystem bufferSystem;
-    protected override void OnCreate()
-    {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-    }
-
     protected override void OnUpdate()
     {
-        // var inventories = GetBufferFromEntity<Inventory>(false);
+        // var inventories = GetBufferLookup<Inventory>(false);
         // var buffer = bufferSystem.CreateCommandBuffer();
         // Entities
         //     .WithAll<PhysicsWorldIndex>()

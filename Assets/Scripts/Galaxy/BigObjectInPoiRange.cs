@@ -1,3 +1,4 @@
+using Galaxy;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
@@ -12,19 +13,16 @@ public partial class MarkObjectsInRangeSystem : SystemBase
 
     public const double IN_RANGE_SQ = IN_RANGE * IN_RANGE;
 
-    private EntityCommandBufferSystem bufferSystem;
-
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<LocalPlayer>();
-        bufferSystem = World.GetExistingSystem<BeginInitializationEntityCommandBufferSystem>();
+        RequireForUpdate<LocalPlayer>();
     }
 
     protected override void OnUpdate()
     {
         var playerLtg = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
 
-        var buffer = bufferSystem.CreateCommandBuffer();
+        var buffer = GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
 
         Entities
             .WithAny<Planet, Star, Nebula>()
@@ -34,6 +32,5 @@ public partial class MarkObjectsInRangeSystem : SystemBase
                 if(math.lengthsq(LocalToGalaxy.RelativePosition(ltg, playerLtg)) < IN_RANGE_SQ)
                     buffer.AddComponent<BigObjectInPoiRange>(e);
             }).Schedule();
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

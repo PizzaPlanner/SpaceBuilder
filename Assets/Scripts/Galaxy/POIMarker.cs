@@ -87,7 +87,7 @@ public partial class POIMarkerSystem : SystemBase
     protected override void OnStartRunning()
     {
         uiRoot ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("POIMarkers");
-        RequireSingletonForUpdate<LocalPlayer>();
+        RequireForUpdate<LocalPlayer>();
     }
 
     protected override void OnUpdate()

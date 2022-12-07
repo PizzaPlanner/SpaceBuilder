@@ -5,10 +5,15 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-public struct CloseGrids : IBufferElementData
+public struct CloseGrids : IBufferElementData, IComparable<CloseGrids>
 {
     public Entity Grid;
     public float Distance;
+
+    public int CompareTo(CloseGrids other)
+    {
+        return Distance.CompareTo(other.Distance);
+    }
 }
 
 public partial class CalculateCloseGridsSystem : SystemBase
@@ -20,14 +25,14 @@ public partial class CalculateCloseGridsSystem : SystemBase
 
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<LocalPlayer>();
+        RequireForUpdate<LocalPlayer>();
     }
 
     protected override void OnUpdate()
     {
-        if (Time.ElapsedTime - lastUpdate < UpdateFrequency)
+        if (World.Time.ElapsedTime - lastUpdate < UpdateFrequency)
             return;
-        lastUpdate = Time.ElapsedTime;
+        lastUpdate = World.Time.ElapsedTime;
 
         var localPlayer = GetSingletonEntity<LocalPlayer>();
         var playerLtg = GetComponent<LocalToGalaxy>(localPlayer);
@@ -35,18 +40,19 @@ public partial class CalculateCloseGridsSystem : SystemBase
 
         gridBuffer.Clear();
 
-        var query = GetEntityQuery(typeof(LocalToGalaxy), typeof(Grid));
-        var grids = query.ToEntityArray(Allocator.Temp);
-        var list = new List<CloseGrids>();
-        foreach (var entity in grids)
+        NativeList<CloseGrids> closeGrids = new NativeList<CloseGrids>(Allocator.Temp);
+        Entities.ForEach((Entity e, in Grid grid, in LocalToGalaxy ltg) =>
         {
-            var dist =  math.lengthsq((float3)LocalToGalaxy.RelativePosition(playerLtg, GetComponent<LocalToGalaxy>(entity)));
-            if (dist > MAX_DISTANCE_SQ)
-                continue;
-            list.Add(new CloseGrids {Grid = entity, Distance = dist});
-        }
-        list.Sort((x,y) => x.Distance.CompareTo(y.Distance));
-        foreach(var item in list)
+            var relPos = (float3)LocalToGalaxy.RelativePosition(playerLtg, ltg);
+            var distSq = math.lengthsq(relPos);
+            if (distSq < MAX_DISTANCE_SQ)
+                return;
+
+            closeGrids.Add(new CloseGrids { Distance = distSq, Grid = e });
+        }).Run();
+
+        closeGrids.Sort();
+        foreach(var item in closeGrids)
             gridBuffer.Add(item);
     }
 }

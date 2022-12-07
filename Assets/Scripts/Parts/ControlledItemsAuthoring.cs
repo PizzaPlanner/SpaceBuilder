@@ -11,7 +11,7 @@ public struct ControlledItems : IBufferElementData
 
 public class ControlledItemsAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 {
-    public PhysicsBodyAuthoring[] Doors;
+    public GameObject[] Doors;
     public ElectricityNetworkConnectionAuthoring[] Ports;
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {

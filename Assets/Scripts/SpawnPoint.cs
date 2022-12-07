@@ -1,7 +1,7 @@
 using Unity.Entities;
 using Unity.Transforms;
 
-[GenerateAuthoringComponent]
+
 public struct SpawnPoint : IComponentData
 {
     public Entity Prefab;
@@ -9,12 +9,6 @@ public struct SpawnPoint : IComponentData
 
 public partial class PlayerSpawnSystem : SystemBase
 {
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
-
-    protected override void OnCreate()
-    {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-    }
 
     protected override void OnUpdate()
     {
@@ -23,7 +17,7 @@ public partial class PlayerSpawnSystem : SystemBase
             Enabled = false;
             return;
         }
-        var buffer = bufferSystem.CreateCommandBuffer();
+        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
 
         Entities.ForEach((in SpawnPoint sp, in LocalToWorld ltw, in LocalToGalaxy ltg) =>
         {
@@ -45,6 +39,5 @@ public partial class PlayerSpawnSystem : SystemBase
                 ChangeType = SectorChangeType.Teleport
             });
         }).Schedule();
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

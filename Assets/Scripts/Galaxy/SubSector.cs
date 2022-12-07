@@ -60,18 +60,17 @@ public struct StarSectorPlanetData : IBufferElementData
 
 public partial class SubSectorGeneratorSystem : SystemBase
 {
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
     private EntityArchetype forceLoadArchetype;
 
     protected override void OnCreate()
     {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
         forceLoadArchetype = EntityManager.CreateArchetype(typeof(ForceLoadSector));
     }
 
     protected override void OnUpdate()
     {
-        var buffer = bufferSystem.CreateCommandBuffer().AsParallelWriter();
+        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(World.Unmanaged).AsParallelWriter();
         var forceLoad = forceLoadArchetype;
         Entities
             .WithAll<ToGenerate>()
@@ -153,7 +152,5 @@ public partial class SubSectorGeneratorSystem : SystemBase
 
                 buffer.RemoveComponent<ToGenerate>(nativeThreadIndex, e);
             }).ScheduleParallel();
-
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

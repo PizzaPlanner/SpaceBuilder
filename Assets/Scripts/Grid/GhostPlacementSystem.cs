@@ -6,7 +6,6 @@ using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-[GenerateAuthoringComponent]
 public struct GhostPlacementBuilder : IComponentData
 {
     public Entity TargetGrid;
@@ -35,10 +34,10 @@ public partial class BuildingUISystem : SystemBase
     private GhostPlacementSystem placementSystem;
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<BuilderMode_Blueprint>();
-        RequireSingletonForUpdate<LocalPlayer>();
-        RequireSingletonForUpdate<IdentifiableMappingSystem.Loaded>();
-        placementSystem = World.GetExistingSystem<GhostPlacementSystem>();
+        RequireForUpdate<BuilderMode_Blueprint>();
+        RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<IdentifiableMappingSystem.Loaded>();
+        placementSystem = World.GetExistingSystemManaged<GhostPlacementSystem>();
     }
 
     protected override void OnUpdate()
@@ -56,12 +55,12 @@ public partial class BuildingUISystem : SystemBase
         if (Input.GetKeyDown(KeyCode.T))
         {
             buildMenu.style.display = DisplayStyle.Flex;
-            World.GetExistingSystem<InputSystem>().SetCursor(InputSystem.CursorState.HotMenu);
+            World.GetExistingSystemManaged<InputSystem>().SetCursor(InputSystem.CursorState.HotMenu);
         }
         else if (Input.GetKeyUp(KeyCode.T))
         {
             buildMenu.style.display = DisplayStyle.None;
-            World.GetExistingSystem<InputSystem>().SetCursor(InputSystem.CursorState.Disabled);
+            World.GetExistingSystemManaged<InputSystem>().SetCursor(InputSystem.CursorState.Disabled);
         }
     }
 
@@ -93,7 +92,7 @@ public partial class BuildingUISystem : SystemBase
         constructionBorder.style.display = DisplayStyle.None;
         buildMenu.style.display = DisplayStyle.None;
         if(HasSingleton<InputSystem.ControlHotMenu>())
-            World.GetExistingSystem<InputSystem>().SetCursor(InputSystem.CursorState.Disabled);
+            World.GetExistingSystemManaged<InputSystem>().SetCursor(InputSystem.CursorState.Disabled);
     }
 
     void SetSelectedPrefab(ulong prefabId)
@@ -119,9 +118,9 @@ public partial class GhostPlacementSystem : SystemBase
     {
         currentRotation = quaternion.identity;
 
-        RequireSingletonForUpdate<BuilderMode_Blueprint>();
-        RequireSingletonForUpdate<LocalPlayer>();
-        RequireSingletonForUpdate<IdentifiableMappingSystem.Loaded>();
+        RequireForUpdate<BuilderMode_Blueprint>();
+        RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<IdentifiableMappingSystem.Loaded>();
     }
 
     protected override void OnStopRunning()
@@ -165,11 +164,11 @@ public partial class GhostPlacementSystem : SystemBase
             var ppquery = GetEntityQuery(typeof(Ghost), typeof(PendingPart));
             new BuildingSystem.BuildJob
             {
-                buffer = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>().CreateCommandBuffer(),
-                grids = GetComponentDataFromEntity<Grid>(true),
-                gridItems = GetComponentDataFromEntity<GridItem>(true),
-                colliders = GetComponentDataFromEntity<PhysicsCollider>(true),
-                occupations = GetBufferFromEntity<OccupationBuffer>(true),
+                buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged),
+                grids = GetComponentLookup<Grid>(true),
+                gridItems = GetComponentLookup<GridItem>(true),
+                colliders = GetComponentLookup<PhysicsCollider>(true),
+                occupations = GetBufferLookup<OccupationBuffer>(true),
                 prefabMap = IdentifiableMappingSystem.EntitiesById,
                 IsCreateGhostJob = true
             }.Run(ppquery);

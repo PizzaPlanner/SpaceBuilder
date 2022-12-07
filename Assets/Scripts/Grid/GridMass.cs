@@ -2,7 +2,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Physics;
 
-[GenerateAuthoringComponent]
 public struct GridMass : IComponentData
 {
     public float Value;

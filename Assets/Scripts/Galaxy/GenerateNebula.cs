@@ -1,25 +1,25 @@
+using Galaxy;
+using Unity.Collections;
 using Unity.Entities;
 
 public struct GenerateNebula : IComponentData { }
 
 public partial class GenerateNebulaSystem : SystemBase
 {
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
     private Entity prefab;
-
-    protected override void OnCreate()
-    {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-    }
 
     protected override void OnUpdate()
     {
         if (prefab == Entity.Null)
         {
-            prefab = GetEntityQuery(typeof(Prefab), typeof(Nebula)).GetSingletonEntity();
+            if (!GetEntityQuery(new EntityQueryBuilder(Allocator.Temp)
+                                .WithOptions(EntityQueryOptions.IncludePrefab)
+                                .WithAll<Nebula>())
+                    .TryGetSingletonEntity<Nebula>(out prefab))
+                return;
         }
 
-        var ecb = bufferSystem.CreateCommandBuffer();
+        var ecb = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
         var prefabLocal = prefab;
         Entities
             .WithAll<GenerateNebula>()
@@ -30,7 +30,5 @@ public partial class GenerateNebulaSystem : SystemBase
                 ecb.AddComponent<ToGenerate>(star);
                 ecb.RemoveComponent<GenerateNebula>(e);
             }).Schedule();
-
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

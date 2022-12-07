@@ -58,12 +58,12 @@ public class ModelDisplayWorld : World
         ObjectToEntity = new Dictionary<Entity, Entity>();
         DefaultWorldInitialization.AddSystemsToRootLevelSystemGroups(this,
             DefaultWorldInitialization.GetAllSystems(WorldSystemFilterFlags.Default));
-        foreach(var system in GetExistingSystem<SimulationSystemGroup>().Systems)
+        foreach(var system in GetExistingSystemManaged<SimulationSystemGroup>().Systems)
             if (!(system is TransformSystemGroup) &&
                 !(system is EntityCommandBufferSystem))
             {
-                GetExistingSystem<SimulationSystemGroup>().RemoveSystemFromUpdateList(system);
-                DestroySystem(system);
+                GetExistingSystemManaged<SimulationSystemGroup>().RemoveSystemFromUpdateList(system);
+                DestroySystem(system.SystemHandle);
             }
 
         disabledQuery = EntityManager.CreateEntityQuery(typeof(Disabled));

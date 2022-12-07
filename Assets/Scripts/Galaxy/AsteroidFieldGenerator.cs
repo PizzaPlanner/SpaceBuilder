@@ -18,15 +18,10 @@ public struct GenerateAsteroidField : IComponentData { }
 
 public partial class GenerateAsteroidFieldSystem : SystemBase
 {
-    private EntityCommandBufferSystem bufferSystem;
-    protected override void OnCreate()
-    {
-        bufferSystem = World.GetExistingSystem<BeginSimulationEntityCommandBufferSystem>();
-    }
-
     protected override void OnUpdate()
     {
-        var buffer = bufferSystem.CreateCommandBuffer().AsParallelWriter();
+        var buffer = GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
+                     .CreateCommandBuffer(World.Unmanaged).AsParallelWriter();
         Entities
             .WithAll<GenerateAsteroidField>()
             .WithNone<UnloadCandidate>()
@@ -75,25 +70,21 @@ public partial class GenerateAsteroidFieldSystem : SystemBase
                 if(data.Spawned >= data.AsteroidCount)
                     buffer.RemoveComponent<ToGenerate>(nativeThreadIndex, e);
             }).ScheduleParallel();
-
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }
 
 [UpdateInGroup(typeof(UpdatePresentationSystemGroup))]
 public partial class AsteroidRelativeToPlayerSystem : SystemBase
 {
-    private EntityCommandBufferSystem bufferSystem;
-
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<CameraAnchor>();
-        bufferSystem = World.GetExistingSystem<BeginInitializationEntityCommandBufferSystem>();
+        RequireForUpdate<CameraAnchor>();
     }
 
     protected override void OnUpdate()
     {
-        var ecb = bufferSystem.CreateCommandBuffer().AsParallelWriter();
+        var ecb = GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(World.Unmanaged).AsParallelWriter();
 
         var farClipPlane = Camera.main.farClipPlane;
         var camPosition = (float3)Camera.main.transform.position;
@@ -110,7 +101,5 @@ public partial class AsteroidRelativeToPlayerSystem : SystemBase
                     ecb.RemoveComponent<DisableRendering>(nativeThreadIndex, e);
                 ltw.Value = float4x4.TRS(tNew, ltw.Rotation, newScale);
             }).ScheduleParallel();
-
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

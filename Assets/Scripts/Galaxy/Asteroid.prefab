@@ -9,10 +9,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 789223630047444486}
-  - component: {fileID: 6592597822776705296}
-  - component: {fileID: -4834600832407514204}
+  - component: {fileID: 9108855643648032503}
+  - component: {fileID: 2040095307444353691}
   - component: {fileID: 6848245566054861221}
   - component: {fileID: 2508659678270511522}
+  - component: {fileID: 8543901604990801187}
   m_Layer: 0
   m_Name: Asteroid
   m_TagString: Untagged
@@ -35,7 +36,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6592597822776705296
+--- !u!114 &9108855643648032503
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -44,20 +45,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 789223630047444733}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7640cec2920e422981dfce69fe5a3f21, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Seed: 0
---- !u!114 &-4834600832407514204
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 789223630047444733}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2d326895bb1045bdbc669d3caa9aa44c, type: 3}
+  m_Script: {fileID: 11500000, guid: 837e146cd4a5498b95c507bdc2524a4c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Sector:
@@ -72,6 +60,18 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
+--- !u!114 &2040095307444353691
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 789223630047444733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d4c29c6b4db4014bfe40565ee23a76e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!33 &6848245566054861221
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -122,3 +122,15 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &8543901604990801187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 789223630047444733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a4bc5a70e1b401e95ace4099fbd1d82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

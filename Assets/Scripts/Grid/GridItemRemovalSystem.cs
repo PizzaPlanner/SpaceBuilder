@@ -26,8 +26,6 @@ public partial class GridItemRemovalSystem : SystemBase
         public Material PreviousMat;
         public Entity ParentGridItem;
     }
-
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
     private GhostPlacementSettings settings;
 
     private NativeList<Entity> modifiedEntities;
@@ -36,8 +34,7 @@ public partial class GridItemRemovalSystem : SystemBase
 
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<BuilderMode_Destroy>();
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
+        RequireForUpdate<BuilderMode_Destroy>();
         settings = Resources.Load<GhostPlacementSettings>("GhostPlacementSettings");
         modifiedEntities = new NativeList<Entity>(Allocator.Persistent);
     }
@@ -59,15 +56,14 @@ public partial class GridItemRemovalSystem : SystemBase
 
     protected override void OnStopRunning()
     {
-        var buffer = bufferSystem.CreateCommandBuffer();
+        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
         Entities.ForEach((Entity e, RenderMesh mesh, in ModifiedRenderMesh mrm) =>
         {
             var m2 = mesh;
             m2.material = mrm.PreviousMat;
-            buffer.SetSharedComponent(e, m2);
+            buffer.SetSharedComponentManaged(e, m2);
             buffer.RemoveComponent<ModifiedRenderMesh>(e);
         }).WithoutBurst().Run();
-        bufferSystem.AddJobHandleForProducer(Dependency);
         modifiedEntities.Clear();
         // if(GhostBuilder.Wireframe)
         //     GhostBuilder.Wireframe.gameObject.SetActive(false);
@@ -84,9 +80,9 @@ public partial class GridItemRemovalSystem : SystemBase
         // wireframe.rotation = gridLtw.Rotation;
         // wireframe.transform.position = GetComponent<LocalToWorld>(GetSingletonEntity<LocalPlayer>()).Position;
 
-        var buffer = bufferSystem.CreateCommandBuffer();
-        var childBuffer = GetBufferFromEntity<Child>();
-        var cpt = GetComponentDataFromEntity<TargetForRemoval>();
+        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
+        var childBuffer = GetBufferLookup<Child>();
+        var cpt = GetComponentLookup<TargetForRemoval>();
         Entities.ForEach((Entity e, RenderMesh mesh, in ModifiedRenderMesh mrm) =>
         {
             if (cpt.HasComponent(mrm.ParentGridItem))
@@ -94,7 +90,7 @@ public partial class GridItemRemovalSystem : SystemBase
 
             var m2 = mesh;
             m2.material = mrm.PreviousMat;
-            buffer.SetSharedComponent(e, m2);
+            buffer.SetSharedComponentManaged(e, m2);
             buffer.RemoveComponent<ModifiedRenderMesh>(e);
 
             var modIdx = modifiedEntities.IndexOf(mrm.ParentGridItem);
@@ -114,10 +110,10 @@ public partial class GridItemRemovalSystem : SystemBase
                 if (EntityManager.HasComponent<RenderMesh>(child))
                 {
                     hasChildrenWithRM = true;
-                    var rm = EntityManager.GetSharedComponentData<RenderMesh>(child);
+                    var rm = EntityManager.GetSharedComponentManaged<RenderMesh>(child);
                     buffer.AddComponent(child, new ModifiedRenderMesh{ParentGridItem = e, PreviousMat = rm.material});
                     rm.material = settings.GhostRemovalMaterial;
-                    buffer.SetSharedComponent(child, rm);
+                    buffer.SetSharedComponentManaged(child, rm);
                 }
 
             if (hasChildrenWithRM)
@@ -126,7 +122,6 @@ public partial class GridItemRemovalSystem : SystemBase
             }
 
         }).WithoutBurst().Run();
-        bufferSystem.AddJobHandleForProducer(Dependency);
 
         if (Input.GetMouseButtonDown(0))
         {
@@ -141,8 +136,8 @@ public partial class GridItemTargetAssignmentSystem : SystemBase
 {
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<LocalPlayer>();
-        RequireSingletonForUpdate<CameraAnchor>();
+        RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<CameraAnchor>();
     }
 
     protected override void OnStopRunning()
@@ -171,21 +166,13 @@ public partial class GridItemTargetAssignmentSystem : SystemBase
 
 public partial class GridItemTargetCleanupSystem : SystemBase
 {
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
-
-    protected override void OnCreate()
-    {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-    }
-
     protected override void OnUpdate()
     {
-        var buffer = bufferSystem.CreateCommandBuffer();
+        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
         Entities.ForEach((Entity e, in TargetForRemoval cpt) =>
         {
             if(cpt.ToRemove)
                 buffer.RemoveComponent<TargetForRemoval>(e);
         }).Schedule();
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

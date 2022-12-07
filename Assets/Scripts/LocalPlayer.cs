@@ -3,7 +3,6 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine.LowLevel;
 
-[GenerateAuthoringComponent]
 public struct LocalPlayer : IComponentData { }
 
 public struct ReferenceFrameOrigin : IComponentData { }
@@ -22,8 +21,8 @@ public partial class EarlyReferenceFrameSystem : SystemBase
 {
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<ReferenceFrame>();
-        RequireSingletonForUpdate<LocalPlayer>();
+        RequireForUpdate<ReferenceFrame>();
+        RequireForUpdate<LocalPlayer>();
 
         EntityManager.CreateEntity(typeof(ReferenceFrame));
         
@@ -51,8 +50,8 @@ public partial class LateReferenceFrameSystem : SystemBase
 {
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<ReferenceFrame>();
-        RequireSingletonForUpdate<LocalPlayer>();
+        RequireForUpdate<ReferenceFrame>();
+        RequireForUpdate<LocalPlayer>();
     }
 
     protected override void OnUpdate()

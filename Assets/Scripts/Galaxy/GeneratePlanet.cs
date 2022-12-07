@@ -12,27 +12,25 @@ public struct GeneratePlanet : IComponentData { }
 
 public partial class GeneratePlanetSystem : SystemBase
 {
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
     private Entity prefab;
     private Planet defaultPlanetData;
 
     public const float PLANET_SIZE_BASE = 30_000;
     public const float PLANET_MAX_SIZE_FACTOR = 9f;
 
-    protected override void OnCreate()
-    {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-    }
-
     protected override void OnUpdate()
     {
         if (prefab == Entity.Null)
         {
-            prefab = GetEntityQuery(typeof(Prefab), typeof(Planet)).GetSingletonEntity();
+            if (!GetEntityQuery(new EntityQueryBuilder(Allocator.Temp)
+                                .WithOptions(EntityQueryOptions.IncludePrefab)
+                                .WithAll<Planet>())
+                    .TryGetSingletonEntity<Planet>(out prefab))
+                return;
             defaultPlanetData = GetComponent<Planet>(prefab);
         }
 
-        var buffer = bufferSystem.CreateCommandBuffer();
+        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
         var prefabPlanetData = defaultPlanetData;
         var prefabLocal = prefab;
         Entities
@@ -66,7 +64,5 @@ public partial class GeneratePlanetSystem : SystemBase
                 buffer.SetComponent(planet, new Name{Value = $"{GalaxyTools.GetStarName(GalaxyTools.GetSectorSeed(ltg.Sector))} {GalaxyTools.ToRomanNumeral(planetRank)}"});
                 buffer.RemoveComponent<GeneratePlanet>(e);
             }).Schedule();
-
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

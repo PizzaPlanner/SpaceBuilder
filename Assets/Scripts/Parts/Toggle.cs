@@ -1,6 +1,5 @@
 using Unity.Entities;
 using Unity.Physics;
-using UnityEngine;
 
 public enum ToggleType
 {
@@ -15,7 +14,6 @@ public enum ToggleType
     ThrusterRight,
 }
 
-[GenerateAuthoringComponent]
 public struct Toggle : IComponentData
 {
     public bool On;
@@ -25,16 +23,9 @@ public struct Toggle : IComponentData
 
 public partial class ToggleSystem : SystemBase
 {
-    private EntityCommandBufferSystem bufferSystem;
-
-    protected override void OnCreate()
-    {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-    }
-
     protected override void OnUpdate()
     {
-        var buffer = bufferSystem.CreateCommandBuffer();
+        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
         Entities
             .WithAll<Interacted>()
             .ForEach((ref Toggle toggle) =>
@@ -68,7 +59,6 @@ public partial class ToggleSystem : SystemBase
                     }
                 }
             }).Run();
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }
 

@@ -1,10 +1,13 @@
 using Unity.Entities;
 using UnityEngine;
 
-public class ConvertToPrefabAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+public class ConvertToPrefabAuthoring : MonoBehaviour
 {
-    public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+    class Baker  : Baker<ConvertToPrefabAuthoring>
     {
-        dstManager.AddComponent<Prefab>(entity);
+        public override void Bake(ConvertToPrefabAuthoring authoring)
+        {
+            AddComponent<Prefab>();
+        }
     }
 }

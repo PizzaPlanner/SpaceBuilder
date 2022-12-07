@@ -1,6 +1,5 @@
 using Unity.Entities;
 
-[GenerateAuthoringComponent]
 public struct Door : IComponentData
 {
     public bool Open;

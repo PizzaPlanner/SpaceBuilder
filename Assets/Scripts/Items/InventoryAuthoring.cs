@@ -15,7 +15,7 @@ public struct PendingTransaction : IComponentData
 
 public static class InventoryHelper
 {
-    public static bool Contains(this DynamicBuffer<Inventory> buffer, ComponentDataFromEntity<Identifieable> idBuffer, ComponentDataFromEntity<Stackable> stackBuffer, ulong itemId, ushort amount)
+    public static bool Contains(this DynamicBuffer<Inventory> buffer, ComponentLookup<Identifieable> idBuffer, ComponentLookup<Stackable> stackBuffer, ulong itemId, ushort amount)
     {
         ushort has = 0;
         for(int i = 0; i < buffer.Length; i++)
@@ -28,7 +28,7 @@ public static class InventoryHelper
         return has >= amount;
     }
     
-    public static bool TryFindItem(this DynamicBuffer<Inventory> inventory, ComponentDataFromEntity<Identifieable> idBuffer, ulong itemId, out int slot)
+    public static bool TryFindItem(this DynamicBuffer<Inventory> inventory, ComponentLookup<Identifieable> idBuffer, ulong itemId, out int slot)
     {
         slot = -1;
         for(int j = 0; j < inventory.Length; j++)
@@ -68,7 +68,7 @@ public partial class InventoryUISystem : SystemBase
 
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<LocalPlayer>();
+        RequireForUpdate<LocalPlayer>();
     }
 
     protected override void OnStartRunning()
@@ -92,7 +92,7 @@ public partial class InventoryUISystem : SystemBase
         RemoteInventory = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q<InventoryElement>("RemoteBag");
         RemoteInventory.Container = Entity.Null;
         RemoteInventory.Subset = int2.zero;
-        RemoteInventory.OnDragDrop = World.GetExistingSystem<InventoryUISystem>().OnDragDrop;
+        RemoteInventory.OnDragDrop = World.GetExistingSystemManaged<InventoryUISystem>().OnDragDrop;
         RemoteInventory.style.display = DisplayStyle.None;
 
         CraftWindow = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q<CraftingWindow>("Crafting");
@@ -135,7 +135,7 @@ public partial class InventoryUISystem : SystemBase
             {
                 needFullUpdate = true;
             }
-            World.GetExistingSystem<InputSystem>().SetCursor(inventoryOpen ? InputSystem.CursorState.Default : InputSystem.CursorState.Disabled);
+            World.GetExistingSystemManaged<InputSystem>().SetCursor(inventoryOpen ? InputSystem.CursorState.Default : InputSystem.CursorState.Disabled);
         }
 
         var player = GetSingletonEntity<LocalPlayer>();
@@ -165,17 +165,17 @@ public partial class InventoryUISystem : SystemBase
 
         if (needFullUpdate)
         {
-            var inventories = GetBufferFromEntity<Inventory>(true);
-            var names = GetComponentDataFromEntity<Name>(true);
-            var stacks = GetComponentDataFromEntity<Stackable>(true);
-            var ids = GetComponentDataFromEntity<Identifieable>(true);
+            var inventories = GetBufferLookup<Inventory>(true);
+            var names = GetComponentLookup<Name>(true);
+            var stacks = GetComponentLookup<Stackable>(true);
+            var ids = GetComponentLookup<Identifieable>(true);
             GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Query<InventoryElement>()
                          .ForEach(c => c.Update(inventories, ids, names, stacks));
             EntityManager.DestroyEntity(GetEntityQuery(typeof(InventoryChanged)));
             EntityManager.RemoveComponent<SelectedItem>(GetEntityQuery(typeof(SelectedItem)));
             CraftWindow.UpdateRecipes(EntityManager,
-                GetComponentDataFromEntity<Identifieable>(true),
-                GetComponentDataFromEntity<Stackable>(true));
+                GetComponentLookup<Identifieable>(true),
+                GetComponentLookup<Stackable>(true));
         }
 
         if (CraftWindow.style.display == DisplayStyle.Flex)

@@ -1,4 +1,3 @@
-using Rival;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -26,8 +25,8 @@ public partial class DockingSystem : SystemBase
     private VisualElement swapRoot;
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<LocalPlayer>();
-        RequireSingletonForUpdate<ReferenceFrame>();
+        RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<ReferenceFrame>();
     }
 
     protected override void OnStartRunning()
@@ -38,6 +37,9 @@ public partial class DockingSystem : SystemBase
     protected override void OnUpdate()
     {
         var localPlayer = GetSingletonEntity<LocalPlayer>();
+        if (HasComponent<AlignUpVector>(localPlayer))
+            return;
+        
         var grids = GetBuffer<CloseGrids>(localPlayer);
         var isDocked = HasComponent<Docked>(GetSingletonEntity<LocalPlayer>());
 
@@ -76,12 +78,12 @@ public partial class DockingSystem : SystemBase
     {
         swapRoot.Q(newParent != Entity.Null ? "System" : "Station", "dockingbutton").RemoveFromClassList("dockingbutton-on");
         swapRoot.Q(newParent == Entity.Null ? "System" : "Station", "dockingbutton").AddToClassList("dockingbutton-on");
-        if (HasComponent<KinematicCharacterBody>(entity))
-        {
-            var body = GetComponent<KinematicCharacterBody>(entity);
-            body.ParentEntity = newParent;
-            SetComponent(entity, body);
-        }
+        // if (HasComponent<KinematicCharacterBody>(entity))
+        // {
+        //     var body = GetComponent<KinematicCharacterBody>(entity);
+        //     body.ParentEntity = newParent;
+        //     SetComponent(entity, body);
+        // }
 
         if (newParent != Entity.Null && HasComponent<Grid>(newParent))
         {
@@ -100,35 +102,26 @@ public partial class DockingSystem : SystemBase
             if (!HasComponent<Docked>(entity))
             {
                 EntityManager.AddComponentData(entity, docked);
-                // EntityManager.AddComponentData(entity, new Parent { Value = newParent });
-                // EntityManager.AddComponentData(entity, new LocalToParent());
             }
             else
             {
                 EntityManager.SetComponentData(entity, docked);
-                // EntityManager.SetComponentData(entity, new Parent { Value = newParent });
-                // EntityManager.SetComponentData(entity, new LocalToParent());
             }
             
-            // if (!HasComponent<AlignUpVector>(entity))
-            //     EntityManager.AddComponent<AlignUpVector>(entity);
+            if (!HasComponent<AlignUpVector>(entity))
+                EntityManager.AddComponent<AlignUpVector>(entity);
         }
         else
         {
-            if (HasComponent<Docked>(entity))
-            {
-                var docked = GetComponent<Docked>(entity);
-                var oldParent = docked.Target;
-                var parentLtg = GetComponent<LocalToGalaxy>(oldParent);
-                var parentRotation = GetComponent<LocalToWorld>(oldParent).Rotation;
-                SetComponent(entity, LocalToGalaxy.OffsetBy(parentLtg, math.mul(parentRotation, docked.Position)));
+            if (!HasComponent<Docked>(entity)) return;
+            
+            var docked = GetComponent<Docked>(entity);
+            var oldParent = docked.Target;
+            var parentLtg = GetComponent<LocalToGalaxy>(oldParent);
+            var parentRotation = GetComponent<LocalToWorld>(oldParent).Rotation;
+            SetComponent(entity, LocalToGalaxy.OffsetBy(parentLtg, math.mul(parentRotation, docked.Position)));
                 
-                EntityManager.RemoveComponent<Docked>(entity);
-                // EntityManager.RemoveComponent<Parent>(entity);
-                // EntityManager.RemoveComponent<LocalToParent>(entity);
-            }
-            if(HasComponent<AlignUpVector>(entity))
-                EntityManager.RemoveComponent<AlignUpVector>(entity);
+            EntityManager.RemoveComponent<Docked>(entity);
         }
     }
 }
@@ -136,26 +129,18 @@ public partial class DockingSystem : SystemBase
 [UpdateBefore(typeof(MovePlayerSystem))]
 public partial class RotateTowardsDockedLtwSystem : SystemBase
 {
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
-
-    protected override void OnCreate()
-    {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-    }
-
     protected override void OnUpdate()
     {
-        var buffer = bufferSystem.CreateCommandBuffer();
-        var deltaTime = Time.DeltaTime;
+        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
+        var deltaTime = World.Time.DeltaTime;
         Entities
             .ForEach((Entity e, ref AlignUpVector up, ref Docked docked) =>
             {
-                var otherLtw = GetComponent<LocalToWorld>(docked.Target);
-                var myLtw = GetComponent<LocalToWorld>(e);
-                var forward = myLtw.Forward;
-                forward.y = 0;
-                var target = quaternion.LookRotation(forward, math.mul(otherLtw.Rotation, math.up()));
-                docked.Rotation = math.slerp(docked.Rotation, target, up.Progress);
+                var forward = math.forward(docked.Rotation);
+                var current = quaternion.LookRotationSafe(forward, math.up());
+                var targetForward = math.cross(math.cross(math.up(), forward), math.up());
+                var target = quaternion.LookRotationSafe(targetForward, math.up());
+                docked.Rotation = math.slerp(current, target, up.Progress);
                 up.Progress += deltaTime;
                 if(up.Progress >= 1)
                 {
@@ -163,6 +148,5 @@ public partial class RotateTowardsDockedLtwSystem : SystemBase
                     buffer.RemoveComponent<AlignUpVector>(e);
                 }
             }).Schedule();
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

@@ -12,7 +12,7 @@ public class InventoryElement : VisualElement
     public Action<InventoryButton, InventoryButton> OnDragDrop;
     public int2 Subset;
 
-    public void Update(BufferFromEntity<Inventory> inventories, ComponentDataFromEntity<Identifieable> ids, ComponentDataFromEntity<Name> names, ComponentDataFromEntity<Stackable> stacks)
+    public void Update(BufferLookup<Inventory> inventories, ComponentLookup<Identifieable> ids, ComponentLookup<Name> names, ComponentLookup<Stackable> stacks)
     {
         if (!inventories.HasComponent(Container))
         {

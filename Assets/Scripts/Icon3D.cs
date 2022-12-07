@@ -28,8 +28,8 @@ public class Icon3D : Image
 //     private Entity prefab;
 //     protected override void OnCreate()
 //     {
-//         RequireSingletonForUpdate<IdentifiableMappingSystem.Loaded>();
-//         RequireSingletonForUpdate<LocalPlayer>();
+//         RequireForUpdate<IdentifiableMappingSystem.Loaded>();
+//         RequireForUpdate<LocalPlayer>();
 //     }
 //
 //     protected override void OnStartRunning()

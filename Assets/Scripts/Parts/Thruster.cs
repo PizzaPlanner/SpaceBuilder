@@ -4,7 +4,6 @@ using Unity.Physics;
 using Unity.Physics.Extensions;
 using Unity.Transforms;
 
-[GenerateAuthoringComponent]
 public struct Thruster : IComponentData
 {
     public Entity Port;
@@ -19,15 +18,9 @@ public struct Thruster : IComponentData
 
 public partial class ThrusterSystem : SystemBase
 {
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
-    protected override void OnCreate()
-    {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-    }
-
     protected override void OnUpdate()
     {
-        var buffer = bufferSystem.CreateCommandBuffer();
+        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
         Entities.ForEach((in Thruster thrust, in GridItem grid) =>
         {
             if (!HasComponent<Flyable>(grid.Grid) ||
@@ -49,7 +42,5 @@ public partial class ThrusterSystem : SystemBase
 
             thrust.ForwardThrust = port.NetworkOperational && port.On ? -ltw.Forward * thrust.Strength * thrust.MaxStrength : float3.zero;
         }).Schedule();
-
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

@@ -4,7 +4,6 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
-[GenerateAuthoringComponent]
 public struct Planet : IComponentData
 {
     public Color Color;
@@ -16,7 +15,7 @@ public partial class PlanetRelativeToPlayerSystem : SystemBase
 {
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<CameraAnchor>();
+        RequireForUpdate<CameraAnchor>();
     }
 
     protected override void OnUpdate()

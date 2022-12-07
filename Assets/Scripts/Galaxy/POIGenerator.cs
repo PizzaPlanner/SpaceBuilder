@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Rival;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -20,7 +19,6 @@ public enum SpawnableTag
 
 public partial class POIGenerator : SystemBase
 {
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
     private static NativeParallelHashMap<Entity, SpawnableTag> spawnableTags;
     private static NativeParallelHashMap<FixedString64Bytes, Entity> spawnables;
     private NativeList<Entity> generatablePOIs;
@@ -46,8 +44,6 @@ public partial class POIGenerator : SystemBase
             File.Copy(file, toPath, true);
         }
 #endif
-
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
         spawnables = new(SpawnablePOIs.Length, Allocator.Persistent);
         spawnableTags = new (SpawnablePOIs.Length, Allocator.Persistent);
         foreach (var poiString in SpawnablePOIs)
@@ -97,7 +93,8 @@ public partial class POIGenerator : SystemBase
 
     protected override void OnUpdate()
     {
-        var ecb = bufferSystem.CreateCommandBuffer();
+        var ecb = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(World.Unmanaged);
 
         var keys = generatablePOIs;
         Entities
@@ -116,8 +113,6 @@ public partial class POIGenerator : SystemBase
             }).Schedule();
 
         EntityManager.RemoveComponent<GeneratePOI>(GetEntityQuery(typeof(GeneratePOI)));
-
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 
     public static Entity LoadAsPrefab(string relativePath, EntityManager manager, out SpawnableTag tags)
@@ -135,7 +130,7 @@ public partial class POIGenerator : SystemBase
             return Entity.Null;
 
         var prefab = manager.CreateEntity(typeof(LocalToWorld),
-            typeof(Translation), typeof(Rotation), typeof(TrackedTransform),
+            typeof(Translation), typeof(Rotation),
             typeof(LocalToGalaxy),
             typeof(BuildingPartInfo),
             typeof(OccupationBuffer),

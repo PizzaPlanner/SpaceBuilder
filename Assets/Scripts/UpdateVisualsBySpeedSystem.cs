@@ -13,8 +13,8 @@ public partial class UpdateVisualsBySpeedSystem : SystemBase
 
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<CameraAnchor>();
-        RequireSingletonForUpdate<LocalPlayer>();
+        RequireForUpdate<CameraAnchor>();
+        RequireForUpdate<LocalPlayer>();
     }
 
     protected override void OnStartRunning()
@@ -33,6 +33,6 @@ public partial class UpdateVisualsBySpeedSystem : SystemBase
             targetWeight = intensity * intensity;
         }
         else targetWeight = 0;
-        Volume.weight = math.lerp(Volume.weight, targetWeight, Time.DeltaTime);
+        Volume.weight = math.lerp(Volume.weight, targetWeight,  World.Time.DeltaTime);
     }
 }

@@ -6,17 +6,9 @@ using UnityEngine;
 [UpdateBefore(typeof(InventoryManagementSystem))]
 public partial class UpdateInventoryAddedSystem : SystemBase
 {
-    
-    private EntityCommandBufferSystem bufferSystem;
-
-    protected override void OnCreate()
-    {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-    }
-    
     protected override void OnUpdate()
     {
-        var ecb = bufferSystem.CreateCommandBuffer();
+        var ecb = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
         Entities.ForEach((Entity e, in RegisterWithInventory rwi) =>
         {
             var inventory = GetBuffer<Inventory>(rwi.Inventory);
@@ -47,24 +39,21 @@ public partial class InventoryManagementSystem : SystemBase
         public TransactionType Type;
     }
 
-    private EntityCommandBufferSystem bufferSystem;
-
     protected override void OnCreate()
     {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-        RequireSingletonForUpdate<IdentifiableMappingSystem.Loaded>();
+        RequireForUpdate<IdentifiableMappingSystem.Loaded>();
         RequireForUpdate(GetEntityQuery(typeof(ItemTransaction), typeof(ModifyItem)));
     }
 
     protected override void OnUpdate()
     {
-        var ecb = bufferSystem.CreateCommandBuffer();
+        var ecb = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
         var prefabMap = IdentifiableMappingSystem.EntitiesById;
 
-        var inventoryBuffer = GetBufferFromEntity<Inventory>(false);
+        var inventoryBuffer = GetBufferLookup<Inventory>(false);
         var addedTransactionsThisFrame = new NativeList<Entity>(Allocator.TempJob);
-        var stackables = GetComponentDataFromEntity<Stackable>(false);
-        var identifiables = GetComponentDataFromEntity<Identifieable>(true);
+        var stackables = GetComponentLookup<Stackable>(false);
+        var identifiables = GetComponentLookup<Identifieable>(true);
         
         Entities
             .WithReadOnly(identifiables)
@@ -127,13 +116,11 @@ public partial class InventoryManagementSystem : SystemBase
                 ecb.AddComponent(change, new InventoryUISystem.InventoryChanged());
             }
         }).Schedule();
-
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 
     static bool AddItemToInventory(EntityCommandBuffer ecb, ref ModifyItem operation, 
-        ComponentDataFromEntity<Stackable> stackables, 
-        ComponentDataFromEntity<Identifieable> identifiables, 
+        ComponentLookup<Stackable> stackables, 
+        ComponentLookup<Identifieable> identifiables, 
         DynamicBuffer<Inventory> inventory,
         Entity inventoryEntity,
         Entity itemPrefab)
@@ -178,8 +165,8 @@ public partial class InventoryManagementSystem : SystemBase
     }
 
     static bool RemoveItemFromInventory(EntityCommandBuffer ecb, ref ModifyItem operation,
-        ComponentDataFromEntity<Stackable> stackables,
-        ComponentDataFromEntity<Identifieable> identifiables,
+        ComponentLookup<Stackable> stackables,
+        ComponentLookup<Identifieable> identifiables,
         DynamicBuffer<Inventory> inventory)
     {
         for (int i = 0; i < inventory.Length && operation.QuantityLeft > 0; i++)

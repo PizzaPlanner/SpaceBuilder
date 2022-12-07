@@ -15,7 +15,7 @@ namespace Unity.Physics
             
             var generationParams = ConvexHullGenerationParameters.Default;
             generationParams.BevelRadius = bevelRadius;
-            return ConvexCollider.Create(indices, generationParams, collider.Filter, collider.Material);
+            return ConvexCollider.Create(indices, generationParams, collider.GetCollisionFilter(), collider.Material);
         }
         
         public static BlobAssetReference<Collider> Scaled(this in BoxCollider collider, in float3 scale)
@@ -23,7 +23,7 @@ namespace Unity.Physics
             var geometry = collider.Geometry;
             geometry.Size *= scale;
             geometry.Center *= scale;
-            return BoxCollider.Create(geometry, collider.Filter, collider.Material);
+            return BoxCollider.Create(geometry, collider.GetCollisionFilter(), collider.Material);
         }
     }
 }

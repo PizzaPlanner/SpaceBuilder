@@ -1,7 +1,6 @@
 using Unity.Entities;
 using UnityEngine;
 
-[GenerateAuthoringComponent]
 public struct Interactable : IComponentData { }
 
 public struct Interacted : IComponentData

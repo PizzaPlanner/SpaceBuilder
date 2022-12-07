@@ -1,4 +1,3 @@
-using Rival;
 using Unity.Entities;
 using Unity.Entities.UniversalDelegates;
 using Unity.Mathematics;
@@ -8,7 +7,7 @@ using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-[GenerateAuthoringComponent]
+
 public struct Player : IComponentData
 {
     public float MovementSpeedDefault;
@@ -26,14 +25,12 @@ public unsafe partial class MovePlayerSystem : SystemBase
 
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<LocalPlayer>();
-        RequireSingletonForUpdate<CameraAnchor>();
-        RequireSingletonForUpdate<InputSystem.ControlPlayer>();
-        RequireSingletonForUpdate<ControlScheme.OnFeet>();
+        RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<CameraAnchor>();
+        RequireForUpdate<InputSystem.ControlPlayer>();
+        RequireForUpdate<ControlScheme.OnFeet>();
         RequireForUpdate(GetEntityQuery(typeof(LocalPlayer), typeof(LocalToWorld)));
         RequireForUpdate(GetEntityQuery(typeof(CameraAnchor), typeof(LocalToWorld)));
-
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
     }
 
     protected override void OnUpdate()
@@ -66,7 +63,7 @@ public unsafe partial class MovePlayerSystem : SystemBase
         player.Running = Input.GetKey(KeyCode.LeftShift);
         SetComponent(localPlayer, player);
 
-        var deltaTime = Time.DeltaTime;
+        var deltaTime = World.Time.DeltaTime;
 
         var ecb = bufferSystem.CreateCommandBuffer();
         Entities

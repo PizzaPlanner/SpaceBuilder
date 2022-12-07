@@ -12,8 +12,8 @@ public partial class CalculateBuildingSlotSystem : SystemBase
 {
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<GhostPlacementBuilder>();
-        RequireSingletonForUpdate<CameraAnchor>();
+        RequireForUpdate<GhostPlacementBuilder>();
+        RequireForUpdate<CameraAnchor>();
         targetCell = int.MaxValue;
     }
 
@@ -107,8 +107,8 @@ public partial class BuildingWireframeDisplaySystem : SystemBase
 
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<GhostPlacementBuilder>();
-        RequireSingletonForUpdate<CameraAnchor>();
+        RequireForUpdate<GhostPlacementBuilder>();
+        RequireForUpdate<CameraAnchor>();
         gridRenderers = new List<MeshRenderer>();
         settings = Resources.Load<GhostPlacementSettings>("GhostPlacementSettings");
     }

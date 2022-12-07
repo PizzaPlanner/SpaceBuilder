@@ -1,6 +1,5 @@
 using Unity.Entities;
 
-[GenerateAuthoringComponent]
 public struct LightSource : IComponentData
 {
     public Entity Port;
@@ -10,15 +9,10 @@ public struct LightSource : IComponentData
 
 public partial class LightSourceSystem : SystemBase
 {
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
-    protected override void OnCreate()
-    {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-    }
-
     protected override void OnUpdate()
     {
-        var buffer = bufferSystem.CreateCommandBuffer();
+        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(World.Unmanaged);
         Entities.ForEach((in LightSource light) =>
         {
             var port = GetComponent<ElectricityPort>(light.Port);
@@ -29,6 +23,5 @@ public partial class LightSourceSystem : SystemBase
             else if(!port.NetworkOperational && !HasComponent<Disabled>(light.Light))
                 buffer.AddComponent<Disabled>(light.Light);
         }).Schedule();
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

@@ -13,21 +13,21 @@ public struct UnloadCandidate : IComponentData
 [UpdateInGroup(typeof(LateSimulationSystemGroup), OrderLast = true)]
 public partial class UnloadSectorSystem : SystemBase
 {
-    private EntityCommandBufferSystem bufferSystem;
     private const float KEEP_CANDIDATE_FOR_MAX_SECONDS = 1;
     private LocalToGalaxy lastPlayerLtg;
 
     protected override void OnCreate()
     {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-        RequireSingletonForUpdate<LocalPlayer>();
+        
+        RequireForUpdate<LocalPlayer>();
         lastPlayerLtg = new LocalToGalaxy {Sector = int.MaxValue, SubSector = int.MaxValue};
     }
 
     protected override void OnUpdate()
     {
-        var ecb = bufferSystem.CreateCommandBuffer();
-        var deltaTime = Time.DeltaTime;
+        var ecb = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(World.Unmanaged);
+        var deltaTime = World.Time.DeltaTime;
 
         var localToGalaxyEntities = GetEntityQuery(typeof(LocalToGalaxy)).ToEntityArray(Allocator.Temp);
         var localToGalaxyBuffer = GetEntityQuery(typeof(LocalToGalaxy)).ToComponentDataArray<LocalToGalaxy>(Allocator.Temp);
@@ -134,6 +134,5 @@ public partial class UnloadSectorSystem : SystemBase
             }).Run();
 
         EntityManager.DestroyEntity(toRemoveList);
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

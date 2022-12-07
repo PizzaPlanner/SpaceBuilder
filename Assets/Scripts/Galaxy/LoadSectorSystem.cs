@@ -11,7 +11,6 @@ public struct ForceLoadSector : IComponentData
 
 public partial class LoadSectorSystem : SystemBase
 {
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
     private NativeQueue<LocalToGalaxy> sectorsToLoad;
     private EntityArchetype sectorArchetype;
     private LocalToGalaxy lastPlayerLtg;
@@ -31,7 +30,6 @@ public partial class LoadSectorSystem : SystemBase
 
     protected override void OnCreate()
     {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
         RequireForUpdate(GetEntityQuery(new EntityQueryDesc{Any = new[]
         {
             ComponentType.ReadOnly<SectorChange>(),
@@ -60,9 +58,9 @@ public partial class LoadSectorSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var buffer = bufferSystem.CreateCommandBuffer();
+        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
         var loadedSectorsQuery = GetEntityQuery(new EntityQueryDesc() {
-            Options = EntityQueryOptions.IncludeDisabled,
+            Options = EntityQueryOptions.IncludeDisabledEntities,
             All = new ComponentType[]
             {
                 typeof(SubSector), typeof(LocalToGalaxy)
@@ -114,7 +112,7 @@ public partial class LoadSectorSystem : SystemBase
         lastPlayerLtg = playerLtg;
         if (shouldRecalculateSectors)
         {
-            var css = GetSingleton<CalculateClosestStarSystem.ClosestStarSector>();
+            var css = GetSingleton<Galaxy.CalculateClosestStarSystem.ClosestStarSector>();
             var starsec = GalaxyTools.GetStarSectorData(css.StarLTG.Sector);
             for (byte i = 0; i < starsec.NumberOfPlanets; i++)
             {
@@ -186,7 +184,5 @@ public partial class LoadSectorSystem : SystemBase
             }).Run();
 
         sectorsToLoad = sectorsToLoadLocal;
-
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

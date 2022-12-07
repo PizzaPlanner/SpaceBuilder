@@ -5,17 +5,14 @@ using Unity.Transforms;
 [UpdateInGroup(typeof(GridRecalculationSystemGroup))]
 public partial class RecalculateSteeringControllerSystem : SystemBase
 {
-    private EndInitializationEntityCommandBufferSystem bufferSystem;
-
     protected override void OnCreate()
     {
-        bufferSystem = World.GetExistingSystem<EndInitializationEntityCommandBufferSystem>();
         RequireForUpdate(GetEntityQuery(typeof(GridNeedsUpdate)));
     }
 
     protected override void OnUpdate()
     {
-        var buffer = bufferSystem.CreateCommandBuffer();
+        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
         var query = GetEntityQuery(typeof(Thruster), typeof(GridItem), typeof(Rotation));
         var entities = query.ToEntityArray(Allocator.TempJob);
         var thrusters = query.ToComponentDataArray<Thruster>(Allocator.TempJob);
@@ -53,7 +50,5 @@ public partial class RecalculateSteeringControllerSystem : SystemBase
                     });
                 }
         }).Schedule();
-
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

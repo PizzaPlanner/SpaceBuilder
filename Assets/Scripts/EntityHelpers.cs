@@ -35,10 +35,10 @@ public static class EntityHelpers
         return Entity.Null;
     }
 
-    public static IEnumerable<Entity> GetAllChildren(this BufferFromEntity<Child> buffer, Entity root)
+    public static IEnumerable<Entity> GetAllChildren(this BufferLookup<Child> buffer, Entity root)
     {
         yield return root;
-        if (buffer.HasComponent(root))
+        if (buffer.HasBuffer(root))
             foreach (var child in buffer[root])
             foreach (var item in GetAllChildren(buffer, child.Value))
                 yield return item;
@@ -46,7 +46,7 @@ public static class EntityHelpers
 
     public static Entity FindParentWith<T>(this SystemBase system, Entity root) where T: IComponentData
     {
-        var cdfe = system.GetComponentDataFromEntity<Parent>();
+        var cdfe = system.GetComponentLookup<Parent>();
         while (root != Entity.Null && cdfe.HasComponent(root))
         {
             if (system.EntityManager.HasComponent<T>(root))

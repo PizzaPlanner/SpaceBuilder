@@ -30,7 +30,7 @@ public class CraftingWindow : VisualElement
         }
     }
 
-    public void UpdateRecipes(EntityManager mgr, ComponentDataFromEntity<Identifieable> idBuffer, ComponentDataFromEntity<Stackable> stackBuffer)
+    public void UpdateRecipes(EntityManager mgr, ComponentLookup<Identifieable> idBuffer, ComponentLookup<Stackable> stackBuffer)
     {
         recipes.Query<CraftingRecipeElement>().ForEach(x => x.Update(mgr, idBuffer, stackBuffer));
     }
@@ -108,7 +108,7 @@ public class CraftingRecipeElement : VisualElement
         RegisterCallback<MouseDownEvent>(_ => OnClick?.Invoke());
     }
 
-    public void Update(EntityManager mgr, ComponentDataFromEntity<Identifieable> idBuffer, ComponentDataFromEntity<Stackable> stackBuffer)
+    public void Update(EntityManager mgr, ComponentLookup<Identifieable> idBuffer, ComponentLookup<Stackable> stackBuffer)
     {
         Craftable = true;
         var queue = mgr.GetComponentData<CraftingQueue>(Crafter);

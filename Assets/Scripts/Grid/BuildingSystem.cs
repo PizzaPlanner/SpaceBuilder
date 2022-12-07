@@ -25,8 +25,8 @@ public partial class BuildingSystem : SystemBase
     private EntityQuery query;
     protected override void OnCreate()
     {
-        bufferSystem = World.GetExistingSystem<BeforeReparentingEntitiyCommandBufferSystem>();
-        RequireSingletonForUpdate<IdentifiableMappingSystem.Loaded>();
+        bufferSystem = World.GetExistingSystemManaged<BeforeReparentingEntitiyCommandBufferSystem>();
+        RequireForUpdate<IdentifiableMappingSystem.Loaded>();
         query = GetEntityQuery(typeof(PendingPart), ComponentType.Exclude<Ghost>());
         RequireForUpdate(query);
     }
@@ -35,10 +35,10 @@ public partial class BuildingSystem : SystemBase
     {
         public EntityCommandBuffer buffer;
         [ReadOnly] public NativeParallelHashMap<ulong, Entity> prefabMap;
-        [ReadOnly] public ComponentDataFromEntity<Grid> grids;
-        [ReadOnly] public ComponentDataFromEntity<GridItem> gridItems;
-        [ReadOnly] public ComponentDataFromEntity<PhysicsCollider> colliders;
-        [ReadOnly] public BufferFromEntity<OccupationBuffer> occupations;
+        [ReadOnly] public ComponentLookup<Grid> grids;
+        [ReadOnly] public ComponentLookup<GridItem> gridItems;
+        [ReadOnly] public ComponentLookup<PhysicsCollider> colliders;
+        [ReadOnly] public BufferLookup<OccupationBuffer> occupations;
 
         public bool IsCreateGhostJob;
         public bool IsFinishConstructionJob;
@@ -163,13 +163,13 @@ public partial class BuildingSystem : SystemBase
     protected override void OnUpdate()
     {
         var buffer = bufferSystem.CreateCommandBuffer();
-        Dependency = new BuildJob
+        new BuildJob
         {
             buffer = buffer,
-            grids = GetComponentDataFromEntity<Grid>(true),
-            gridItems = GetComponentDataFromEntity<GridItem>(true),
-            colliders = GetComponentDataFromEntity<PhysicsCollider>(true),
-            occupations = GetBufferFromEntity<OccupationBuffer>(true),
+            grids = GetComponentLookup<Grid>(true),
+            gridItems = GetComponentLookup<GridItem>(true),
+            colliders = GetComponentLookup<PhysicsCollider>(true),
+            occupations = GetBufferLookup<OccupationBuffer>(true),
             prefabMap = IdentifiableMappingSystem.EntitiesById,
             IsCreateGhostJob = false,
             RenderBlueprint = HasSingleton<BuilderMode_Blueprint>() || HasSingleton<BuilderMode_Build>() || HasSingleton<BuilderMode_Destroy>()
@@ -182,16 +182,9 @@ public partial class BuildingSystem : SystemBase
 
 public partial class GeneratedBufferToPartsSystem : SystemBase
 {
-    private EntityCommandBufferSystem bufferSystem;
-
-    protected override void OnCreate()
-    {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-    }
-
     protected override void OnUpdate()
     {
-        var ecb = bufferSystem.CreateCommandBuffer();
+        var ecb = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
         Entities.ForEach((Entity e, in DynamicBuffer<BuildingPartInfo> parts) =>
         {
             for (int i = 0; i < parts.Length; i++)
@@ -202,8 +195,6 @@ public partial class GeneratedBufferToPartsSystem : SystemBase
         }).Schedule();
 
         EntityManager.RemoveComponent<BuildingPartInfo>(GetEntityQuery(typeof(BuildingPartInfo)));
-
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }
 
@@ -257,14 +248,14 @@ public partial class BlueprintedChildrenUpdateSystem : SystemBase
                 if (HasComponent<PhysicsCollider>(entity))
                 {
                     if(EntityManager.HasComponent<PhysicsWorldIndex>(entity))
-                        EntityManager.SetSharedComponentData(entity, new PhysicsWorldIndex {Value = isGhost ? 215u : 2u});
+                        EntityManager.SetSharedComponentManaged(entity, new PhysicsWorldIndex {Value = isGhost ? 215u : 2u});
                     else
-                        EntityManager.AddSharedComponentData(entity, new PhysicsWorldIndex {Value = isGhost ? 215u : 2u});
+                        EntityManager.SetSharedComponentManaged(entity, new PhysicsWorldIndex {Value = isGhost ? 215u : 2u});
                 }
 
                 if (EntityManager.HasComponent<RenderMesh>(entity))
                 {
-                    var renderMesh = EntityManager.GetSharedComponentData<RenderMesh>(entity);
+                    var renderMesh = EntityManager.GetSharedComponentManaged<RenderMesh>(entity);
                     if (isGhost)
                     {
                         renderMesh.material = GetComponent<Ghost>(entity).Buildable
@@ -273,7 +264,7 @@ public partial class BlueprintedChildrenUpdateSystem : SystemBase
                     }
                     else
                         renderMesh.material = settings.GhostBlueprintedMaterial;
-                    EntityManager.SetSharedComponentData(entity, renderMesh);
+                    EntityManager.SetSharedComponentManaged(entity, renderMesh);
                 }
                 ecb.RemoveComponent<NeedsUpdate>(entity);
             }

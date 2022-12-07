@@ -143,11 +143,10 @@ public class AdminConsole : VisualElement
     public new class UxmlFactory : UxmlFactory<AdminConsole, UxmlTraits> { }
 }
 
-[GenerateAuthoringComponent]
-public class ExecuteAdminScript : IComponentData
+public struct ExecuteAdminScript : IComponentData
 {
     [Multiline]
-    public string Script;
+    public FixedString64Bytes Script;
     public Entity Executor;
 }
 
@@ -229,7 +228,7 @@ public struct NoclipConsoleCommand : AdminConsole.IConsoleCommand
     public void Execute(string[] parameters, Entity executor)
     {
         bool on = !(parameters.Length == 1 && ushort.TryParse(parameters[0], out var i) && i == 0);
-        EntityManager.SetSharedComponentData(executor, new PhysicsWorldIndex{Value = on ? 0u : 1u});
+        EntityManager.SetSharedComponentManaged(executor, new PhysicsWorldIndex{Value = on ? 0u : 1u});
     }
 
     public string[] GetHints(int parameter)
@@ -248,7 +247,7 @@ public struct SpawnCommand : AdminConsole.IConsoleCommand
             return;
 
         var path = parameters[0];
-        var ecb = EntityManager.World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>().CreateCommandBuffer();
+        var ecb = EntityManager.World.GetExistingSystemManaged<EndSimulationEntityCommandBufferSystem>().CreateCommandBuffer();
         POIGenerator.QueuePOISpawn(ecb, path, EntityManager.GetComponentData<LocalToGalaxy>(executor), EntityManager.GetComponentData<Rotation>(executor));
     }
 
@@ -261,14 +260,10 @@ public struct SpawnCommand : AdminConsole.IConsoleCommand
 public partial class AdminConsoleSystem : SystemBase
 {
     private VisualElement DebugOverlay;
-
-    private EntityCommandBufferSystem _bufferSystem;
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<LocalPlayer>();
-        RequireSingletonForUpdate<IdentifiableMappingSystem.Loaded>();
-
-        _bufferSystem = World.GetExistingSystem<EndInitializationEntityCommandBufferSystem>();
+        RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<IdentifiableMappingSystem.Loaded>();
     }
 
     private AdminConsole uiRoot;
@@ -290,7 +285,7 @@ public partial class AdminConsoleSystem : SystemBase
 
     EntityCommandBuffer GetCommandBuffer()
     {
-        return _bufferSystem.CreateCommandBuffer();
+        return GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
     }
     
     public ulong GetId(string s)
@@ -368,19 +363,19 @@ public partial class AdminConsoleSystem : SystemBase
             uiRoot.style.display = uiRoot.style.display == DisplayStyle.Flex ? DisplayStyle.None : DisplayStyle.Flex;
             if (uiRoot.style.display == DisplayStyle.Flex)
             {
-                World.GetExistingSystem<InputSystem>().SetCursor(InputSystem.CursorState.Default);
+                World.GetExistingSystemManaged<InputSystem>().SetCursor(InputSystem.CursorState.Default);
                 uiRoot.Q<TextField>().Focus();
             }
             else
             {
-                World.GetExistingSystem<InputSystem>().SetCursor(InputSystem.CursorState.Disabled);
+                World.GetExistingSystemManaged<InputSystem>().SetCursor(InputSystem.CursorState.Disabled);
             }
 
         }
 
         Entities.ForEach((Entity e, ExecuteAdminScript script) =>
         {
-            uiRoot.Execute(script.Script, script.Executor == Entity.Null ? GetSingletonEntity<LocalPlayer>() : script.Executor);
+            uiRoot.Execute(script.Script.Value, script.Executor == Entity.Null ? GetSingletonEntity<LocalPlayer>() : script.Executor);
             EntityManager.DestroyEntity(e);
         }).WithoutBurst().WithStructuralChanges().Run();
     }

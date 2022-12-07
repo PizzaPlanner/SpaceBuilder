@@ -5,7 +5,6 @@ using Unity.Physics.Systems;
 using Unity.Transforms;
 using UnityEngine;
 
-[GenerateAuthoringComponent]
 public struct CameraAnchor : IComponentData
 {
     public float ScrollFactor;
@@ -18,15 +17,15 @@ public struct CameraAnchor : IComponentData
 public partial class CameraControllerSystem : SystemBase
 {
     float3 camDirection;
-
-    BuildPhysicsWorld physicsWorld;
+    
+    PhysicsWorldSingleton physicsWorld;
     CollisionFilter filter;
 
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<CameraAnchor>();
-        RequireSingletonForUpdate<LocalPlayer>();
-        physicsWorld = World.GetExistingSystem<BuildPhysicsWorld>();
+        RequireForUpdate<CameraAnchor>();
+        RequireForUpdate<LocalPlayer>();
+        physicsWorld = GetSingleton<PhysicsWorldSingleton>();
         filter = CollisionFilter.Default;
         filter.CollidesWith = ~(1u << 3);
         filter.BelongsTo = ~0u;

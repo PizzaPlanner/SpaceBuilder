@@ -8,17 +8,11 @@ using UnityEngine;
 [UpdateAfter(typeof(GridRecalculationSystemGroup))]
 public partial class ElectricitySystem : SystemBase
 {
-    private EndInitializationEntityCommandBufferSystem bufferSystem;
-    protected override void OnCreate()
-    {
-        bufferSystem = World.GetExistingSystem<EndInitializationEntityCommandBufferSystem>();
-    }
-
     public struct NetworkPowerStatusChanged : IComponentData { }
 
     protected override void OnUpdate()
     {
-        var ports = GetComponentDataFromEntity<ElectricityPort>(false);
+        var ports = GetComponentLookup<ElectricityPort>(false);
         var query = GetEntityQuery(typeof(ElectricityPort), typeof(GridItem));
         var portEntities = query.ToEntityArray(Allocator.TempJob);
         

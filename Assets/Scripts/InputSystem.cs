@@ -8,16 +8,16 @@ using UnityEngine.UIElements;
 using Cursor = UnityEngine.Cursor;
 using Debug = UnityEngine.Debug;
 
-public struct BuilderMode_Build : ISystemStateComponentData { }
+public struct BuilderMode_Build : ICleanupComponentData { }
 
-public struct BuilderMode_Blueprint : ISystemStateComponentData { }
+public struct BuilderMode_Blueprint : ICleanupComponentData { }
 
-public struct BuilderMode_Destroy : ISystemStateComponentData { }
+public struct BuilderMode_Destroy : ICleanupComponentData { }
 
 public static class ControlScheme
 {
-    public struct OnFeet : ISystemStateComponentData { }
-    public struct SteerShip : ISystemStateComponentData
+    public struct OnFeet : ICleanupComponentData { }
+    public struct SteerShip : ICleanupComponentData
     {
         public Entity Steerer;
     }
@@ -25,7 +25,7 @@ public static class ControlScheme
 
 public partial class InputSystem : SystemBase
 {
-    public struct InputData : ISystemStateComponentData
+    public struct InputData : ICleanupComponentData
     {
         public ActionState CurrentAction;
         public ScrollMode ScrollMode;
@@ -59,8 +59,8 @@ public partial class InputSystem : SystemBase
     private VisualElement uiRoot;
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<LocalPlayer>();
-        RequireSingletonForUpdate<InputData>();
+        RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<InputData>();
         var input = EntityManager.CreateEntity(typeof(InputData));
         EntityManager.AddComponent<ControlScheme.OnFeet>(input);
     }

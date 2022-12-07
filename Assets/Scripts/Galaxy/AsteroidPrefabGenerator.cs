@@ -17,9 +17,9 @@ public class AsteroidPrefabGenerator : MonoBehaviour, IConvertGameObjectToEntity
             var e = dstManager.Instantiate(entity);
             dstManager.AddComponent<Prefab>(e);
             generator.Generate(random.NextInt(15, 100), random.NextFloat3(new float3(2, 2, 2), new float3(8, 8, 8)));
-            var rm = dstManager.GetSharedComponentData<RenderMesh>(e);
+            var rm = dstManager.GetSharedComponentManaged<RenderMesh>(e);
             rm.mesh = generator.Bake(true);
-            dstManager.SetSharedComponentData(e, rm);
+            dstManager.SetSharedComponentManaged(e, rm);
             dstManager.SetComponentData(e, new RenderBounds{Value = new AABB{Center = rm.mesh.bounds.center, Extents = rm.mesh.bounds.extents }});
             dstManager.SetComponentData(e, new AsteroidData{Seed = random.NextUInt()});
         }

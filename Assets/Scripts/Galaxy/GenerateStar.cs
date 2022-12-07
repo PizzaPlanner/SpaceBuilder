@@ -1,3 +1,4 @@
+using Galaxy;
 using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
@@ -11,27 +12,26 @@ public struct GenerateStar : IComponentData { }
 
 public partial class GenerateStarSystem : SystemBase
 {
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
     private Entity prefab;
     private Star defaultStarData;
 
     public const float STAR_SIZE_BASE = 5_000_000;
     public const float STAR_MAX_SIZE_FACTOR = 12;
-
-    protected override void OnCreate()
-    {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-    }
-
+    
     protected override void OnUpdate()
     {
         if (prefab == Entity.Null)
         {
-            prefab = GetEntityQuery(typeof(Prefab), typeof(Star)).GetSingletonEntity();
+            if (!GetEntityQuery(new EntityQueryBuilder(Allocator.Temp)
+                                .WithOptions(EntityQueryOptions.IncludePrefab)
+                                .WithAll<Star>())
+                    .TryGetSingletonEntity<Star>(out prefab))
+                return;
+            
             defaultStarData = GetComponent<Star>(prefab);
         }
 
-        var buffer = bufferSystem.CreateCommandBuffer();
+        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
         var prefabStarData = defaultStarData;
         var prefabLocal = prefab;
         Entities
@@ -55,7 +55,5 @@ public partial class GenerateStarSystem : SystemBase
                 buffer.SetComponent(star, new Name{Value = $"{GalaxyTools.GetStarName(data.Seed)}"});
                 buffer.RemoveComponent<GenerateStar>(e);
             }).Schedule();
-
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

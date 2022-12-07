@@ -7,11 +7,15 @@ public struct Name : IComponentData
     public FixedString32Bytes Value;
 }
 
-public class NameAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+public class NameAuthoring : MonoBehaviour
 {
     public string Name;
-    public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+
+    class NameBaker : Baker<NameAuthoring>
     {
-        dstManager.AddComponentData(entity, new Name{Value = Name});
+        public override void Bake(NameAuthoring authoring)
+        {
+            AddComponent(new Name{Value = authoring.Name});
+        }
     }
 }

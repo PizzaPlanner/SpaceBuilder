@@ -21,23 +21,20 @@ public struct CraftingBuffer : IBufferElementData
 [UpdateAfter(typeof(InventoryManagementSystem))]
 public partial class CraftingSystem : SystemBase
 {
-    private EntityCommandBufferSystem bufferSystem;
-
     protected override void OnCreate()
     {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-        RequireSingletonForUpdate<IdentifiableMappingSystem.Loaded>();
+        RequireForUpdate<IdentifiableMappingSystem.Loaded>();
     }
 
     protected override void OnUpdate()
     {
-        var buffer = bufferSystem.CreateCommandBuffer();
-        var deltaTime = Time.DeltaTime;
-        var cBuffers = GetBufferFromEntity<CraftingCatalyst>(true);
-        var iBuffers = GetBufferFromEntity<CraftingInput>(true);
-        var oBuffers = GetBufferFromEntity<CraftingOutput>(true);
-        var identifiables = GetComponentDataFromEntity<Identifieable>(true);
-        var stackables = GetComponentDataFromEntity<Stackable>(true);
+        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
+        var deltaTime = World.Time.DeltaTime;
+        var cBuffers = GetBufferLookup<CraftingCatalyst>(true);
+        var iBuffers = GetBufferLookup<CraftingInput>(true);
+        var oBuffers = GetBufferLookup<CraftingOutput>(true);
+        var identifiables = GetComponentLookup<Identifieable>(true);
+        var stackables = GetComponentLookup<Stackable>(true);
 
         Entities
             .WithReadOnly(identifiables)
@@ -120,8 +117,6 @@ public partial class CraftingSystem : SystemBase
                 transaction.With(requirement.ItemId, requirement.Amount);
             }
         }).Run();
-
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 
     struct CraftingQueueReview : ITransactionReviewData

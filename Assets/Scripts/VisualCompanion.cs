@@ -2,7 +2,6 @@ using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
 
-[GenerateAuthoringComponent]
 public class VisualCompanionPrefab : IComponentData
 {
     public GameObject Prefab;

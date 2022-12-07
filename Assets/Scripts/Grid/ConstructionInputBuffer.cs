@@ -1,3 +1,4 @@
+using Parts;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
@@ -25,8 +26,8 @@ public partial class ConstructionSystem : SystemBase
 
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<LocalPlayer>();
-        RequireSingletonForUpdate<BuilderMode_Build>();
+        RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<BuilderMode_Build>();
     }
 
     protected override void OnStartRunning()
@@ -74,7 +75,7 @@ public partial class ConstructionSystem : SystemBase
         if (Input.GetKeyDown(KeyCode.F))
         {
             var constructor = GetComponent<Constructor>(GetSingletonEntity<LocalPlayer>());
-            constructor.LastTick = Time.ElapsedTime + constructor.DelayPerBuilding;
+            constructor.LastTick = World.Time.ElapsedTime + constructor.DelayPerBuilding;
             constructor.TimeSpentOnItem = 0;
             SetComponent(GetSingletonEntity<LocalPlayer>(), constructor);
         } else if (Input.GetKeyUp(KeyCode.F))

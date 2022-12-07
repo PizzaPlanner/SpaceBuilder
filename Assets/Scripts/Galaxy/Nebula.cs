@@ -5,7 +5,6 @@ using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.VFX;
 
-[GenerateAuthoringComponent]
 public struct Nebula : IComponentData { }
 
 
@@ -17,7 +16,7 @@ public partial class NebulaRelativeToPlayerSystem : SystemBase
 {
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<CameraAnchor>();
+        RequireForUpdate<CameraAnchor>();
     }
 
     protected override void OnUpdate()

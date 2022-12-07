@@ -4,7 +4,6 @@ using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-[GenerateAuthoringComponent]
 public struct SteeringController : IComponentData
 {
     public float3 SteeringAngle;
@@ -56,8 +55,8 @@ public partial class SteeringToggleSystem : SystemBase
 
     protected override void OnCreate()
     {
-        inputSystem = World.GetExistingSystem<InputSystem>();
-        RequireSingletonForUpdate<LocalPlayer>();
+        inputSystem = World.GetExistingSystemManaged<InputSystem>();
+        RequireForUpdate<LocalPlayer>();
     }
 
     protected override void OnUpdate()
@@ -96,7 +95,7 @@ public partial class SteeringDisplaySystem : SystemBase
 
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<ControlScheme.SteerShip>();
+        RequireForUpdate<ControlScheme.SteerShip>();
     }
 
     protected override void OnStartRunning()

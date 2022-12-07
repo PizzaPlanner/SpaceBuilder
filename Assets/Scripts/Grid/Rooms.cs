@@ -17,12 +17,6 @@ public struct Walls : IBufferElementData
 
 public partial class RoomSystem : SystemBase
 {
-    private EntityCommandBufferSystem _bufferSystem;
-    protected override void OnCreate()
-    {
-        _bufferSystem = World.GetExistingSystem<EndInitializationEntityCommandBufferSystem>();
-    }
-
     protected override void OnUpdate() { }
 
     private static readonly int3[] Neighbours =

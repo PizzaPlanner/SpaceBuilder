@@ -32,10 +32,8 @@ public struct GridNeedsUpdate : IComponentData { }
 [UpdateInGroup(typeof(GridRecalculationSystemGroup), OrderFirst = true)]
 public partial class GridRecalculationSystem : SystemBase
 {
-    private EndInitializationEntityCommandBufferSystem bufferSystem;
     protected override void OnCreate()
     {
-        bufferSystem = World.GetExistingSystem<EndInitializationEntityCommandBufferSystem>();
         RequireForUpdate(GetEntityQuery(typeof(GridNeedsUpdate)));
     }
 
@@ -55,9 +53,9 @@ public partial class GridRecalculationSystem : SystemBase
             grid.BoundsMin = int.MaxValue;
         }).Run();
 
-        var occupationBuffers = GetBufferFromEntity<OccupationBuffer>();
-        var wallBuffers = GetBufferFromEntity<Walls>();
-        var grids = GetComponentDataFromEntity<Grid>();
+        var occupationBuffers = GetBufferLookup<OccupationBuffer>();
+        var wallBuffers = GetBufferLookup<Walls>();
+        var grids = GetComponentLookup<Grid>();
         Entities
             .WithName("CalculateOccupation")
             .ForEach((Entity e, in GridItem item) =>
@@ -129,8 +127,7 @@ public partial class GridRecalculationSystem : SystemBase
                 rooms.Add(new Rooms{Cell = item.Key, Id = item.Value, IsExposedToSpace = exposedRooms.Contains(item.Value)});
         }).Run();
 
-        var buffer = bufferSystem.CreateCommandBuffer();
+        var buffer = GetSingleton<EndInitializationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
         buffer.DestroyEntitiesForEntityQuery(GetEntityQuery(typeof(GridNeedsUpdate)));
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

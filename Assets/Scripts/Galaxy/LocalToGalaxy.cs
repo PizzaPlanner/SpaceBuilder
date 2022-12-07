@@ -4,7 +4,6 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 public struct TravellerInSector : IBufferElementData
 {
@@ -49,7 +48,6 @@ public static class Constants
 //     }
 // }
 
-[GenerateAuthoringComponent]
 public struct LocalToGalaxy : IComponentData
 {
     public int3 Sector;
@@ -189,17 +187,9 @@ public partial class MakeTravellerSystem : SystemBase
 [UpdateBefore(typeof(TRSToLocalToParentSystem))]
 public partial class TRSToLocalToGalaxySystem : SystemBase
 {
-    private EndSimulationEntityCommandBufferSystem bufferSystem;
-
-    protected override void OnCreate()
-    {
-        bufferSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-        RequireSingletonForUpdate<ReferenceFrame>();
-    }
-
     protected override void OnUpdate()
     {
-        var ecb = bufferSystem.CreateCommandBuffer();
+        var ecb = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
 
         Entities
             .WithNone<Parent>()
@@ -235,7 +225,5 @@ public partial class TRSToLocalToGalaxySystem : SystemBase
                 t.Value = (float3)ltgDiff;
                 r.Value = math.mul(relativeRotation, refFrame.CurrentLtw.Rotation);
             }).ScheduleParallel();
-
-        bufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

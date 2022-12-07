@@ -10,7 +10,7 @@ public partial class MapUISystem : SystemBase
     private int maxSubSectorSegments;
     protected override void OnCreate()
     {
-        RequireSingletonForUpdate<LocalPlayer>();
+        RequireForUpdate<LocalPlayer>();
         maxSectorSegments = sizeof(int);
         for (int i = 0; i < sizeof(long) && (Constants.MAX_SUBSECTOR & (0x1FF << (i*9))) > 0; i++)
         {
