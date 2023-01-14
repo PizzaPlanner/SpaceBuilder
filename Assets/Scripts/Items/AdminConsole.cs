@@ -246,9 +246,11 @@ public struct SpawnCommand : AdminConsole.IConsoleCommand
         if (parameters.Length == 0 || executor == Entity.Null || !EntityManager.HasComponent<LocalToGalaxy>(executor))
             return;
 
+        var executorTransform = EntityManager.GetComponentData<WorldTransform>(executor);
+        
         var path = parameters[0];
         var ecb = EntityManager.World.GetExistingSystemManaged<EndSimulationEntityCommandBufferSystem>().CreateCommandBuffer();
-        POIGenerator.QueuePOISpawn(ecb, path, EntityManager.GetComponentData<LocalToGalaxy>(executor), EntityManager.GetComponentData<Rotation>(executor));
+        POIGenerator.QueuePOISpawn(ecb, path, EntityManager.GetComponentData<LocalToGalaxy>(executor), executorTransform);
     }
 
     public string[] GetHints(int parameter)

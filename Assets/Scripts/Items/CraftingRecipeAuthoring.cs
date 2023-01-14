@@ -23,7 +23,7 @@ public struct CraftingCatalyst : IBufferElementData
     public ulong ItemId;
 }
 
-public class CraftingRecipeAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+public class CraftingRecipeAuthoring : MonoBehaviour
 {
     [System.Serializable]
     public struct ItemWithAmount
@@ -38,28 +38,31 @@ public class CraftingRecipeAuthoring : MonoBehaviour, IConvertGameObjectToEntity
     public ItemWithAmount[] Input;
     public ItemWithAmount[] Output;
 
-    public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+    class Baker : Baker<CraftingRecipeAuthoring>
     {
-        dstManager.AddComponentData(entity, new CraftingRecipe {Duration = Duration});
-        var inBuffer = dstManager.AddBuffer<CraftingInput>(entity);
-        foreach (var thing in Input)
+        public override void Bake(CraftingRecipeAuthoring authoring)
         {
-            inBuffer.Add(new CraftingInput
-                {Amount = thing.Amount, ItemId = thing.Prefab.GetComponent<IdentifieableAuthoring>().Id});
-        }
+            AddComponent(new CraftingRecipe {Duration = authoring.Duration});
+            var inBuffer = AddBuffer<CraftingInput>();
+            foreach (var thing in authoring.Input)
+            {
+                inBuffer.Add(new CraftingInput
+                    {Amount = thing.Amount, ItemId = thing.Prefab.GetComponent<IdentifieableAuthoring>().Id});
+            }
 
-        var outBuffer = dstManager.AddBuffer<CraftingOutput>(entity);
-        foreach (var thing in Output)
-        {
-            outBuffer.Add(new CraftingOutput
-                {Amount = thing.Amount, ItemId = thing.Prefab.GetComponent<IdentifieableAuthoring>().Id});
-        }
+            var outBuffer = AddBuffer<CraftingOutput>();
+            foreach (var thing in authoring.Output)
+            {
+                outBuffer.Add(new CraftingOutput
+                    {Amount = thing.Amount, ItemId = thing.Prefab.GetComponent<IdentifieableAuthoring>().Id});
+            }
 
-        var catBuffer = dstManager.AddBuffer<CraftingCatalyst>(entity);
-        foreach (var thing in Catalysts)
-        {
-            catBuffer.Add(new CraftingCatalyst
-                {ItemId = thing.GetComponent<IdentifieableAuthoring>().Id});
+            var catBuffer = AddBuffer<CraftingCatalyst>();
+            foreach (var thing in authoring.Catalysts)
+            {
+                catBuffer.Add(new CraftingCatalyst
+                    {ItemId = thing.GetComponent<IdentifieableAuthoring>().Id});
+            }
         }
     }
 }

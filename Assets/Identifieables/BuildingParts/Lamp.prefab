@@ -265,6 +265,11 @@ PrefabInstance:
       propertyPath: Value
       value: 10
       objectReference: {fileID: 0}
+    - target: {fileID: -3476038305246942473, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: isInteractable
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: -1185016455883590714, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: m_SphereRadius
@@ -415,16 +420,16 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4420211641780734995, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 4530283138779887948}
-    - targetCorrespondingSourceObject: {fileID: 4420211641780734995, guid: e943c85a6f7a7854f92eef9792967afe,
-        type: 3}
-      insertIndex: -1
       addedObject: {fileID: 1188327104866416689}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3364769202363141643, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 5952773260928494470}
+    - targetCorrespondingSourceObject: {fileID: 3364769202363141643, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2100689243053128519}
   m_SourcePrefab: {fileID: 100100000, guid: e943c85a6f7a7854f92eef9792967afe, type: 3}
 --- !u!4 &2505699926471880677 stripped
 Transform:
@@ -451,112 +456,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RequiredPower: 10
---- !u!1001 &7504313623214825909
-PrefabInstance:
+--- !u!114 &2100689243053128519
+MonoBehaviour:
   m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 2505699926471880677}
-    m_Modifications:
-    - target: {fileID: 358625485361647847, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: Ports.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 358625485361647847, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: Ports.Array.data[0]
-      value: 
-      objectReference: {fileID: 2536051122495031093}
-    - target: {fileID: 2448789020281257528, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: Target
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 3887067573439316595, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: m_Name
-      value: OnOffSwitch
-      objectReference: {fileID: 0}
-    - target: {fileID: 6267429550027872505, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: m_RootOrder
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6267429550027872505, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6267429550027872505, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6267429550027872505, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: m_LocalScale.z
-      value: 0.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6267429550027872505, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0.126
-      objectReference: {fileID: 0}
-    - target: {fileID: 6267429550027872505, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.181
-      objectReference: {fileID: 0}
-    - target: {fileID: 6267429550027872505, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0.063
-      objectReference: {fileID: 0}
-    - target: {fileID: 6267429550027872505, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.70710576
-      objectReference: {fileID: 0}
-    - target: {fileID: 6267429550027872505, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0.0000010325963
-      objectReference: {fileID: 0}
-    - target: {fileID: 6267429550027872505, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.7071079
-      objectReference: {fileID: 0}
-    - target: {fileID: 6267429550027872505, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0.0000010325994
-      objectReference: {fileID: 0}
-    - target: {fileID: 6267429550027872505, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6267429550027872505, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 90
-      objectReference: {fileID: 0}
-    - target: {fileID: 6267429550027872505, guid: 7f6517346115547498d16f3a97e6f677,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 7f6517346115547498d16f3a97e6f677, type: 3}
---- !u!4 &4530283138779887948 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6267429550027872505, guid: 7f6517346115547498d16f3a97e6f677,
-    type: 3}
-  m_PrefabInstance: {fileID: 7504313623214825909}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3540876163137187325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8c7d2205bef45659d69535ee61258ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Doors: []
+  Ports:
+  - {fileID: 2536051122495031093}

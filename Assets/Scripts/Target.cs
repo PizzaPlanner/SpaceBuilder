@@ -76,7 +76,7 @@ public partial class PlayerTargetSystem : SystemBase
                 ComponentType.ReadOnly<BuilderMode_Destroy>()
             } }).CalculateChunkCount() > 0)
         {
-            // PhysicsWorldBuilder.BuildPhysicsWorldImmediate(this.CheckedStateRef, ref bpWorld, 0, float3.zero, LastSystemVersion);
+            PhysicsWorldBuilder.BuildPhysicsWorldImmediate(ref CheckedStateRef, ref bpWorld, 0, float3.zero, LastSystemVersion);
 
             // Find Constructable Target
             var input2 = new RaycastInput

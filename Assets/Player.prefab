@@ -132,11 +132,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 577dbe2b22e541f8bf02d52a7ecfb3a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ScrollFactor: 3
-  Offset:
-    x: 2
-    y: 4
-    z: 5
+  ScrollFactor: 1
+  MaxOffset:
+    x: 0.7
+    y: 0.1
+    z: -3
 --- !u!1001 &7780807753724697141
 PrefabInstance:
   m_ObjectHideFlags: 0

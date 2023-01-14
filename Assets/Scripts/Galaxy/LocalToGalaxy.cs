@@ -183,8 +183,7 @@ public partial class MakeTravellerSystem : SystemBase
 }
 
 [UpdateInGroup(typeof(TransformSystemGroup))]
-[UpdateBefore(typeof(TRSToLocalToWorldSystem))]
-[UpdateBefore(typeof(TRSToLocalToParentSystem))]
+[UpdateBefore(typeof(LocalToWorldSystem))]
 public partial class TRSToLocalToGalaxySystem : SystemBase
 {
     protected override void OnUpdate()
@@ -216,14 +215,14 @@ public partial class TRSToLocalToGalaxySystem : SystemBase
             .WithNone<ReferenceFrameOrigin>()
             .WithNone<Parent>()
             .WithNone<Docked>()
-            .ForEach((Entity e, ref Translation t, ref Rotation r, in LocalToGalaxy ltg) =>
+            .ForEach((Entity e, ref WorldTransform transform, in LocalToGalaxy ltg) =>
             {
                 var ltgDiff = LocalToGalaxy.RelativePosition(refFrame.PreviousLtg, ltg);
-                var relativeRotation = math.mul(new quaternion(refFramePrevRotInverse), r.Value);
+                var relativeRotation = math.mul(new quaternion(refFramePrevRotInverse), transform.Rotation);
                 var localTRS = float4x4.TRS((float3)ltgDiff, relativeRotation, 1);
                 
-                t.Value = (float3)ltgDiff;
-                r.Value = math.mul(relativeRotation, refFrame.CurrentLtw.Rotation);
+                transform.Position = (float3)ltgDiff;
+                transform.Rotation = math.mul(relativeRotation, refFrame.CurrentLtw.Rotation);
             }).ScheduleParallel();
     }
 }

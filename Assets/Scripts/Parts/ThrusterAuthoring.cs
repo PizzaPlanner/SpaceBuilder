@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ThrusterAuthoring : MonoBehaviour
 {
-    public Entity Port;
+    public GameObject Port;
     public float RequiredPower;
     public float Strength;
     public float MaxStrength;
@@ -15,7 +15,15 @@ public class ThrusterAuthoring : MonoBehaviour
     {
         public override void Bake(ThrusterAuthoring authoring)
         {
-            throw new System.NotImplementedException();
+            AddComponent(new Thruster
+            {
+                Port = GetEntity(authoring.Port),
+                Strength = authoring.Strength,
+                DefaultDirection = authoring.DefaultDirection,
+                ForwardThrust = authoring.ForwardThrust,
+                MaxStrength = authoring.MaxStrength,
+                RequiredPower = authoring.RequiredPower
+            });
         }
     }
 }

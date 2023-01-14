@@ -90,9 +90,9 @@ public partial class AsteroidRelativeToPlayerSystem : SystemBase
         var camPosition = (float3)Camera.main.transform.position;
         Entities
             .WithAll<AsteroidData, LocalToGalaxy>()
-            .ForEach((Entity e, int nativeThreadIndex, ref LocalToWorld ltw) =>
+            .ForEach((Entity e, int nativeThreadIndex, ref LocalToWorld ltw, in WorldTransform transform) =>
             {
-                var tBefore = ltw.Position - camPosition;
+                var tBefore = transform.Position - camPosition;
                 var newScale = math.min(farClipPlane / math.length(tBefore), 1);
                 var tNew = math.select(math.normalize(tBefore) * farClipPlane + camPosition, tBefore, newScale >= 1);
                 if (newScale < 0.2f && !HasComponent<DisableRendering>(e))

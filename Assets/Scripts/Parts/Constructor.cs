@@ -157,7 +157,8 @@ namespace Parts {
         private void ConstructBlueprint(Entity bp)
         {
             var pp = EntityManager.CreateEntity(typeof(PendingPart), typeof(UnderConstruction));
-            var rotation = GetComponent<Rotation>(bp).Value;
+            var transform =GetComponent<WorldTransform>(bp);
+            var rotation = transform.Rotation; 
             SetComponent(pp, new PendingPart
             {
                 Data = new BuildingPartInfo

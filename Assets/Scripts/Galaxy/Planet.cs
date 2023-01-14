@@ -4,6 +4,7 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
+[WriteGroup(typeof(LocalToWorld))]
 public struct Planet : IComponentData
 {
     public Color Color;
@@ -23,9 +24,9 @@ public partial class PlanetRelativeToPlayerSystem : SystemBase
         var farClipPlane = Camera.main.farClipPlane;
         var camPosition = (float3)Camera.main.transform.position;
         Entities
-            .ForEach((ref LocalToWorld ltw, in Planet planet) =>
+            .ForEach((ref LocalToWorld ltw, in WorldTransform transform, in Planet planet) =>
             {
-                var tBefore = ltw.Position - camPosition;
+                var tBefore = transform.Position - camPosition;
                 var newScale =
                     math.max(planet.Size * (farClipPlane / math.length(tBefore)), 3);
                 var tNew = math.normalize(tBefore) * (farClipPlane * 0.95f - newScale) + camPosition;

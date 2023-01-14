@@ -10,19 +10,24 @@ public struct GridSubItem : IComponentData
 }
 
 [RequireComponent(typeof(IdentifieableAuthoring))]
-public class BuildingSubPart : MonoBehaviour, IConvertGameObjectToEntity
+public class BuildingSubPart : MonoBehaviour
 {
     public int3 Cell;
     private BuildingPart Parent;
 
-    public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+    class Baker : Baker<BuildingSubPart>
     {
-        dstManager.AddComponentData(entity, new GridSubItem
+        public override void Bake(BuildingSubPart authoring)
         {
-            RelativeCell = Cell
-        });
-        dstManager.AddComponentData(entity, new RotationPivot {Value = Grid.CELL_SIZE * 0.5f});
-        dstManager.AddComponent<CompositeRotation>(entity);
+            AddComponent(new GridSubItem
+            {
+                RelativeCell = authoring.Cell
+            });
+
+            // TODO: How ??
+            // AddComponent(new RotationPivot {Value = Grid.CELL_SIZE * 0.5f});
+            // AddComponent<CompositeRotation>(entity);
+        }
     }
 
     void Start()

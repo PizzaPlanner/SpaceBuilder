@@ -5,9 +5,10 @@ using Unity.Transforms;
 using UnityEngine;
 
 namespace Galaxy {
+    [WriteGroup(typeof(LocalToWorld))]
     public struct Star : IComponentData
     {
-        public Color Color;
+        public float ColorTemperature;
         // public Entity LightEntity;
         public float Brightness;
         public float Size;
@@ -77,17 +78,16 @@ namespace Galaxy {
         {
             RequireForUpdate<CameraAnchor>();
         }
-
+    
         protected override void OnUpdate()
         {
             var farClipPlane = Camera.main.farClipPlane;
             var camPosition = (float3)Camera.main.transform.position;
             Entities
-                .ForEach((ref LocalToWorld ltw, in Star star) =>
+                .ForEach((ref LocalToWorld ltw, in WorldTransform transform, in Star star) =>
                 {
-                    var tBefore = ltw.Position - camPosition;
-                    var newScale =
-                        math.max(star.Size * (farClipPlane / math.length(tBefore)), 3);
+                    var tBefore = transform.Position - camPosition;
+                    var newScale = math.max(star.Size * (farClipPlane / math.length(tBefore)), 3);
                     var tNew = math.normalize(tBefore) * (farClipPlane * 0.95f - newScale) + camPosition;
                     ltw.Value = float4x4.TRS(tNew, ltw.Rotation, newScale);
                 }).Schedule();

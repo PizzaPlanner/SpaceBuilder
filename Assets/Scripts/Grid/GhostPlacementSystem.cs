@@ -181,7 +181,7 @@ public partial class GhostPlacementSystem : SystemBase
         if (Input.GetMouseButtonUp(0))
         {
             Entities
-                .ForEach((Entity e, in GridItem item, in Rotation r, in Identifieable id, in Ghost ghost) =>
+                .ForEach((Entity e, in GridItem item, in LocalTransform transform, in Identifieable id, in Ghost ghost) =>
                 {
                     if (!ghost.Buildable || bgp.TargetGrid == Entity.Null)
                         return;
@@ -194,7 +194,7 @@ public partial class GhostPlacementSystem : SystemBase
                             {
                                 Id = id.ItemId,
                                 Area = item.Area,
-                                Orientation = new RightAngleRotation(r.Value),
+                                Orientation = new RightAngleRotation(transform.Rotation),
                                 BuildStatus = 0,
                             },
                             Grid = bgp.TargetGrid
@@ -214,7 +214,7 @@ public partial class GhostPlacementSystem : SystemBase
                                 {
                                     Id = id.ItemId,
                                     Area = new BoundingBox{Origin = new int3(x,y,z)},
-                                    Orientation = new RightAngleRotation(r.Value),
+                                    Orientation = new RightAngleRotation(transform.Rotation),
                                     BuildStatus = 0
                                 },
                                 Grid = bgp.TargetGrid
@@ -239,8 +239,10 @@ public partial class GhostPlacementSystem : SystemBase
             if (Input.GetKey(KeyCode.Alpha3))
                 currentRotation = math.mul(currentRotation, quaternion.RotateZ(math.PI * sign * 0.5f));
 
-            SetComponent(placement, bgp.Original);
-            EntityManager.SetComponentData(GetSingletonEntity<GhostPlacementBuilder>(), new Rotation{Value = currentRotation});
+            SystemAPI.SetComponent(placement, bgp.Original);
+            var builder = SystemAPI.GetSingletonEntity<GhostPlacementBuilder>();
+            var transform = SystemAPI.GetComponent<LocalTransform>(builder);
+            SystemAPI.SetComponent(builder, transform.WithRotation(currentRotation));
         }
     }
 }

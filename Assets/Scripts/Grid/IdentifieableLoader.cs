@@ -2,37 +2,37 @@ using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 
-public class IdentifieableLoader : MonoBehaviour, IDeclareReferencedPrefabs
+[BakingType]
+public class IdentifieableLoader : MonoBehaviour
 {
-#if !UNITY_EDITOR
-    public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs)
+    class Baker : Baker<IdentifieableLoader>
     {
-        Debug.Log("Nothing to see here");
-    }
-#endif
-#if UNITY_EDITOR
-    public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs)
-    {
-        var list = new List<GameObject>();
-        foreach (var guid in UnityEditor.AssetDatabase.FindAssets("*", new[] { "Assets/Identifieables" }))
+        public override void Bake(IdentifieableLoader authoring)
         {
-            var path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-            if (!path.EndsWith(".prefab") || path.Contains("__TEMPLATE__"))
-                continue;
-
-            var obj = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
-            if (UnityEditor.PrefabUtility.IsPartOfPrefabAsset(obj) && obj is GameObject go &&
-                go.TryGetComponent(out IdentifieableAuthoring id))
+            var prefabs = 0;
+            foreach (var guid in UnityEditor.AssetDatabase.FindAssets("*", new[] { "Assets/Identifieables" }))
             {
-                if(id.Id == 0)
-                    Debug.LogError($"{id.gameObject.name} has invalid ID 0!");
-                else
-                    list.Add(id.gameObject);
-            }
-        }
-        Debug.Log($"Created {list.Count} Identifieables");
+                var path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+                if (!path.EndsWith(".prefab") || path.Contains("__TEMPLATE__"))
+                    continue;
 
-        referencedPrefabs.AddRange(list);
+                var obj = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
+                if (UnityEditor.PrefabUtility.IsPartOfPrefabAsset(obj) && obj is GameObject go &&
+                    go.TryGetComponent(out IdentifieableAuthoring id))
+                {
+                    if(id.Id == 0)
+                        Debug.LogError($"{go.name} has invalid ID 0!");
+                    else
+                    {
+                        RegisterPrefabForBaking(go);
+                        GetEntity(go);
+                        prefabs++;
+                    }
+                }
+            }
+            Debug.Log($"Created {prefabs} Identifieables");
+
+            
+        }
     }
-#endif
 }

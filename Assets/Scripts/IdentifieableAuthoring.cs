@@ -8,14 +8,11 @@ public struct Identifieable : IComponentData
     public ulong ItemId;
 }
 
-public class IdentifieableAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+public class IdentifieableAuthoring : MonoBehaviour
 {
     [SerializeField][HideInInspector]ulong ItemId;
     public ulong Id => ItemId;
-    public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-    {
-        dstManager.AddComponentData(entity, new Identifieable {ItemId = ItemId});
-    }
+
 #if UNITY_EDITOR
     private void OnValidate()
     {
@@ -27,4 +24,12 @@ public class IdentifieableAuthoring : MonoBehaviour, IConvertGameObjectToEntity
         ItemId = ulong.Parse(guid.Substring(0,16),System.Globalization.NumberStyles.HexNumber);
     }
 #endif
+
+    class Baker : Baker<IdentifieableAuthoring>
+    {
+        public override void Bake(IdentifieableAuthoring authoring)
+        {
+            AddComponent(new Identifieable {ItemId = authoring.Id});
+        }
+    }
 }

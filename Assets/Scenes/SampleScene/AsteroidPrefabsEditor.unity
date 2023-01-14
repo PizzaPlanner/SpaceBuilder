@@ -203,6 +203,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 3965851168257730633, guid: 80c79d5135cad9e40aa3ecad6c15549e, type: 3}
+    - {fileID: 2656931650533728004, guid: 80c79d5135cad9e40aa3ecad6c15549e, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -351,7 +352,7 @@ PrefabInstance:
     - target: {fileID: 789223630047444733, guid: 7e614e4882f417b45843bd2f83d26347,
         type: 3}
       propertyPath: m_Name
-      value: Asteroid
+      value: Asteroid2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -454,7 +455,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 6114971044890717250, guid: 8cd18bf1b42a8e74988f5f1272c5b7c7, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

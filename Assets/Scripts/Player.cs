@@ -15,13 +15,10 @@ public struct Player : IComponentData
     public bool Running;
 }
 
-[UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
 [UpdateBefore(typeof(TransformSystemGroup))]
 public unsafe partial class MovePlayerSystem : SystemBase
 {
     private const float ROTATION_SENSIVITY = 0.2f;
-
-    private EntityCommandBufferSystem bufferSystem;
 
     protected override void OnCreate()
     {
@@ -65,12 +62,12 @@ public unsafe partial class MovePlayerSystem : SystemBase
 
         var deltaTime = World.Time.DeltaTime;
 
-        var ecb = bufferSystem.CreateCommandBuffer();
+        var ecb = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
         Entities
             .WithNone<Docked>()
-            .ForEach((Entity e, ref Rotation r, ref CanTravelSectors cts, ref LocalToGalaxy ltg, ref Player player) =>
+            .ForEach((Entity e, ref LocalTransform transform, ref CanTravelSectors cts, ref LocalToGalaxy ltg, ref Player player) =>
             {
-                r.Value = math.mul(r.Value, quaternion.EulerXYZ(rotation));
+                transform.Rotation = math.mul(transform.Rotation, quaternion.EulerXYZ(rotation));
                 var totalMovement = (movement * (double3)(player.Running ? player.MovementSpeedRun : player.MovementSpeedDefault) * deltaTime);
                 ltg = LocalToGalaxy.OffsetBy(ltg, totalMovement);
 
@@ -103,8 +100,8 @@ public unsafe partial class MovePlayerSystem : SystemBase
 }
 
 [UpdateInGroup(typeof(TransformSystemGroup))]
-[UpdateAfter(typeof(TRSToLocalToWorldSystem))]
-[UpdateBefore(typeof(LocalToParentSystem))]
+// [UpdateAfter(typeof(TRSToLocalToWorldSystem))]
+// [UpdateBefore(typeof(LocalToParentSystem))]
 public partial class UpdateDockedCharacterPositionRotationSystem : SystemBase
 {
 

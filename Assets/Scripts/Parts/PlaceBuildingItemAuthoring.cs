@@ -1,13 +1,17 @@
 using Unity.Entities;
 using UnityEngine;
 
-public class PlaceBuildingItemAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+public class PlaceBuildingItemAuthoring : MonoBehaviour
 {
     public BuildingPart[] Parts;
-    public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+
+    class Baker : Baker<PlaceBuildingItemAuthoring>
     {
-        var buffer = dstManager.AddBuffer<BuildableBuffer>(entity);
-        foreach (var part in Parts)
-            buffer.Add(new BuildableBuffer{ PrefabId = part.GetComponent<IdentifieableAuthoring>().Id });
+        public override void Bake(PlaceBuildingItemAuthoring authoring)
+        {
+            var buffer = AddBuffer<BuildableBuffer>();
+            foreach (var part in authoring.Parts)
+                buffer.Add(new BuildableBuffer{ PrefabId = part.GetComponent<IdentifieableAuthoring>().Id });
+        }
     }
 }

@@ -6,6 +6,7 @@ using Unity.Physics.Extensions;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.Rendering;
 using BoxCollider = Unity.Physics.BoxCollider;
 using MeshCollider = Unity.Physics.MeshCollider;
 
@@ -46,8 +47,6 @@ public partial class BuildingSystem : SystemBase
 
         public void Execute(Entity e, in PendingPart part)
         {
-            buffer.DestroyEntity(e);
-
             if (!grids.HasComponent(part.Grid))
             {
                 Debug.Log($"Discarded pending part for invalid grid {part.Grid}");
@@ -83,6 +82,9 @@ public partial class BuildingSystem : SystemBase
             // Create Part
             var entity = buffer.Instantiate(prefab);
 
+            var transform = LocalTransform.Identity
+                                          .WithPosition(Grid.PositionFromCell(newGridItem.Area.Origin))
+                                          .WithRotation(part.Data.Orientation);
             switch (originalGridItem.Scalable)
             {
                 // Scalable Ghosts always have NonUniformScale to make checks easier. Performance doesn't matter since there is only one Ghost at once.
@@ -94,7 +96,8 @@ public partial class BuildingSystem : SystemBase
                     if (math.any(newGridItem.Area.Size != 1) && colliders.HasComponent(prefab))
                     {
                         var collider = colliders[prefab].Value;
-                        var scale = newGridItem.Area.ToScale(part.Data.Orientation).Value;
+                        var scale3x3 = newGridItem.Area.ToScale(part.Data.Orientation).Value;
+                        var scale = new float3(scale3x3.c0.x, scale3x3.c1.y, scale3x3.c2.z);
                         switch (collider.Value.Type)
                         {
                             case ColliderType.Convex:
@@ -108,8 +111,10 @@ public partial class BuildingSystem : SystemBase
                                 break;
                         }
                     }
-                    if(part.Data.Area.Size.x == part.Data.Area.Size.y && part.Data.Area.Size.x == part.Data.Area.Size.z)
-                        buffer.AddComponent(entity, new Scale{Value = part.Data.Area.Size.x});
+
+                    if (part.Data.Area.Size.x == part.Data.Area.Size.y &&
+                        part.Data.Area.Size.x == part.Data.Area.Size.z)
+                        transform.Scale = part.Data.Area.Size.x;
                     else
                         buffer.AddComponent(entity, newGridItem.Area.ToScale(part.Data.Orientation));
                     break;
@@ -117,8 +122,7 @@ public partial class BuildingSystem : SystemBase
             }
 
             buffer.SetComponent(entity, new Parent {Value = part.Grid});
-            buffer.SetComponent(entity, new Rotation {Value = part.Data.Orientation});
-            buffer.SetComponent(entity, new Translation {Value = Grid.PositionFromCell(newGridItem.Area.Origin)});
+            buffer.SetComponent(entity, transform);
             buffer.SetComponent(entity, newGridItem);
 
             if (part.Data.Color != default)
@@ -162,7 +166,7 @@ public partial class BuildingSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var buffer = bufferSystem.CreateCommandBuffer();
+        var buffer = new EntityCommandBuffer(Allocator.TempJob);
         new BuildJob
         {
             buffer = buffer,
@@ -173,9 +177,10 @@ public partial class BuildingSystem : SystemBase
             prefabMap = IdentifiableMappingSystem.EntitiesById,
             IsCreateGhostJob = false,
             RenderBlueprint = HasSingleton<BuilderMode_Blueprint>() || HasSingleton<BuilderMode_Build>() || HasSingleton<BuilderMode_Destroy>()
-        }.Schedule(query);
+        }.Run(query);
 
-        bufferSystem.AddJobHandleForProducer(Dependency);
+        buffer.DestroyEntity(query);
+        buffer.Playback(EntityManager);
         var e = EntityManager.CreateEntity(typeof(GridNeedsUpdate));
     }
 }

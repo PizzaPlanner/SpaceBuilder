@@ -168,7 +168,7 @@ public struct BlueprintParserV3 : IBlueprintParser
                 continue;
             var gridItem = em.GetComponentData<GridItem>(child.Value);
             var identifieable = em.GetComponentData<Identifieable>(child.Value);
-            var rotation = em.GetComponentData<Rotation>(child.Value);
+            var rotation = em.GetComponentData<LocalTransform>(child.Value).Rotation;
             var scale = gridItem.Scalable ? gridItem.Area.Size : 1;
 
             ItemData[] inventory = null;
@@ -198,7 +198,7 @@ public struct BlueprintParserV3 : IBlueprintParser
 
             data.Parts[identifieable.ItemId].Add(new PartData
             {
-                Orientation = new RightAngleRotation(rotation.Value),
+                Orientation = new RightAngleRotation(rotation),
                 Position = gridItem.Area.Origin,
                 Status = em.HasComponent<UnderConstruction>(child.Value)
                     ? em.GetComponentData<UnderConstruction>(child.Value).Progress

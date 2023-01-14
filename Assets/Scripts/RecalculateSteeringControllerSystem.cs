@@ -13,11 +13,11 @@ public partial class RecalculateSteeringControllerSystem : SystemBase
     protected override void OnUpdate()
     {
         var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
-        var query = GetEntityQuery(typeof(Thruster), typeof(GridItem), typeof(Rotation));
+        var query = GetEntityQuery(typeof(Thruster), typeof(GridItem), typeof(LocalTransform));
         var entities = query.ToEntityArray(Allocator.TempJob);
         var thrusters = query.ToComponentDataArray<Thruster>(Allocator.TempJob);
         var gridItems = query.ToComponentDataArray<GridItem>(Allocator.TempJob);
-        var rotations = query.ToComponentDataArray<Rotation>(Allocator.TempJob);
+        var rotations = query.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
 
         Entities
             .WithReadOnly(entities).WithDisposeOnCompletion(entities)
@@ -31,7 +31,7 @@ public partial class RecalculateSteeringControllerSystem : SystemBase
             for(int i = 0; i < entities.Length; i++)
                 if (gridItems[i].Grid == grid)
                 {
-                    var rotation = thrusters[i].Direction(rotations[i].Value);
+                    var rotation = thrusters[i].Direction(rotations[i].Rotation);
                     var type =
                         rotation == GridItem.Side.Back ? ToggleType.ThrusterForward :
                         rotation == GridItem.Side.Front ? ToggleType.ThrusterBackward :

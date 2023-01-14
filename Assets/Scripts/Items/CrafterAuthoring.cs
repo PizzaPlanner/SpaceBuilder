@@ -6,23 +6,27 @@ public struct Crafter : IComponentData
     public Entity Queue;
 }
 
-public class CrafterAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+public class CrafterAuthoring : MonoBehaviour
 {
     public CraftingRecipeAuthoring[] Recipes;
     public InventoryAuthoring Input, Output, Catalysts;
-    public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+
+    class Baker : Baker<CrafterAuthoring>
     {
-        var queue = conversionSystem.CreateAdditionalEntity(this);
-        dstManager.AddComponentData(entity, new Crafter {Queue = queue});
-        dstManager.AddComponentData(queue, new CraftingQueue
+        public override void Bake(CrafterAuthoring authoring)
         {
-            InputInventory = conversionSystem.GetPrimaryEntity(Input),
-            OutputInventory = conversionSystem.GetPrimaryEntity(Output),
-            CatalystInventory = conversionSystem.GetPrimaryEntity(Catalysts)
+        var queue = CreateAdditionalEntity();
+        AddComponent(new Crafter {Queue = queue});
+        AddComponent(queue, new CraftingQueue
+        {
+            InputInventory = GetEntity(authoring.Input),
+            OutputInventory = GetEntity(authoring.Output),
+            CatalystInventory = GetEntity(authoring.Catalysts)
         });
-        dstManager.AddBuffer<CraftingBuffer>(queue);
-        var craftables = dstManager.AddBuffer<CraftableBuffer>(queue);
-        foreach (var recipe in Recipes)
-            craftables.Add(new CraftableBuffer{Recipe = conversionSystem.GetPrimaryEntity(recipe.gameObject)});
+        AddBuffer<CraftingBuffer>(queue);
+        var craftables = AddBuffer<CraftableBuffer>(queue);
+        foreach (var recipe in authoring.Recipes)
+            craftables.Add(new CraftableBuffer{Recipe = GetEntity(recipe.gameObject)});
+        }
     }
 }

@@ -60,7 +60,7 @@ public partial class GeneratePlanetSystem : SystemBase
                 {
                     Value = new float4(planetData.Color.a, planetData.Color.g, planetData.Color.b, 0)
                 });
-                buffer.AddComponent(planet, new Scale {Value = planetData.Size});
+                buffer.AddComponent(planet, WorldTransform.Identity.WithScale(planetData.Size));
                 buffer.SetComponent(planet, new Name{Value = $"{GalaxyTools.GetStarName(GalaxyTools.GetSectorSeed(ltg.Sector))} {GalaxyTools.ToRomanNumeral(planetRank)}"});
                 buffer.RemoveComponent<GeneratePlanet>(e);
             }).Schedule();

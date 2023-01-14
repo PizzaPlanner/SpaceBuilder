@@ -8,7 +8,7 @@ public class IconReference : IComponentData
     public Texture2D Icon;
 }
 
-public class ItemAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+public class ItemAuthoring : MonoBehaviour
 {
     [Range(1, 9999)]
     public ushort MaxStackSize;
@@ -16,16 +16,20 @@ public class ItemAuthoring : MonoBehaviour, IConvertGameObjectToEntity
     public ushort Stack;
 
     public Texture2D Icon;
-    public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+
+    class Baker : Baker<ItemAuthoring>
     {
-        dstManager.AddComponentData(entity, new Item{ });
-        if (MaxStackSize > 0)
-            dstManager.AddComponentData(entity, new Stackable {MaxSize = (ushort)MaxStackSize, Size = Stack});
+        public override void Bake(ItemAuthoring authoring)
+        {
+            AddComponent(new Item{ });
+            if (authoring.MaxStackSize > 1)
+                AddComponent(new Stackable {MaxSize = (ushort)authoring.MaxStackSize, Size = authoring.Stack});
 
-        if (Icon == null)
-            return;
+            if (authoring.Icon == null)
+                return;
 
-        dstManager.AddComponentData(entity, new IconReference {Icon = Icon});
-        dstManager.AddComponentData(entity, new Parent());
+            AddComponentObject(new IconReference {Icon = authoring.Icon});
+            AddComponent(new Parent());
+        }
     }
 }

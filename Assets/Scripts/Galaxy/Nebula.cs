@@ -5,12 +5,9 @@ using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.VFX;
 
+[WriteGroup(typeof(LocalToWorld))]
 public struct Nebula : IComponentData { }
 
-
-// [UpdateBefore(typeof(CopyTransformToGameObjectSystem))]
-// [UpdateAfter(typeof(TRSToLocalToGalaxySystem))]
-// [UpdateAfter(typeof(TRSToLocalToWorldSystem))]
 [UpdateInGroup(typeof(UpdatePresentationSystemGroup))]
 public partial class NebulaRelativeToPlayerSystem : SystemBase
 {
@@ -36,9 +33,9 @@ public partial class NebulaRelativeToPlayerSystem : SystemBase
 
         Entities
             .WithAll<Nebula>()
-            .ForEach((VisualEffect sfx, ref LocalToWorld ltw) =>
+            .ForEach((VisualEffect sfx, ref LocalToWorld ltw, in WorldTransform transform) =>
             {
-                var tBefore = ltw.Position - camPosition;
+                var tBefore = transform.Position - camPosition;
                 var newScale = farClipPlane / math.length(tBefore);
                 var tNew = math.select(math.normalize(tBefore) * farClipPlane + camPosition, tBefore, newScale >= 1);
                 // var tNew = math.normalize(tBefore) * (farClipPlane * 0.95f - newScale) + camPosition;

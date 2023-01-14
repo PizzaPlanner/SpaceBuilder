@@ -33,7 +33,9 @@ public struct BoundingBox
     public int3 Extents;
 
     public readonly int3 Size => Max - Min + 1;
-    public readonly NonUniformScale ToScale(quaternion objectRotation) => new() {Value = math.abs(Size.Rotated(math.inverse(objectRotation)))};
+    
+    // TODO: How?
+    public readonly PostTransformScale ToScale(quaternion objectRotation) => new PostTransformScale{Value = float3x3.Scale(math.abs(Size.Rotated(math.inverse(objectRotation))))};
 
     public readonly BoundingBox AdjustedToObjectRotation(quaternion objectRotation)
     {
@@ -94,7 +96,7 @@ public struct BoundingBox
 }
 
 [RequireComponent(typeof(IdentifieableAuthoring))]
-public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
+public class BuildingPart : MonoBehaviour
 {
     [SerializeField] private uint3 SizeInGrid;
     [SerializeField] private bool Scalable;
@@ -104,25 +106,28 @@ public class BuildingPart : MonoBehaviour, IConvertGameObjectToEntity
         Gizmos.DrawWireCube((float3)SizeInGrid * 0.5f * Grid.CELL_SIZE, (float3)SizeInGrid * Grid.CELL_SIZE);
     }
 
-    public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-    {
-        dstManager.AddComponentData(entity, new GridItem
-        {
-            Area = new BoundingBox{Origin = int3.zero, Extents = (int3)SizeInGrid - 1},
-            Scalable = math.all(SizeInGrid == 1) && Scalable,
-            IsWall = IsWall
-        });
-        dstManager.AddComponentData(entity, new RotationPivot {Value = Grid.CELL_SIZE * 0.5f});
-        dstManager.AddComponent<CompositeRotation>(entity);
-        dstManager.AddComponent<LocalToParent>(entity);
-        dstManager.AddComponent<Parent>(entity);
-        dstManager.AddComponent<Rotation>(entity);
-        dstManager.AddComponent<Translation>(entity);
-    }
-
     private void OnValidate()
     {
         if (!math.all(SizeInGrid == 1))
             Scalable = false;
+    }
+
+    class Baker : Baker<BuildingPart>
+    {
+        public override void Bake(BuildingPart authoring)
+        {
+            AddComponent(new GridItem
+            {
+                Area = new BoundingBox{Origin = int3.zero, Extents = (int3)authoring.SizeInGrid - 1},
+                Scalable = math.all(authoring.SizeInGrid == 1) && authoring.Scalable,
+                IsWall = authoring.IsWall
+            });
+            // TODO
+            // AddComponent(new RotationPivot {Value = Grid.CELL_SIZE * 0.5f});
+            // AddComponent<CompositeRotation>();
+            AddComponent<Parent>();
+            // AddComponent<LocalTransform>();
+            AddComponent<ParentTransform>();
+        }
     }
 }

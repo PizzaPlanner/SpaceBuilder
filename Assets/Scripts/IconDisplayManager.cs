@@ -76,7 +76,7 @@ public class ModelDisplayWorld : World
             return;
 
         EntityManager.RemoveComponent<Disabled>(disabledQuery);
-        EntityManager.SetComponentData(ObjectToEntity[prefab], new Translation{Value = position});
+        EntityManager.SetComponentData(ObjectToEntity[prefab], new LocalTransform { Position = position });
         Update();
         EntityManager.AddComponent<Disabled>(notDisabledQuery);
     }

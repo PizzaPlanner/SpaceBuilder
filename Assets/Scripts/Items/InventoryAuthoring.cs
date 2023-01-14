@@ -41,16 +41,19 @@ public static class InventoryHelper
         return false;
     }
 }
-public class InventoryAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+public class InventoryAuthoring : MonoBehaviour
 {
     public int Size;
 
-    public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+    class Baker : Baker<InventoryAuthoring>
     {
-        var buffer = dstManager.AddBuffer<Inventory>(entity);
-        for (int i = 0; i < Size; i++)
+        public override void Bake(InventoryAuthoring authoring)
         {
-            buffer.Add(new Inventory());
+            var buffer = AddBuffer<Inventory>();
+            for (int i = 0; i < authoring.Size; i++)
+            {
+                buffer.Add(new Inventory());
+            }
         }
     }
 }

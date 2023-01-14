@@ -2,12 +2,15 @@ using Unity.Entities;
 using UnityEngine;
 
 [RequireComponent(typeof(LocalToGalaxyAuthoring))]
-public class GridAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+public class GridAuthoring : MonoBehaviour
 {
     public string FilePath;
 
-    public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+    class Baker : Baker<GridAuthoring>
     {
-        dstManager.AddComponentData(entity, new ExecuteAdminScript {Script = $"spawn \"{FilePath}\"", Executor = entity});
+        public override void Bake(GridAuthoring authoring)
+        {
+            AddComponent(new ExecuteAdminScript {Script = $"spawn \"{authoring.FilePath}\"", Executor = GetEntity(authoring)});
+        }
     }
 }

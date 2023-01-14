@@ -74,21 +74,21 @@ public partial class POIGenerator : SystemBase
         generatablePOIs.Dispose();
     }
 
-    public static void QueuePOISpawn(EntityCommandBuffer ecb, FixedString64Bytes path, LocalToGalaxy ltg, Rotation rotation)
+    public static void QueuePOISpawn(EntityCommandBuffer ecb, FixedString64Bytes path, LocalToGalaxy ltg, WorldTransform transform)
     {
         if (!spawnables.IsCreated || !spawnables.ContainsKey(path))
         {
             Debug.LogError($"There is no spawnable associated with '{path}'");
             return;
         }
-        QueuePOISpawn(ecb, spawnables[path], ltg, rotation);
+        QueuePOISpawn(ecb, spawnables[path], ltg, transform);
     }
 
-    public static void QueuePOISpawn(EntityCommandBuffer ecb, Entity prefab, LocalToGalaxy ltg, Rotation rotation)
+    public static void QueuePOISpawn(EntityCommandBuffer ecb, Entity prefab, LocalToGalaxy ltg, WorldTransform transform)
     {
         var e = ecb.Instantiate(prefab);
         ecb.SetComponent(e, ltg);
-        ecb.SetComponent(e, rotation);
+        ecb.SetComponent(e, transform);
     }
 
     protected override void OnUpdate()
@@ -108,7 +108,7 @@ public partial class POIGenerator : SystemBase
                     var poiPrefab = keys[random.NextInt(keys.Length)];
                     var newLtg = ltg;
                     newLtg.LocalPosition = random.NextFloat3(Constants.MAX_POSITION);
-                    QueuePOISpawn(ecb, poiPrefab, newLtg, new Rotation {Value = quaternion.identity});
+                    QueuePOISpawn(ecb, poiPrefab, newLtg, WorldTransform.Identity);
                 }
             }).Schedule();
 
@@ -130,7 +130,8 @@ public partial class POIGenerator : SystemBase
             return Entity.Null;
 
         var prefab = manager.CreateEntity(typeof(LocalToWorld),
-            typeof(Translation), typeof(Rotation),
+            typeof(WorldTransform),
+            typeof(LocalTransform),
             typeof(LocalToGalaxy),
             typeof(BuildingPartInfo),
             typeof(OccupationBuffer),
@@ -138,6 +139,8 @@ public partial class POIGenerator : SystemBase
             typeof(Rooms),
             typeof(Grid), typeof(Name), typeof(Prefab));
         manager.SetComponentData(prefab, new Name {Value = data.Name});
+        manager.SetComponentData(prefab, WorldTransform.Identity);
+        manager.SetComponentData(prefab, LocalTransform.Identity);
         var bpBuffer = manager.GetBuffer<BuildingPartInfo>(prefab);
         foreach (var part in data.Parts)
         {

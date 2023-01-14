@@ -47,7 +47,7 @@ public partial class CalculateBuildingSlotSystem : SystemBase
             targetIsOccupied |= math.all(item.Location == newCell);
         targetCell = targetIsOccupied ? int.MaxValue : newCell;
 
-        var rotation = GetComponent<Rotation>(ghost).Value;
+        var rotation = GetComponent<LocalTransform>(ghost).Rotation;
         if (bgp.Original.Scalable)
         {
             if (inScalingMode)
@@ -90,7 +90,10 @@ public partial class CalculateBuildingSlotSystem : SystemBase
             canBuild &= !gridItem.Area.Contains(item.Location);
 
         SetComponent(ghost, new Ghost {Buildable = canBuild});
-        SetComponent(ghost, new Translation {Value = Grid.PositionFromCell(gridItem.Area.Origin)});
+        SetComponent(ghost,
+            LocalTransform.Identity
+                          .WithPosition(Grid.PositionFromCell(gridItem.Area.Origin))
+                          .WithRotation(rotation));
         SetComponent(ghost, gridItem);
         SetSingleton(bgp);
         if (!HasComponent<NeedsUpdate>(ghost))

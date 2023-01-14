@@ -25,12 +25,11 @@ public struct BlueprintParserV2 : IBlueprintParser
                 continue;
             var gridItem = em.GetComponentData<GridItem>(child.Value);
             var identifieable = em.GetComponentData<Identifieable>(child.Value);
-            var rotation = em.GetComponentData<Rotation>(child.Value);
-            var translation = em.GetComponentData<Translation>(child.Value);
+            var rotation = em.GetComponentData<LocalTransform>(child.Value).Rotation;
             parts.Add(new BuildingPartInfo
             {
                 Id = identifieable.ItemId,
-                Orientation = new RightAngleRotation(rotation.Value),
+                Orientation = new RightAngleRotation(rotation),
                 Area = gridItem.Area,
                 BuildStatus = em.HasComponent<UnderConstruction>(child.Value) ? em.GetComponentData<UnderConstruction>(child.Value).Progress : uint.MaxValue
             });

@@ -20,9 +20,9 @@ public partial class SteeringSystem : SystemBase
             // if (!HasComponent<Flyable>(grid))
             //     return;
 
-            var velocity = GetComponent<Rotation>(grid);
-            velocity.Value = math.mul(velocity.Value, quaternion.Euler(steer.SteeringAngle));
-            SetComponent(grid, velocity);
+            var transform = GetComponent<WorldTransform>(grid);
+            transform.Rotation = math.mul(transform.Rotation, quaternion.Euler(steer.SteeringAngle));
+            SetComponent(grid, transform);
             for (int i = 0; i < items.Length; i++)
             {
                 var target = items[i].Target;

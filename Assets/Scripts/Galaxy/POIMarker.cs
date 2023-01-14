@@ -41,7 +41,7 @@ public class POIMarker : VisualElement
         var relativePosition = LocalToGalaxy.RelativePosition(playerLtg, targetLtg);
         var distance = math.length(relativePosition);
         if (distance < 1000)
-            relativePosition = em.GetComponentData<Translation>(Target).Value - (float3)Camera.main.transform.position;
+            relativePosition = em.GetComponentData<WorldTransform>(Target).Position - (float3)Camera.main.transform.position;
         var direction = (float3)math.normalizesafe(relativePosition);
 
 
@@ -83,6 +83,11 @@ public partial class POIMarkerSystem : SystemBase
     private VisualElement uiRoot;
 
     public struct TrackedPOI : IComponentData { }
+
+    protected override void OnCreate()
+    {
+        RequireForUpdate<LocalPlayer>();
+    }
 
     protected override void OnStartRunning()
     {

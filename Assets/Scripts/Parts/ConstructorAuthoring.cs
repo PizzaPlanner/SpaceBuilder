@@ -13,7 +13,12 @@ namespace Parts
         {
             public override void Bake(ConstructorAuthoring authoring)
             {
-                throw new System.NotImplementedException();
+                AddComponent(new Constructor
+                {
+                    DelayPerBuilding = authoring.DelayPerBuilding,
+                    InitialDelayPerItem = authoring.InitialDelayPerItem,
+                    MinDelayPerItem = authoring.MinDelayPerItem
+                });
             }
         }
     }

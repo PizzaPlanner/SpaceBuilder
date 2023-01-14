@@ -373,7 +373,7 @@ GameObject:
   - component: {fileID: 1068672485}
   - component: {fileID: 1068672484}
   m_Layer: 0
-  m_Name: SpawnPoint
+  m_Name: SpawnPoint1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -676,7 +676,7 @@ MonoBehaviour:
     y: 0
     z: 0
   LocalPosition:
-    x: 0
+    x: 50
     y: 0
     z: 0
 --- !u!1 &1535039535

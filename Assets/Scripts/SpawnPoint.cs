@@ -23,7 +23,7 @@ public partial class PlayerSpawnSystem : SystemBase
         {
             var player = buffer.Instantiate(sp.Prefab);
             buffer.AddBuffer<CloseGrids>(player);
-            buffer.SetComponent(player, new Translation{ Value = ltw.Position });
+            buffer.SetComponent(player, new WorldTransform { Position = ltw.Position });
             buffer.AddComponent(player, ltg);
             buffer.AddComponent(player, new CanTravelSectors());
 

@@ -81,7 +81,7 @@ public static class GalaxyTools
         var unit = "s";
         if (time > 3600 * 24 * 30 * 12)
         {
-            return $"{time / (3600 * 24 * 30 * 12):F1}y";
+            return $"> 1y";
         }
         else if (time > 3600 * 24)
         {

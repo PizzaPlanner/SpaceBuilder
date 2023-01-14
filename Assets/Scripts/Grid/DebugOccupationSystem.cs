@@ -107,7 +107,7 @@ public partial class DebugOccupationSystem : SystemBase
     {
         NativeList<float4x4> matricesUnexposed = new NativeList<float4x4>(Allocator.Temp);
         NativeList<float4x4> matricesExposed = new NativeList<float4x4>(Allocator.Temp);
-        Entities.ForEach((DynamicBuffer<Rooms> rooms, Grid grid, in LocalToWorld ltw) =>
+        Entities.ForEach((DynamicBuffer<Rooms> rooms, in LocalToWorld ltw) =>
         {
             foreach(var item in rooms)
                 if(item.IsExposedToSpace)

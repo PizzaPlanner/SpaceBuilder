@@ -128,6 +128,6 @@ public partial class GridRecalculationSystem : SystemBase
         }).Run();
 
         var buffer = GetSingleton<EndInitializationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
-        buffer.DestroyEntitiesForEntityQuery(GetEntityQuery(typeof(GridNeedsUpdate)));
+        buffer.DestroyEntity(GetEntityQuery(typeof(GridNeedsUpdate)));
     }
 }
