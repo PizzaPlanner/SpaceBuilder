@@ -7,17 +7,17 @@ public partial class RecalculateGridAABBSystem : SystemBase
 {
     protected override void OnUpdate()
     {
-        Entities.ForEach((ref Grid grid, in LocalToWorld ltw) =>
+        Entities.ForEach((ref GridStructure grid, in WorldTransform ltw) =>
         {
-            var realBoundsMin =  (float3)grid.BoundsMin * Grid.CELL_SIZE;
-            var realBoundsMax =  (float3)(grid.BoundsMax + 1) * Grid.CELL_SIZE;
+            var realBoundsMin =  (float3)grid.BoundsMin * GridStructure.CELL_SIZE;
+            var realBoundsMax =  (float3)(grid.BoundsMax + 1) * GridStructure.CELL_SIZE;
             var extents = (realBoundsMax - realBoundsMin) * 0.5f;
             var aabb = new AABB
             {
                 Extents = extents,
                 Center = realBoundsMin + extents
             };
-            grid.AABB = AABB.Transform(ltw.Value, aabb);
+            grid.AABB = AABB.Transform(ltw.ToMatrix(), aabb);
         }).Run();
     }
 }

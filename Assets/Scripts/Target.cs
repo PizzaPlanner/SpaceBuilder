@@ -27,9 +27,6 @@ public struct GridHitInfo
 
 public partial class PlayerTargetSystem : SystemBase
 {
-    public struct PhysicsWorld2Singleton : IComponentData { }
-
-    BuildPhysicsWorld physicsWorld;
     private const float TARGET_MAX_RANGE = 100;
     private const float TARGET_MAX_RANGE_CONSTRUCTABLE = 15;
     private const float TARGET_MAX_RANGE_INTERACTABLE = 7;
@@ -40,16 +37,14 @@ public partial class PlayerTargetSystem : SystemBase
     {
         RequireForUpdate<LocalPlayer>();
         RequireForUpdate<CameraAnchor>();
-        // physicsWorld = World.GetExistingSystemManaged<BuildPhysicsWorld>();
-        // bpWorld = new PhysicsWorldData(EntityManager, new PhysicsWorldIndex(2));
         filterInteractable = CollisionFilter.Default;
         filterInteractable.CollidesWith = (1u << 7);
         filterInteractable.BelongsTo = ~0u;
         filterConstructable = CollisionFilter.Default;
         filterConstructable.CollidesWith = ~(1u << 3);
         filterConstructable.BelongsTo = ~0u;
-
-        EntityManager.CreateEntity(typeof(PhysicsWorld2Singleton));
+        
+        bpWorld = new PhysicsWorldData(ref CheckedStateRef, new PhysicsWorldIndex(2));
     }
 
     protected override void OnDestroy()
@@ -87,7 +82,9 @@ public partial class PlayerTargetSystem : SystemBase
             };
             bpWorld.PhysicsWorld.CollisionWorld.CastRay(input2, out constructableHit);
         }
-
+        
+        var physicsWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>();
+        var collisionWorld = physicsWorld.CollisionWorld;
         // Find Other target
         var input = new RaycastInput
         {
@@ -95,51 +92,52 @@ public partial class PlayerTargetSystem : SystemBase
             End = camPosition + camForward * TARGET_MAX_RANGE,
             Filter = filterInteractable
         };
-        // physicsWorld.PhysicsWorld.CollisionWorld.CastRay(input, out var hit);
+        collisionWorld.CastRay(input, out var hit);
 
-        // if (constructableHit.Entity != Entity.Null &&
-        //     (hit.Entity == Entity.Null || hit.Fraction > constructableHit.Fraction))
-        // {
-        //     nextTarget = constructableHit.Entity;
-        //     hitLocation = constructableHit.Position;
-        // }
-        // else if (hit.Entity != Entity.Null)
-        // {
-        //     nextTarget = hit.Entity;
-        //     hitLocation = hit.Position;
-        // }
+        if (constructableHit.Entity != Entity.Null &&
+            (hit.Entity == Entity.Null || hit.Fraction > constructableHit.Fraction))
+        {
+            nextTarget = constructableHit.Entity;
+            hitLocation = constructableHit.Position;
+        }
+        else if (hit.Entity != Entity.Null)
+        {
+            nextTarget = hit.Entity;
+            hitLocation = hit.Position;
+        }
 
-        var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
+        var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
+        var target = SystemAPI.GetComponent<Target>(localPlayer);
         target.PreviousValue = target.Value;
         target.PreviousHit = target.Hit;
-        target.Value = HasComponent<Targetable>(nextTarget) ? nextTarget : Entity.Null;
+        target.Value = SystemAPI.HasComponent<Targetable>(nextTarget) ? nextTarget : Entity.Null;
         if (target.Value != Entity.Null)
             target.Hit = hitLocation;
-        SetComponent(GetSingletonEntity<LocalPlayer>(), target);
+        SystemAPI.SetComponent(localPlayer, target);
 
         Entities
             .WithAll<LocalPlayer>()
             .ForEach((ref Target t) =>
         {
-            var isGhost = t.Value != Entity.Null && HasComponent<Ghost>(t.Value);
+            var isGhost = t.Value != Entity.Null && SystemAPI.HasComponent<Ghost>(t.Value);
             t.CanConstruct = !isGhost && t.Value != Entity.Null &&
-                             HasComponent<UnderConstruction>(t.Value) &&
+                             SystemAPI.HasComponent<UnderConstruction>(t.Value) &&
                              math.distancesq(hitLocation, camPosition) <= TARGET_MAX_RANGE_CONSTRUCTABLE * TARGET_MAX_RANGE_CONSTRUCTABLE;
             t.CanInteract = !t.CanConstruct && !isGhost &&
                             t.Value != Entity.Null &&
-                            HasComponent<Interactable>(t.Value) &&
-                            !HasComponent<Blueprinted>(t.Value) &&
+                            SystemAPI.HasComponent<Interactable>(t.Value) &&
+                            !SystemAPI.HasComponent<Blueprinted>(t.Value) &&
                             math.distancesq(hitLocation, camPosition) <= TARGET_MAX_RANGE_INTERACTABLE * TARGET_MAX_RANGE_INTERACTABLE;
             
             t.GridHit.Normal = 0;
             t.GridHit.Cell = int.MaxValue;
             t.GridHit.Grid = Entity.Null;
-            if (t.Value == Entity.Null || !HasComponent<GridItem>(target.Value)) return;
+            if (t.Value == Entity.Null || !SystemAPI.HasComponent<GridItem>(target.Value)) return;
             // Calculate which grid cell was hit and on which side
-            var gridItem = GetComponent<GridItem>(target.Value);
-            var gridLtw = GetComponent<LocalToWorld>(gridItem.Grid);
+            var gridItem = SystemAPI.GetComponent<GridItem>(target.Value);
+            var gridLtw = SystemAPI.GetComponent<WorldTransform>(gridItem.Grid);
 
-            var centerWorld = math.mul(gridLtw.Rotation, gridItem.Area.Center * Grid.CELL_SIZE) + gridLtw.Position;
+            var centerWorld = math.mul(gridLtw.Rotation, gridItem.Area.Center * GridStructure.CELL_SIZE) + gridLtw.Position;
             var diffLocal = math.mul(math.inverse(gridLtw.Rotation), target.Hit - centerWorld);
             var absDiffLocal = math.abs(diffLocal) / gridItem.Area.Size;
             bool3 biggest = new bool3(
@@ -154,7 +152,7 @@ public partial class PlayerTargetSystem : SystemBase
             
             if (GridTools.ViewIntersectsPlaneFromGridCell(new float3x2(camPosition, camForward), gridLtw, planeOriginLocal, normalLocal, out var planeHit))
             {
-                t.GridHit.Cell = Grid.CellFromPosition(gridLtw, planeHit + camForward * 0.01f);
+                t.GridHit.Cell = GridStructure.CellFromPosition(gridLtw, planeHit + camForward * 0.01f);
                 t.GridHit.Normal = normalLocal;
                 t.GridHit.Grid = gridItem.Grid;
             }

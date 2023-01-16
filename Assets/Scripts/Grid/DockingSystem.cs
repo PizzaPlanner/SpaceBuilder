@@ -58,8 +58,8 @@ public partial class DockingSystem : SystemBase
                 : grids[0].Grid;
             swapRoot.Q("Station", "dockingbutton").Q<Label>().text = GetComponent<Name>(gridToDisplay).Value.ToString();
             var rooms = GetBuffer<Rooms>(grids[0].Grid);
-            var playerLtw = GetComponent<LocalToWorld>(localPlayer);
-            var playerGridCell = Grid.CellFromPosition(GetComponent<LocalToWorld>(gridToDisplay), playerLtw.Position);
+            var playerLtw = GetComponent<WorldTransform>(localPlayer);
+            var playerGridCell = GridStructure.CellFromPosition(GetComponent<WorldTransform>(gridToDisplay), playerLtw.Position);
             var isPlayerInRoom = false;
             foreach (var cell in rooms)
                 isPlayerInRoom |= math.all(cell.Cell == playerGridCell) && !cell.IsExposedToSpace;
@@ -85,11 +85,11 @@ public partial class DockingSystem : SystemBase
         //     SetComponent(entity, body);
         // }
 
-        if (newParent != Entity.Null && HasComponent<Grid>(newParent))
+        if (newParent != Entity.Null && HasComponent<GridStructure>(newParent))
         {
-            var parentLtw = GetComponent<LocalToWorld>(newParent);
-            var ltw = GetComponent<LocalToWorld>(entity);
-            var ltp = new LocalToWorld{Value = math.mul(math.inverse(parentLtw.Value), ltw.Value) };
+            var parentLtw = GetComponent<WorldTransform>(newParent);
+            var ltw = GetComponent<WorldTransform>(entity);
+            var ltp = new LocalToWorld{Value = math.mul(parentLtw.ToInverseMatrix(), ltw.ToMatrix()) };
             var docked = new Docked
             {
                 Target = newParent,

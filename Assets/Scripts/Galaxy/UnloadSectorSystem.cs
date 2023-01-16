@@ -86,7 +86,7 @@ public partial class UnloadSectorSystem : SystemBase
             Entities
                 .WithNone<UnloadCandidate, SectorLoadingDistance.Planetoid, SectorLoadingDistance.CelestialBody>()
                 .WithNone<ToGenerate>()
-                .WithAny<SubSector, Grid>()
+                .WithAny<SubSector, GridStructure>()
                 .ForEach((Entity e, in LocalToGalaxy ltg) =>
                 {
                     if (GalaxyTools.ShouldUnloadSector(playerLtg, ltg,

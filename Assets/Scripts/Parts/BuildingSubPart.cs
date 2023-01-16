@@ -37,12 +37,12 @@ public class BuildingSubPart : MonoBehaviour
 
     private void OnValidate()
     {
-        transform.position = Grid.PositionFromCell(Cell);
+        transform.position = GridStructure.PositionFromCell(Cell);
     }
 
     private void OnDrawGizmos()
     {
-        var size = Grid.CELL_SIZE;
+        var size = GridStructure.CELL_SIZE;
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireCube(new float3(0.5f * size) + (float3)Cell * size, new float3(size));
     }

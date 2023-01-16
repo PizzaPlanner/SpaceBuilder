@@ -118,7 +118,6 @@
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:Label text="Label" display-tooltip-when-elided="true" />
     </ui:VisualElement>
     <ui:VisualElement name="ContextMenu" picking-mode="Ignore" style="left: 60%; top: 50%; display: flex; max-width: 200px; align-items: flex-start;">
         <ui:VisualElement name="MainAction" style="flex-direction: row; align-items: center; background-image: url(&apos;project://database/Assets/UI/bg_slim.png?fileID=2800000&amp;guid=cc32439c45babc04593dca5896662d0a&amp;type=3#bg_slim&apos;);">
@@ -157,15 +156,25 @@
             <BuilderButton />
         </ui:VisualElement>
     </ui:VisualElement>
-    <ui:VisualElement name="DebugUI" picking-mode="Ignore" style="align-items: center;">
-        <ui:VisualElement name="MapInfo" style="position: absolute; right: 0; top: 0; -unity-text-align: upper-right; align-items: flex-end;">
-            <ui:Label text="Label" display-tooltip-when-elided="true" name="Sector" />
-            <ui:Label text="Label" display-tooltip-when-elided="true" name="Coordinates" />
-            <ui:Label text="Label" display-tooltip-when-elided="true" name="Forward" />
+    <ui:VisualElement name="DebugUI" picking-mode="Ignore" style="align-items: flex-start; display: flex;">
+        <ui:VisualElement name="InfoTexts" style="background-color: rgba(55, 55, 55, 0.22);">
+            <ui:Foldout text="--Player--" value="false">
+                <ui:Label name="player" />
+            </ui:Foldout>
+            <ui:Foldout text="--Sectors--" value="false">
+                <ui:Label display-tooltip-when-elided="true" name="sectors" />
+            </ui:Foldout>
+            <ui:Foldout text="--Things--" value="false">
+                <ui:Label name="things" />
+                <ui:EnumField label="POI Markers" type="POIMarker+MarkerSettings+MarkerStyle, Main" value="Default" style="display: none;" />
+            </ui:Foldout>
+            <ui:Foldout text="--Grids--" name="Grids" value="false">
+                <ui:Toggle label="Show Target" name="target" />
+                <ui:Toggle label="Show AABBs" name="aabbs" />
+                <ui:Toggle label="Show Rooms" name="rooms" />
+                <ui:Toggle label="Show Occupations" name="occupations" />
+            </ui:Foldout>
         </ui:VisualElement>
-        <ui:VisualElement name="SectorLoading" style="width: 48px; background-image: url(&apos;project://database/Assets/UI/swap.png?fileID=2800000&amp;guid=cd4c7e8cf29844f44878fed8eb19b629&amp;type=3#swap&apos;); height: 48px; align-items: center; justify-content: center; transition-property: opacity; transition-timing-function: ease-in-out-bounce; transition-duration: 0.3s; top: 55px; opacity: 1; -unity-background-image-tint-color: rgba(255, 255, 255, 0.48); display: none;">
-            <ui:Label text="50/1234" display-tooltip-when-elided="true" style="font-size: 16px; -unity-text-align: upper-center; -unity-text-outline-width: 1px; -unity-font-style: bold;" />
-        </ui:VisualElement>
-        <AdminConsole name="AdminConsole" style="position: absolute; width: 30%; height: 25%; display: none;" />
+        <AdminConsole name="AdminConsole" style="position: absolute; display: none; right: 50%; left: 25%; top: 0; min-height: 150px; width: 50%;" />
     </ui:VisualElement>
 </ui:UXML>

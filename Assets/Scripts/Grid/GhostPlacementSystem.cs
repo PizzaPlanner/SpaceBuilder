@@ -165,7 +165,7 @@ public partial class GhostPlacementSystem : SystemBase
             new BuildingSystem.BuildJob
             {
                 buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged),
-                grids = GetComponentLookup<Grid>(true),
+                grids = GetComponentLookup<GridStructure>(true),
                 gridItems = GetComponentLookup<GridItem>(true),
                 colliders = GetComponentLookup<PhysicsCollider>(true),
                 occupations = GetBufferLookup<OccupationBuffer>(true),

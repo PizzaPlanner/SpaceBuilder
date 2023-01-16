@@ -52,13 +52,13 @@ public partial class CalculateBuildingSlotSystem : SystemBase
         {
             if (inScalingMode)
             {
-                var gridLtw = GetComponent<LocalToWorld>(bgp.TargetGrid);
+                var gridLtw = GetComponent<WorldTransform>(bgp.TargetGrid);
                 if(GridTools.ViewIntersectsPlaneFromGridCell(
                        new float3x2(Camera.main.transform.position, Camera.main.transform.forward), 
                        gridLtw,  
                        new BoundingBox{ Origin = bgp.DragStartCell }.Center, 
                        bgp.DragStartNormal, out var hit))
-                    bgp.DragEndCell = Grid.CellFromPosition(gridLtw, hit) + bgp.DragStartNormal * bgp.ScaleUp;
+                    bgp.DragEndCell = GridStructure.CellFromPosition(gridLtw, hit) + bgp.DragStartNormal * bgp.ScaleUp;
                 else
                     bgp.DragEndCell = bgp.DragStartCell;
 
@@ -92,7 +92,7 @@ public partial class CalculateBuildingSlotSystem : SystemBase
         SetComponent(ghost, new Ghost {Buildable = canBuild});
         SetComponent(ghost,
             LocalTransform.Identity
-                          .WithPosition(Grid.PositionFromCell(gridItem.Area.Origin))
+                          .WithPosition(GridStructure.PositionFromCell(gridItem.Area.Origin))
                           .WithRotation(rotation));
         SetComponent(ghost, gridItem);
         SetSingleton(bgp);
@@ -144,12 +144,12 @@ public partial class BuildingWireframeDisplaySystem : SystemBase
         var gridLtw = GetComponent<LocalToWorld>(gpb.TargetGrid);
         var areaToDisplay = gpb.Original.Scalable ? gpb.DragArea : gridItem.Area; 
         Transform wireframe = GhostBuilder.Wireframe.transform;
-        wireframe.position = Grid.PositionFromCell(gridLtw, areaToDisplay.Min);
+        wireframe.position = GridStructure.PositionFromCell(gridLtw, areaToDisplay.Min);
         wireframe.rotation = gridLtw.Rotation;
         var baseGrid = GhostBuilder.Wireframe.BaseGrid;
-        baseGrid.localScale = (float3)Grid.CELL_SIZE;
+        baseGrid.localScale = (float3)GridStructure.CELL_SIZE;
         var objGrid = GhostBuilder.Wireframe.ObjectGrid;
-        objGrid.localScale = (float3)areaToDisplay.Size * Grid.CELL_SIZE;
+        objGrid.localScale = (float3)areaToDisplay.Size * GridStructure.CELL_SIZE;
         if (Input.GetMouseButton(0))
         {
             GhostBuilder.Wireframe.ShowAxes(false, wireframe.rotation);

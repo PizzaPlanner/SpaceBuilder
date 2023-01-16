@@ -85,7 +85,24 @@ public partial class LoadSectorSystem : SystemBase
                         sectorsToLoadLocal.Enqueue(newLtg);
                     }
                 }
-                if(math.any(sc.New.Sector != sc.Previous.Sector))
+                if (sc.ChangeType is SectorChangeType.Teleport or SectorChangeType.Spawn)
+                {
+                    var maxDistance = sectorLoadSettings.MaxLoadedSectorDistanceCelestial / (int)Constants.MAX_SUBSECTOR;
+                    for (int x = 0; x < maxDistance; x++)
+                    for (int y = 0; y < maxDistance; y++)
+                    for (int z = 0; z < maxDistance; z++)
+                    {
+                        TryEnqueueCelestialSector(new int3(x, y, z),    sc, maxDistance, sectorsToLoadLocal);
+                        TryEnqueueCelestialSector(new int3(-x, y, z),   sc, maxDistance, sectorsToLoadLocal);
+                        TryEnqueueCelestialSector(new int3(x, -y, z),   sc, maxDistance, sectorsToLoadLocal);
+                        TryEnqueueCelestialSector(new int3(-x, -y, z),  sc, maxDistance, sectorsToLoadLocal);
+                        TryEnqueueCelestialSector(new int3(x, y, -z),   sc, maxDistance, sectorsToLoadLocal);
+                        TryEnqueueCelestialSector(new int3(-x, y, -z),  sc, maxDistance, sectorsToLoadLocal);
+                        TryEnqueueCelestialSector(new int3(x, -y, -z),  sc, maxDistance, sectorsToLoadLocal);
+                        TryEnqueueCelestialSector(new int3(-x, -y, -z), sc, maxDistance, sectorsToLoadLocal);
+                    } 
+                }
+                else if(math.any(sc.New.Sector != sc.Previous.Sector))
                 {
                     var maxDistance = sectorLoadSettings.MaxLoadedSectorDistanceCelestial / (int)Constants.MAX_SUBSECTOR;
                     var diff = sc.New.Sector - sc.Previous.Sector;
@@ -95,14 +112,7 @@ public partial class LoadSectorSystem : SystemBase
                     for (int y = diffsign.y * maxDistance; y != diffsign.y * (maxDistance - diff.y); y-= diffsign.y)
                     for (int z = diffsign.z * maxDistance; z != diffsign.z * (maxDistance - diff.z); z-= diffsign.z)
                     {
-                        var pos = new int3(x, y, z) + sc.New.Sector;
-                        if(GalaxyTools.GetSectorType(pos).IsCelestialScale() &&
-                           math.csum(math.abs(new int3(x, y, z))) < maxDistance)
-                            sectorsToLoadLocal.Enqueue(new LocalToGalaxy
-                            {
-                                Sector = pos,
-                                SubSector = GalaxyTools.GetCelestialSectorCenter(pos, out _)
-                            });
+                        TryEnqueueCelestialSector(new int3(x, y, z), sc, maxDistance, sectorsToLoadLocal);
                     }
                 }
             }).Run();
@@ -184,5 +194,18 @@ public partial class LoadSectorSystem : SystemBase
             }).Run();
 
         sectorsToLoad = sectorsToLoadLocal;
+    }
+
+    static void TryEnqueueCelestialSector(int3 offset, SectorChange sc, int maxDistance,
+                                          NativeQueue<LocalToGalaxy> sectorsToLoadLocal)
+    {
+        var pos = offset + sc.New.Sector;
+        if (GalaxyTools.GetSectorType(pos).IsCelestialScale() &&
+            math.csum(math.abs(offset)) < maxDistance)
+            sectorsToLoadLocal.Enqueue(new LocalToGalaxy
+            {
+                Sector = pos,
+                SubSector = GalaxyTools.GetCelestialSectorCenter(pos, out _)
+            });
     }
 }

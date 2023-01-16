@@ -74,19 +74,19 @@ public static class GridTools
         return false;
     }
 
-    public static bool ViewIntersectsPlaneFromGridCell(float3x2 cameraPosForward, LocalToWorld gridLtw, float3 originCellCenter, int3 cellTargetPlaneNormal,
+    public static bool ViewIntersectsPlaneFromGridCell(float3x2 cameraPosForward, WorldTransform gridLtw, float3 originCellCenter, int3 cellTargetPlaneNormal,
         out float3 hit)
     {
         var camPosition = cameraPosForward.c0;
         var camForward = cameraPosForward.c1;
-        var planeOriginWorld = Grid.GridToWorld(gridLtw, originCellCenter);
+        var planeOriginWorld = GridStructure.GridToWorld(gridLtw, originCellCenter);
         var normalWorld = math.mul(gridLtw.Rotation, cellTargetPlaneNormal);
         return RayIntersectsPlane(camForward, camPosition, planeOriginWorld, normalWorld, int.MaxValue, out hit);
     }
 
     public static bool GetLookedAtPointOnPlanesFromObject(LocalToWorld cameraLtw, LocalToWorld gridLtw, int3 targetObjectPosition, float maxRange, out int3 position)
     {
-        var planeOrigin = Grid.PositionFromCell(gridLtw, targetObjectPosition);
+        var planeOrigin = GridStructure.PositionFromCell(gridLtw, targetObjectPosition);
         var rPos = float3.zero;
 
         var f = math.abs(math.dot(cameraLtw.Forward, gridLtw.Forward));
@@ -129,7 +129,7 @@ public static class GridTools
                 planeOrigin, -third,
                 maxRange, out rPos);
 
-        position = hit ? Grid.CellFromPosition(gridLtw, rPos) : 0;
+        position = hit ? GridStructure.CellFromPosition(gridLtw, rPos) : 0;
         return hit;
     }
 }

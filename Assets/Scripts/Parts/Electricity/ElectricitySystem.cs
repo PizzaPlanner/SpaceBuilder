@@ -19,7 +19,7 @@ public partial class ElectricitySystem : SystemBase
         Entities
             .WithName("CalculateNetworkPower")
             .WithNone<NetworkPowerStatusChanged>()
-            .WithAll<Grid>()
+            .WithAll<GridStructure>()
             .ForEach((Entity e, ref ElectricityNetwork network) =>
             {
                 var prevPower = network.Power;

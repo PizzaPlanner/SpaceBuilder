@@ -73,7 +73,6 @@ public struct LocalToGalaxy : IComponentData
         var totalLocal = (float3)offset;
         var result = origin + new LocalToGalaxy
             {Sector = totalMoveSectors, SubSector = totalMoveSubSectors, LocalPosition = totalLocal};
-        // Debug.Log($"({origin.Sector.x:X}:{origin.SubSector.x:X}, {origin.Sector.y:X}:{origin.SubSector.y:X}, {origin.Sector.y:X}:{origin.SubSector.y:X})@{origin.LocalPosition} + {offset} = ({result.Sector.x:X}:{result.SubSector.x:X}, {result.Sector.y:X}:{result.SubSector.y:X}, {result.Sector.z:X}:{result.SubSector.z:X})@{result.LocalPosition}");
         return result;
     }
 
@@ -148,7 +147,8 @@ public enum SectorChangeType
 {
     Normal,
     FTL,
-    Teleport
+    Teleport,
+    Spawn
 }
 
 public struct SectorChange : IComponentData

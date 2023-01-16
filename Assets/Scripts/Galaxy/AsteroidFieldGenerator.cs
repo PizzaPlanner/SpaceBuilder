@@ -39,7 +39,7 @@ public partial class GenerateAsteroidFieldSystem : SystemBase
                 });
                 buffer.AddComponent<ToGenerate>(nativeThreadIndex, field);
                 buffer.RemoveComponent<GenerateAsteroidField>(nativeThreadIndex, e);
-                Debug.Log($"Generating asteroid fioeld");
+                Debug.Log($"Generating asteroid field");
         }).ScheduleParallel();
 
         var prefabs = GetEntityQuery(typeof(Prefab), typeof(AsteroidData)).ToEntityArray(Allocator.TempJob);

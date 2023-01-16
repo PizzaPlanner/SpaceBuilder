@@ -4,7 +4,7 @@ public partial class NameGridSystem : SystemBase
 {
     protected override void OnUpdate()
     {
-        Entities.WithNone<Name>().WithAll<Grid>().ForEach((Entity e) =>
+        Entities.WithNone<Name>().WithAll<GridStructure>().ForEach((Entity e) =>
             {
                 var name = "Grid "+e.GetHashCode();
                 EntityManager.AddComponentData(e, new Name {Value = name});

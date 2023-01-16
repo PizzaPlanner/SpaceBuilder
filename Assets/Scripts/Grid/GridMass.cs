@@ -17,7 +17,7 @@ public partial class ApplyMassSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var grids = GetEntityQuery(typeof(Grid)).ToEntityArray(Allocator.Temp);
+        var grids = GetEntityQuery(typeof(GridStructure)).ToEntityArray(Allocator.Temp);
         NativeParallelHashMap<Entity, float> gridMasses = new NativeParallelHashMap<Entity, float>(grids.Length, Allocator.Temp);
         foreach(var item in grids)
             gridMasses.Add(item, 0);
@@ -27,7 +27,7 @@ public partial class ApplyMassSystem : SystemBase
                 gridMasses[item.Grid] += mass.Value;
             }).Run();
 
-        Entities.WithAll<Grid>()
+        Entities.WithAll<GridStructure>()
             .WithDisposeOnCompletion(gridMasses)
             .ForEach((Entity e, ref PhysicsMass mass) =>
             {

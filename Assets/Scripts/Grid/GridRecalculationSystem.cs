@@ -4,7 +4,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-public struct Grid : IComponentData
+public struct GridStructure : IComponentData
 {
     public const float CELL_SIZE = 0.25f;
     public int3 BoundsMin;
@@ -13,9 +13,12 @@ public struct Grid : IComponentData
     public AABB AABB;
 
     public static int3 CellFromPosition(LocalToWorld ltw, float3 worldPosition) => (int3) math.floor(math.mul(math.inverse(ltw.Rotation), worldPosition - ltw.Position) / CELL_SIZE);
+    public static int3 CellFromPosition(WorldTransform transform, float3 worldPosition) => (int3) math.floor(math.mul(math.inverse(transform.Rotation), worldPosition - transform.Position) / CELL_SIZE);
     public static int3 CellFromPosition(float3 localPosition) => (int3) math.floor(localPosition / CELL_SIZE);
     public static float3 PositionFromCell(LocalToWorld ltw, int3 cell) =>  math.mul(ltw.Rotation, (float3)cell * CELL_SIZE) + ltw.Position;
+    public static float3 PositionFromCell(WorldTransform transform, int3 cell) =>  math.mul(transform.Rotation, (float3)cell * CELL_SIZE) + transform.Position;
     public static float3 GridToWorld(LocalToWorld gridLtw, float3 localPosition) =>  math.mul(gridLtw.Rotation, localPosition * CELL_SIZE) + gridLtw.Position;
+    public static float3 GridToWorld(WorldTransform gridLtw, float3 localPosition) =>  math.mul(gridLtw.Rotation, localPosition * CELL_SIZE) + gridLtw.Position;
     public static float3 WorldToGrid(LocalToWorld gridLtw, float3 worldPosition) => math.mul(math.inverse(gridLtw.Rotation), worldPosition - gridLtw.Position) / CELL_SIZE;
     public static float3 PositionFromCell(int3 cell) =>  (float3)cell * CELL_SIZE;
 }
@@ -40,14 +43,14 @@ public partial class GridRecalculationSystem : SystemBase
     protected override unsafe void OnUpdate()
     {
         Debug.Log("Recalculating Grids!");
-        Entities.WithAll<Grid>().ForEach((DynamicBuffer<OccupationBuffer> obuff, DynamicBuffer<Walls> walls, DynamicBuffer<Rooms> rooms) =>
+        Entities.WithAll<GridStructure>().ForEach((DynamicBuffer<OccupationBuffer> obuff, DynamicBuffer<Walls> walls, DynamicBuffer<Rooms> rooms) =>
         {
             obuff.Clear();
             walls.Clear();
             rooms.Clear();
         }).Run();
 
-        Entities.ForEach((ref Grid grid) =>
+        Entities.ForEach((ref GridStructure grid) =>
         {
             grid.BoundsMax = int.MinValue;
             grid.BoundsMin = int.MaxValue;
@@ -55,7 +58,7 @@ public partial class GridRecalculationSystem : SystemBase
 
         var occupationBuffers = GetBufferLookup<OccupationBuffer>();
         var wallBuffers = GetBufferLookup<Walls>();
-        var grids = GetComponentLookup<Grid>();
+        var grids = GetComponentLookup<GridStructure>();
         Entities
             .WithName("CalculateOccupation")
             .ForEach((Entity e, in GridItem item) =>
@@ -100,13 +103,13 @@ public partial class GridRecalculationSystem : SystemBase
             .WithDisposeOnCompletion(cellToRoomMap)
             .WithDisposeOnCompletion(exposedRooms)
             .WithDisposeOnCompletion(cellsNeedUpdate)
-            .ForEach((DynamicBuffer<Walls> walls, DynamicBuffer<Rooms> rooms, in Grid grid) =>
+            .ForEach((DynamicBuffer<Walls> walls, DynamicBuffer<Rooms> rooms, in GridStructure grid) =>
         {
             cellToRoomMap.Clear();
             cellsNeedUpdate.Clear();
             exposedRooms.Clear();
             var bbox = new BoundingBox { Origin = grid.BoundsMin, Extents = grid.BoundsMax - grid.BoundsMin }; 
-            cellToRoomMap.Capacity = bbox.Size.x * bbox.Size.y * bbox.Size.z;
+            cellToRoomMap.Capacity = math.max(cellToRoomMap.Capacity, bbox.Size.x * bbox.Size.y * bbox.Size.z);
             for (int x = bbox.Min.x; x <= bbox.Max.x; x++)
             for (int y = bbox.Min.y; y <= bbox.Max.y; y++)
             for (int z = bbox.Min.z; z <= bbox.Max.z; z++)

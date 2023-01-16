@@ -1,3 +1,4 @@
+using System;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -6,6 +7,19 @@ using UnityEngine.UIElements;
 
 public class POIMarker : VisualElement
 {
+    
+    public struct MarkerSettings : IComponentData
+    {
+        public enum MarkerStyle
+        {
+            NoText,
+            Default,
+            Debug
+        }
+
+        public MarkerStyle TextStyle;
+    }
+    
     public enum POIType
     {
         Ship,
@@ -26,7 +40,7 @@ public class POIMarker : VisualElement
         Add(new Label());
     }
 
-    public void Update(EntityManager em, Entity localPlayer)
+    public void Update(EntityManager em, Entity localPlayer, POIMarker.MarkerSettings settings)
     {
         if (!em.Exists(Target) || !em.HasComponent<LocalToGalaxy>(Target))
         {
@@ -65,15 +79,18 @@ public class POIMarker : VisualElement
         var timeFmt = GalaxyTools.ToTimeUnit(timeToDistance);
         if (em.HasComponent<Name>(Target))
             name = em.GetComponentData<Name>(Target).Value.Value;
-        if(AdminConsole.DebugMode)
-            this.Q<Label>().text = @$"{name}
+        this.Q<Label>().text = settings.TextStyle switch
+        {
+            MarkerSettings.MarkerStyle.NoText => "",
+            MarkerSettings.MarkerStyle.Default => @$"{name}
+{distanceFmt}{(playerCts.CurrentSpeed > 0 ? $" // ETA {timeFmt}" : "")}",
+            MarkerSettings.MarkerStyle.Debug => @$"{name}
 P: {playerLtg.Sector:X}|{playerLtg.SubSector:X}|{playerLtg.LocalPosition}
 T: {targetLtg.Sector:X}|{targetLtg.SubSector:X}|{targetLtg.LocalPosition}
 D: {diffLtg.Sector:X}|{diffLtg.SubSector:X}|{diffLtg.LocalPosition}
-{distanceFmt}";
-        else
-            this.Q<Label>().text = @$"{name}
-{distanceFmt}{(playerCts.CurrentSpeed > 0 ? $" // ETA {timeFmt}" : "")}";
+{distanceFmt}",
+            _ => ""
+        };
     }
 }
 
@@ -87,12 +104,14 @@ public partial class POIMarkerSystem : SystemBase
     protected override void OnCreate()
     {
         RequireForUpdate<LocalPlayer>();
+        
+        var e = EntityManager.CreateEntity(typeof(POIMarker.MarkerSettings));
+        SystemAPI.SetComponent(e, new POIMarker.MarkerSettings { TextStyle = POIMarker.MarkerSettings.MarkerStyle.Default });
     }
 
     protected override void OnStartRunning()
     {
         uiRoot ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("POIMarkers");
-        RequireForUpdate<LocalPlayer>();
     }
 
     protected override void OnUpdate()
@@ -100,11 +119,11 @@ public partial class POIMarkerSystem : SystemBase
         Entities
             .WithNone<TrackedPOI>()
             .WithAll<LocalToGalaxy>()
-            .WithAny<Grid, BigObjectInPoiRange>()
+            .WithAny<GridStructure, BigObjectInPoiRange>()
             .ForEach((Entity e) =>
             {
                 EntityManager.AddComponent<TrackedPOI>(e);
-                var hasGrid = HasComponent<Grid>(e);
+                var hasGrid = HasComponent<GridStructure>(e);
                 var isShip = hasGrid && HasComponent<Flyable>(e);
 
                 var type = POIMarker.POIType.Other;
@@ -116,7 +135,8 @@ public partial class POIMarkerSystem : SystemBase
                 uiRoot.Add(new POIMarker{Target = e, Type = type});
             }).WithoutBurst().WithStructuralChanges().Run();
 
-        var localPlayer = GetSingletonEntity<LocalPlayer>();
-        uiRoot.Query<POIMarker>().ForEach(x => x.Update(EntityManager, localPlayer));
+        var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
+        var markerStyle = SystemAPI.GetSingleton<POIMarker.MarkerSettings>();
+        uiRoot.Query<POIMarker>().ForEach(x => x.Update(EntityManager, localPlayer, markerStyle));
     }
 }

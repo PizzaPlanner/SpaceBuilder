@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 public struct CloseGrids : IBufferElementData, IComparable<CloseGrids>
 {
@@ -34,18 +35,25 @@ public partial class CalculateCloseGridsSystem : SystemBase
             return;
         lastUpdate = World.Time.ElapsedTime;
 
-        var localPlayer = GetSingletonEntity<LocalPlayer>();
-        var playerLtg = GetComponent<LocalToGalaxy>(localPlayer);
-        var gridBuffer = GetBuffer<CloseGrids>(localPlayer);
+        var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
+        var playerLtg = SystemAPI.GetComponent<LocalToGalaxy>(localPlayer);
+        var gridBuffer = SystemAPI.GetBuffer<CloseGrids>(localPlayer);
+        var playerPosition = SystemAPI.GetComponent<WorldTransform>(localPlayer);
 
         gridBuffer.Clear();
 
         NativeList<CloseGrids> closeGrids = new NativeList<CloseGrids>(Allocator.Temp);
-        Entities.ForEach((Entity e, in Grid grid, in LocalToGalaxy ltg) =>
+        Entities.ForEach((Entity e, in GridStructure grid, in LocalToGalaxy ltg) =>
         {
+            if (grid.AABB.Contains(playerPosition.Position))
+            {
+                closeGrids.Add(new CloseGrids { Distance = 0, Grid = e});
+                return;
+            }
+            
             var relPos = (float3)LocalToGalaxy.RelativePosition(playerLtg, ltg);
             var distSq = math.lengthsq(relPos);
-            if (distSq < MAX_DISTANCE_SQ)
+            if (distSq > MAX_DISTANCE_SQ)
                 return;
 
             closeGrids.Add(new CloseGrids { Distance = distSq, Grid = e });

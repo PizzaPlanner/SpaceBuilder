@@ -36,7 +36,7 @@ public partial class BuildingSystem : SystemBase
     {
         public EntityCommandBuffer buffer;
         [ReadOnly] public NativeParallelHashMap<ulong, Entity> prefabMap;
-        [ReadOnly] public ComponentLookup<Grid> grids;
+        [ReadOnly] public ComponentLookup<GridStructure> grids;
         [ReadOnly] public ComponentLookup<GridItem> gridItems;
         [ReadOnly] public ComponentLookup<PhysicsCollider> colliders;
         [ReadOnly] public BufferLookup<OccupationBuffer> occupations;
@@ -83,7 +83,7 @@ public partial class BuildingSystem : SystemBase
             var entity = buffer.Instantiate(prefab);
 
             var transform = LocalTransform.Identity
-                                          .WithPosition(Grid.PositionFromCell(newGridItem.Area.Origin))
+                                          .WithPosition(GridStructure.PositionFromCell(newGridItem.Area.Origin))
                                           .WithRotation(part.Data.Orientation);
             switch (originalGridItem.Scalable)
             {
@@ -170,7 +170,7 @@ public partial class BuildingSystem : SystemBase
         new BuildJob
         {
             buffer = buffer,
-            grids = GetComponentLookup<Grid>(true),
+            grids = GetComponentLookup<GridStructure>(true),
             gridItems = GetComponentLookup<GridItem>(true),
             colliders = GetComponentLookup<PhysicsCollider>(true),
             occupations = GetBufferLookup<OccupationBuffer>(true),

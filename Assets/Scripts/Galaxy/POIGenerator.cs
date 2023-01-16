@@ -137,7 +137,9 @@ public partial class POIGenerator : SystemBase
             typeof(OccupationBuffer),
             typeof(Walls),
             typeof(Rooms),
-            typeof(Grid), typeof(Name), typeof(Prefab));
+            typeof(GridStructure), 
+            typeof(Name), 
+            typeof(Prefab));
         manager.SetComponentData(prefab, new Name {Value = data.Name});
         manager.SetComponentData(prefab, WorldTransform.Identity);
         manager.SetComponentData(prefab, LocalTransform.Identity);

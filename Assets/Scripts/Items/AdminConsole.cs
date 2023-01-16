@@ -13,7 +13,6 @@ using UnityEngine.UIElements;
 public class AdminConsole : VisualElement
 {
     public Entity LocalPlayer;
-    public static bool DebugMode;
 
     public interface IConsoleCommand
     {
@@ -48,9 +47,9 @@ public class AdminConsole : VisualElement
         });
     }
 
-    private Dictionary<string, IConsoleCommand> commands;
+    private static Dictionary<string, IConsoleCommand> commands;
 
-    public void Execute(string text, Entity executor)
+    public static void Execute(string text, Entity executor)
     {
         var tokens = Parse(text);
 
@@ -95,7 +94,7 @@ public class AdminConsole : VisualElement
         var tokens = Parse(text.text);
     }
 
-    List<Token> Parse(string text)
+    static List<Token> Parse(string text)
     {
         var tokens = new List<Token>();
         var parts = text.Split(' ');
@@ -259,6 +258,24 @@ public struct SpawnCommand : AdminConsole.IConsoleCommand
     }
 }
 
+public partial class AdminScriptExecutionSystem : SystemBase
+{
+    protected override void OnCreate()
+    {
+        RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<IdentifiableMappingSystem.Loaded>();
+    }
+
+    protected override void OnUpdate()
+    {
+        Entities.ForEach((Entity e, ExecuteAdminScript script) =>
+        {
+            AdminConsole.Execute(script.Script.Value, script.Executor == Entity.Null ? GetSingletonEntity<LocalPlayer>() : script.Executor);
+            EntityManager.DestroyEntity(e);
+        }).WithoutBurst().WithStructuralChanges().Run();
+    }
+}
+
 public partial class AdminConsoleSystem : SystemBase
 {
     private VisualElement DebugOverlay;
@@ -281,8 +298,6 @@ public partial class AdminConsoleSystem : SystemBase
             uiRoot.Register(new MoveSectorCommand{EntityManager = EntityManager});
         }
         uiRoot.style.display = DisplayStyle.None;
-
-        DebugOverlay ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("DebugUI");
     }
 
     EntityCommandBuffer GetCommandBuffer()
@@ -354,12 +369,6 @@ public partial class AdminConsoleSystem : SystemBase
             InputNextHint();
         }
 
-        if (Input.GetKeyDown(KeyCode.F5))
-        {
-            AdminConsole.DebugMode = !AdminConsole.DebugMode;
-            DebugOverlay.style.display = AdminConsole.DebugMode ? DisplayStyle.Flex : DisplayStyle.None;
-        }
-
         if (Input.GetKeyDown(KeyCode.F4))
         {
             uiRoot.style.display = uiRoot.style.display == DisplayStyle.Flex ? DisplayStyle.None : DisplayStyle.Flex;
@@ -374,11 +383,5 @@ public partial class AdminConsoleSystem : SystemBase
             }
 
         }
-
-        Entities.ForEach((Entity e, ExecuteAdminScript script) =>
-        {
-            uiRoot.Execute(script.Script.Value, script.Executor == Entity.Null ? GetSingletonEntity<LocalPlayer>() : script.Executor);
-            EntityManager.DestroyEntity(e);
-        }).WithoutBurst().WithStructuralChanges().Run();
     }
 }

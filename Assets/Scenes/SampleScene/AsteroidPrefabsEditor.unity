@@ -352,7 +352,7 @@ PrefabInstance:
     - target: {fileID: 789223630047444733, guid: 7e614e4882f417b45843bd2f83d26347,
         type: 3}
       propertyPath: m_Name
-      value: Asteroid2
+      value: Asteroid
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

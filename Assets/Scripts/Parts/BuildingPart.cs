@@ -61,7 +61,7 @@ public struct BoundingBox
                value.z >= Min.z && value.z <= Max.z;
     }
 
-    public static void Draw(BoundingBox box, LocalToWorld gridLtw, int3 normal, Color colorDefault, Color colorNormal)
+    public static void Draw(BoundingBox box, WorldTransform gridLtw, int3 normal, Color colorDefault, Color colorNormal)
     {
         var p1 = box.Min;
         var p2 = box.Max + 1;
@@ -88,10 +88,10 @@ public struct BoundingBox
         Draw(p7, p3, normal, p1, p2, gridLtw, colorDefault, colorNormal);
     }
 
-    static void Draw(int3 p1, int3 p2, int3 normal, int3 min, int3 max, LocalToWorld gridLtw, Color cd, Color cn)
+    static void Draw(int3 p1, int3 p2, int3 normal, int3 min, int3 max, WorldTransform gridLtw, Color cd, Color cn)
     {
         var focus = ((normal == 1) & (p1 == max) & (p2 == max)) | ((normal == -1) & (p1 == min) & (p2 == min));
-        Debug.DrawLine(Grid.PositionFromCell(gridLtw, p1), Grid.PositionFromCell(gridLtw, p2), math.any(focus) ? cn : cd);
+        Debug.DrawLine(GridStructure.PositionFromCell(gridLtw, p1), GridStructure.PositionFromCell(gridLtw, p2), math.any(focus) ? cn : cd);
     }
 }
 
@@ -103,7 +103,7 @@ public class BuildingPart : MonoBehaviour
     [SerializeField] private bool IsWall;
     private void OnDrawGizmos()
     {
-        Gizmos.DrawWireCube((float3)SizeInGrid * 0.5f * Grid.CELL_SIZE, (float3)SizeInGrid * Grid.CELL_SIZE);
+        Gizmos.DrawWireCube((float3)SizeInGrid * 0.5f * GridStructure.CELL_SIZE, (float3)SizeInGrid * GridStructure.CELL_SIZE);
     }
 
     private void OnValidate()

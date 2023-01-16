@@ -1,11 +1,7 @@
 using Unity.Entities;
-using Unity.Entities.UniversalDelegates;
 using Unity.Mathematics;
-using Unity.Physics;
-using Unity.Physics.Systems;
 using Unity.Transforms;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 
 public struct Player : IComponentData
@@ -32,9 +28,9 @@ public unsafe partial class MovePlayerSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var localPlayer = GetSingletonEntity<LocalPlayer>();
-        var camera = GetSingletonEntity<CameraAnchor>();
-        var cameraLtw = GetComponent<LocalToWorld>(camera);
+        var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
+        var camera = SystemAPI.GetSingletonEntity<CameraAnchor>();
+        var cameraLtw = SystemAPI.GetComponent<LocalToWorld>(camera);
 
         // --- Movement ---
         var movement = new float3(Input.GetAxis("MoveXAxis"), Input.GetAxis("MoveYAxis"), Input.GetAxis("MoveZAxis"));
@@ -46,23 +42,23 @@ public unsafe partial class MovePlayerSystem : SystemBase
         // --- Rotation ---
         var rotation =  new float3(-Input.GetAxis("Mouse Y"), Input.GetAxis("Mouse X"), Input.GetAxis("RotateZAxis") * 5) * ROTATION_SENSIVITY;
 
-        var camAnchor = GetSingleton<CameraAnchor>();
-        if (HasComponent<Docked>(localPlayer))
+        var camAnchor = SystemAPI.GetSingleton<CameraAnchor>();
+        if (SystemAPI.HasComponent<Docked>(localPlayer))
         {
             camAnchor.XRotation += math.degrees(rotation.x);
             camAnchor.XRotation = math.clamp(camAnchor.XRotation, -90, 75);
         }
         else
             camAnchor.XRotation = 0;
-        SetSingleton(camAnchor);
+        SystemAPI.SetSingleton(camAnchor);
 
-        var player = GetComponent<Player>(localPlayer);
+        var player = SystemAPI.GetComponent<Player>(localPlayer);
         player.Running = Input.GetKey(KeyCode.LeftShift);
-        SetComponent(localPlayer, player);
+        SystemAPI.SetComponent(localPlayer, player);
 
         var deltaTime = World.Time.DeltaTime;
 
-        var ecb = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
+        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
         Entities
             .WithNone<Docked>()
             .ForEach((Entity e, ref LocalTransform transform, ref CanTravelSectors cts, ref LocalToGalaxy ltg, ref Player player) =>
@@ -104,19 +100,20 @@ public unsafe partial class MovePlayerSystem : SystemBase
 // [UpdateBefore(typeof(LocalToParentSystem))]
 public partial class UpdateDockedCharacterPositionRotationSystem : SystemBase
 {
-
     protected override void OnUpdate()
     {
         Entities.ForEach((ref Docked docked) =>
         {
-            var parentLtw = GetComponent<LocalToWorld>(docked.Target);
+            var parentLtw = SystemAPI.GetComponent<WorldTransform>(docked.Target);
             docked.TargetRotation = parentLtw.Rotation;
             docked.TargetPosition = parentLtw.Position;
         }).ScheduleParallel();
 
-        Entities.ForEach((ref LocalToWorld ltw, in Docked docked, in LocalToGalaxy ltg) =>
+        Entities.ForEach((ref WorldTransform ltw, in Docked docked, in LocalToGalaxy ltg) =>
         {
-            ltw.Value = math.mul(float4x4.TRS(docked.TargetPosition, docked.TargetRotation, 1), float4x4.TRS(docked.Position, docked.Rotation, 1));
+            var trs = math.mul(float4x4.TRS(docked.TargetPosition, docked.TargetRotation, 1),
+                float4x4.TRS(docked.Position, docked.Rotation, 1));
+            ltw = WorldTransform.FromMatrix(trs);
         }).ScheduleParallel();
 
         // Entities

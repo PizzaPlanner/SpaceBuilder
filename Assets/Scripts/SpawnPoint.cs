@@ -36,7 +36,7 @@ public partial class PlayerSpawnSystem : SystemBase
                 Entity = player,
                 Previous = new LocalToGalaxy(),
                 New = ltg,
-                ChangeType = SectorChangeType.Teleport
+                ChangeType = SectorChangeType.Spawn
             });
         }).Schedule();
     }
