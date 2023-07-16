@@ -20,12 +20,13 @@ public partial class MarkObjectsInRangeSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var playerLtg = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
+        var playerLtg = SystemAPI.GetComponent<LocalToGalaxy>(SystemAPI.GetSingletonEntity<LocalPlayer>());
 
-        var buffer = GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
+        var buffer = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>()
+                              .CreateCommandBuffer(World.Unmanaged);
 
         Entities
-            .WithAny<Planet, Star, Nebula>()
+            .WithAll<CelestialBody>()
             .WithNone<BigObjectInPoiRange>()
             .ForEach((Entity e, in LocalToGalaxy ltg) =>
             {

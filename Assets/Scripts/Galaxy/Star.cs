@@ -5,13 +5,11 @@ using Unity.Transforms;
 using UnityEngine;
 
 namespace Galaxy {
-    [WriteGroup(typeof(LocalToWorld))]
     public struct Star : IComponentData
     {
         public float ColorTemperature;
         // public Entity LightEntity;
         public float Brightness;
-        public float Size;
     }
 
     // [UpdateInGroup(typeof(PresentationSystemGroup))]
@@ -53,7 +51,7 @@ namespace Galaxy {
 
         protected override void OnUpdate()
         {
-            var playerLtg = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
+            var playerLtg = SystemAPI.GetComponent<LocalToGalaxy>(SystemAPI.GetSingletonEntity<LocalPlayer>());
             LocalToGalaxy closestStar = default;
             var closestDistance = double.PositiveInfinity;
             Entities
@@ -68,29 +66,6 @@ namespace Galaxy {
                     }
                 }).Run();
             SetSingleton(new ClosestStarSector{StarLTG = closestStar, DistanceInSubSectors = closestDistance});
-        }
-    }
-
-    [UpdateInGroup(typeof(UpdatePresentationSystemGroup))]
-    public partial class StarRelativeToPlayerSystem : SystemBase
-    {
-        protected override void OnCreate()
-        {
-            RequireForUpdate<CameraAnchor>();
-        }
-    
-        protected override void OnUpdate()
-        {
-            var farClipPlane = Camera.main.farClipPlane;
-            var camPosition = (float3)Camera.main.transform.position;
-            Entities
-                .ForEach((ref LocalToWorld ltw, in WorldTransform transform, in Star star) =>
-                {
-                    var tBefore = transform.Position - camPosition;
-                    var newScale = math.max(star.Size * (farClipPlane / math.length(tBefore)), 3);
-                    var tNew = math.normalize(tBefore) * (farClipPlane * 0.95f - newScale) + camPosition;
-                    ltw.Value = float4x4.TRS(tNew, ltw.Rotation, newScale);
-                }).Schedule();
         }
     }
 }

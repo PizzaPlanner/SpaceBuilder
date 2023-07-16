@@ -245,7 +245,7 @@ public struct SpawnCommand : AdminConsole.IConsoleCommand
         if (parameters.Length == 0 || executor == Entity.Null || !EntityManager.HasComponent<LocalToGalaxy>(executor))
             return;
 
-        var executorTransform = EntityManager.GetComponentData<WorldTransform>(executor);
+        var executorTransform = EntityManager.GetComponentData<LocalTransform>(executor);
         
         var path = parameters[0];
         var ecb = EntityManager.World.GetExistingSystemManaged<EndSimulationEntityCommandBufferSystem>().CreateCommandBuffer();
@@ -291,7 +291,7 @@ public partial class AdminConsoleSystem : SystemBase
         if (uiRoot == null)
         {
             uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q<AdminConsole>();
-            uiRoot.LocalPlayer = GetSingletonEntity<LocalPlayer>();
+            uiRoot.LocalPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
             uiRoot.Register(new GiveItemConsoleCommand{EntityManager = EntityManager, GetId = GetId, GetEcb = GetCommandBuffer});
             uiRoot.Register(new NoclipConsoleCommand{EntityManager = EntityManager});
             uiRoot.Register(new SpawnCommand(){EntityManager = EntityManager});
@@ -351,17 +351,18 @@ public partial class AdminConsoleSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        if (Input.GetKeyDown(KeyCode.KeypadPlus))
+        if (Input.GetKeyDown(KeyCode.KeypadPlus) || Input.GetKeyDown(KeyCode.Plus))
         {
-            var pl = GetComponent<Player>(GetSingletonEntity<LocalPlayer>());
+            var pl = SystemAPI.GetComponent<Player>(SystemAPI.GetSingletonEntity<LocalPlayer>());
             pl.MovementSpeedRun *= Input.GetKey(KeyCode.LeftShift) ? 10 : 100;
-            SetComponent(GetSingletonEntity<LocalPlayer>(), pl);
+            SystemAPI.SetComponent(SystemAPI.GetSingletonEntity<LocalPlayer>(), pl);
         }
-        if (Input.GetKeyDown(KeyCode.KeypadMinus))
+
+        if (Input.GetKeyDown(KeyCode.KeypadMinus) || Input.GetKeyDown(KeyCode.Minus))
         {
-            var pl = GetComponent<Player>(GetSingletonEntity<LocalPlayer>());
+            var pl = SystemAPI.GetComponent<Player>(SystemAPI.GetSingletonEntity<LocalPlayer>());
             pl.MovementSpeedRun *= Input.GetKey(KeyCode.LeftShift) ? 0.1f : 0.01f;
-            SetComponent(GetSingletonEntity<LocalPlayer>(), pl);
+            SystemAPI.SetComponent(SystemAPI.GetSingletonEntity<LocalPlayer>(), pl);
         }
 
         if (Input.GetKeyDown(KeyCode.Tab) && uiRoot.style.display == DisplayStyle.Flex)

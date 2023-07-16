@@ -168,7 +168,7 @@ public partial class GhostPlacementSystem : SystemBase
                 grids = GetComponentLookup<GridStructure>(true),
                 gridItems = GetComponentLookup<GridItem>(true),
                 colliders = GetComponentLookup<PhysicsCollider>(true),
-                occupations = GetBufferLookup<OccupationBuffer>(true),
+                occupations = GetComponentLookup<CellMap>(true),
                 prefabMap = IdentifiableMappingSystem.EntitiesById,
                 IsCreateGhostJob = true
             }.Run(ppquery);

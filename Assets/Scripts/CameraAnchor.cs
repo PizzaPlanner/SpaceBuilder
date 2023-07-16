@@ -30,8 +30,8 @@ public partial class CameraControllerSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var anchorLtw = GetComponent<LocalToWorld>(GetSingletonEntity<CameraAnchor>());
-        var anchor = GetSingleton<CameraAnchor>();
+        var anchorLtw = SystemAPI.GetComponent<LocalToWorld>(SystemAPI.GetSingletonEntity<CameraAnchor>());
+        var anchor = SystemAPI.GetSingleton<CameraAnchor>();
 
         var camDistance = anchor.ScrollFactor;
         var rotatedOffset = math.mul(anchorLtw.Rotation, anchor.MaxOffset);

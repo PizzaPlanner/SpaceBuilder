@@ -40,11 +40,9 @@ public partial class CalculateBuildingSlotSystem : SystemBase
             return;
         }
 
-        var occupied = GetBuffer<OccupationBuffer>(bgp.TargetGrid, true);
+        var occupied = GetComponent<CellMap>(bgp.TargetGrid);
         var newCell = target.GridHit.Cell + target.GridHit.Normal;
-        var targetIsOccupied = false;
-        foreach (var item in occupied)
-            targetIsOccupied |= math.all(item.Location == newCell);
+        var targetIsOccupied = occupied.IsOccupied(newCell);
         targetCell = targetIsOccupied ? int.MaxValue : newCell;
 
         var rotation = GetComponent<LocalTransform>(ghost).Rotation;
@@ -52,7 +50,7 @@ public partial class CalculateBuildingSlotSystem : SystemBase
         {
             if (inScalingMode)
             {
-                var gridLtw = GetComponent<WorldTransform>(bgp.TargetGrid);
+                var gridLtw = GetComponent<LocalToWorld>(bgp.TargetGrid);
                 if(GridTools.ViewIntersectsPlaneFromGridCell(
                        new float3x2(Camera.main.transform.position, Camera.main.transform.forward), 
                        gridLtw,  
@@ -85,9 +83,7 @@ public partial class CalculateBuildingSlotSystem : SystemBase
             bgp.DragStartNormal = target.GridHit.Normal;
         }
         
-        var canBuild = gridItem.Area.IsValid;
-        foreach (var item in occupied)
-            canBuild &= !gridItem.Area.Contains(item.Location);
+        var canBuild = gridItem.Area.IsValid && !occupied.IsAnyOccupied(gridItem.Area);
 
         SetComponent(ghost, new Ghost {Buildable = canBuild});
         SetComponent(ghost,

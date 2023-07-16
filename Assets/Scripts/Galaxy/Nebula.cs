@@ -20,7 +20,7 @@ public partial class NebulaRelativeToPlayerSystem : SystemBase
     {
         var farClipPlane = Camera.main.farClipPlane;
         var camPosition = (float3)Camera.main.transform.position;
-
+        
         Entities.WithAll<Nebula, ToGenerate>()
             .ForEach((VisualEffect sfx, in LocalToGalaxy ltg) =>
             {
@@ -30,10 +30,10 @@ public partial class NebulaRelativeToPlayerSystem : SystemBase
             }).WithoutBurst().Run();
 
         EntityManager.RemoveComponent<ToGenerate>(GetEntityQuery(typeof(Nebula), typeof(ToGenerate)));
-
+        
         Entities
             .WithAll<Nebula>()
-            .ForEach((VisualEffect sfx, ref LocalToWorld ltw, in WorldTransform transform) =>
+            .ForEach((VisualEffect sfx, ref LocalToWorld ltw, in LocalTransform transform) =>
             {
                 var tBefore = transform.Position - camPosition;
                 var newScale = farClipPlane / math.length(tBefore);

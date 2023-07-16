@@ -5,28 +5,20 @@ using Unity.Transforms;
 [UpdateInGroup(typeof(GridRecalculationSystemGroup))]
 public partial class RecalculateSteeringControllerSystem : SystemBase
 {
-    protected override void OnCreate()
-    {
-        RequireForUpdate(GetEntityQuery(typeof(GridNeedsUpdate)));
-    }
 
-    protected override void OnUpdate()
-    {
-        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
-        var query = GetEntityQuery(typeof(Thruster), typeof(GridItem), typeof(LocalTransform));
-        var entities = query.ToEntityArray(Allocator.TempJob);
-        var thrusters = query.ToComponentDataArray<Thruster>(Allocator.TempJob);
-        var gridItems = query.ToComponentDataArray<GridItem>(Allocator.TempJob);
-        var rotations = query.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
 
-        Entities
-            .WithReadOnly(entities).WithDisposeOnCompletion(entities)
-            .WithReadOnly(thrusters).WithDisposeOnCompletion(thrusters)
-            .WithReadOnly(gridItems).WithDisposeOnCompletion(gridItems)
-            .WithReadOnly(rotations).WithDisposeOnCompletion(rotations)
-            .ForEach((Entity e, ref DynamicBuffer<ControlledItems> controller, in SteeringController steering) =>
+    
+    partial struct SteeringJob : IJobEntity
+    {
+        [ReadOnly] public ComponentLookup<GridItem> gridLookup;
+        [ReadOnly] public NativeArray<Entity> entities;
+        [ReadOnly] public NativeArray<GridItem> gridItems;
+        [ReadOnly] public NativeArray<Thruster> thrusters;
+        [ReadOnly] public NativeArray<LocalTransform> rotations;
+
+        public void Execute(Entity e, ref DynamicBuffer<ControlledItems> controller, in SteeringController steering)
         {
-            var grid = GetComponent<GridItem>(e).Grid;
+            var grid = gridLookup[e].Grid;
             controller.Clear();
             for(int i = 0; i < entities.Length; i++)
                 if (gridItems[i].Grid == grid)
@@ -49,6 +41,25 @@ public partial class RecalculateSteeringControllerSystem : SystemBase
                         Type = type
                     });
                 }
-        }).Schedule();
+        }
+    }
+    
+    protected override void OnCreate()
+    {
+        RequireForUpdate(GetEntityQuery(typeof(GridUpdate)));
+    }
+
+    protected override void OnUpdate()
+    {
+        var query = GetEntityQuery(typeof(Thruster), typeof(GridItem), typeof(LocalTransform));
+
+        new SteeringJob
+        {
+            entities = query.ToEntityArray(Allocator.TempJob),
+            thrusters = query.ToComponentDataArray<Thruster>(Allocator.TempJob),
+            gridItems = query.ToComponentDataArray<GridItem>(Allocator.TempJob),
+            rotations = query.ToComponentDataArray<LocalTransform>(Allocator.TempJob),
+            gridLookup = SystemAPI.GetComponentLookup<GridItem>(true)
+        }.Schedule();
     }
 }

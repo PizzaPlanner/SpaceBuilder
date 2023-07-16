@@ -15,7 +15,8 @@ public class NameAuthoring : MonoBehaviour
     {
         public override void Bake(NameAuthoring authoring)
         {
-            AddComponent(new Name{Value = authoring.Name});
+            var e = GetEntity(TransformUsageFlags.None);
+            AddComponent(e, new Name{Value = authoring.Name});
         }
     }
 }

@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -27,7 +28,7 @@ public partial class EarlyReferenceFrameSystem : SystemBase
         EntityManager.CreateEntity(typeof(ReferenceFrame));
         
         var defaultLtw = new LocalToWorld { Value = float4x4.TRS(0, quaternion.identity, 1) };
-        SetSingleton(new ReferenceFrame
+        SystemAPI.SetSingleton(new ReferenceFrame
         {
             CurrentLtw = defaultLtw, 
             PreviousLtw = defaultLtw
@@ -36,10 +37,9 @@ public partial class EarlyReferenceFrameSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var refFrame = GetSingleton<ReferenceFrame>();
-        refFrame.PreviousLtg = refFrame.CurrentLtg;
-        refFrame.PreviousLtw = refFrame.CurrentLtw;
-        SetSingleton(refFrame);
+        var refFrame = SystemAPI.GetSingletonRW<ReferenceFrame>();
+        refFrame.ValueRW.PreviousLtg = refFrame.ValueRW.CurrentLtg;
+        refFrame.ValueRW.PreviousLtw = refFrame.ValueRW.CurrentLtw;
     }
 }
 
@@ -56,28 +56,26 @@ public partial class LateReferenceFrameSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var localPlayer = GetSingletonEntity<LocalPlayer>();
-        var refFrame = GetSingleton<ReferenceFrame>();
+        var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
+        var refFrame = SystemAPI.GetSingletonRW<ReferenceFrame>();
 
-        var prevTarget = refFrame.Target;
-        if (HasComponent<Docked>(localPlayer))
-            refFrame.Target = GetComponent<Docked>(localPlayer).Target;
+        var prevTarget = refFrame.ValueRW.Target;
+        if (SystemAPI.HasComponent<Docked>(localPlayer))
+            refFrame.ValueRW.Target = SystemAPI.GetComponent<Docked>(localPlayer).Target;
         else
-            refFrame.Target = localPlayer;
+            refFrame.ValueRW.Target = localPlayer;
 
-        if (refFrame.Target != prevTarget)
+        var gridLtg = SystemAPI.GetComponent<LocalToGalaxy>(refFrame.ValueRW.Target);
+        var gridLtw = SystemAPI.GetComponent<LocalToWorld>(refFrame.ValueRW.Target);
+        refFrame.ValueRW.CurrentLtg = gridLtg;
+        refFrame.ValueRW.CurrentLtw = new LocalToWorld { Value = float4x4.Translate(gridLtw.Position) };
+        
+        if (refFrame.ValueRW.Target != prevTarget)
         {
             if (prevTarget != Entity.Null)
                 EntityManager.RemoveComponent<ReferenceFrameOrigin>(prevTarget);
-            if(refFrame.Target != Entity.Null)
-                EntityManager.AddComponent<ReferenceFrameOrigin>(refFrame.Target);
+            if(refFrame.ValueRW.Target != Entity.Null)
+                EntityManager.AddComponent<ReferenceFrameOrigin>(refFrame.ValueRW.Target);
         }
-
-        var gridLtg = GetComponent<LocalToGalaxy>(refFrame.Target);
-        var gridLtw = GetComponent<LocalToWorld>(refFrame.Target);
-        refFrame.CurrentLtg = gridLtg;
-        refFrame.CurrentLtw = new LocalToWorld { Value = float4x4.Translate(gridLtw.Position) };
-
-        SetSingleton(refFrame);
     }
 }

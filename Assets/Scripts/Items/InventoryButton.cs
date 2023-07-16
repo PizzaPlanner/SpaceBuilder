@@ -66,7 +66,7 @@ public class InventoryElement : VisualElement
                 ? $"x{stacks[entity].Size}"
                 : "";
 
-            x.Image = IdentifiableMappingSystem.IconById.ContainsKey(ids[entity].ItemId) ? IdentifiableMappingSystem.IconById[ids[entity].ItemId] : null;
+            x.Image = IdentifiableMappingSystem.IconById.TryGetValue(ids[entity].ItemId, out var value) ? value : null;
         });
     }
 

@@ -10,14 +10,22 @@ public struct Interacted : IComponentData
 
 public partial class InteractionSystem : SystemBase
 {
+    protected override void OnCreate()
+    {
+        RequireForUpdate<LocalPlayer>();
+    }
+
     protected override void OnUpdate()
     {
         EntityManager.RemoveComponent<Interacted>(GetEntityQuery(typeof(Interacted)));
         if (Input.GetMouseButtonDown(0))
         {
-            var myTarget = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
-            if(myTarget.CanInteract)
-                EntityManager.AddComponentData(myTarget.Value, new Interacted{Interactor = GetSingletonEntity<LocalPlayer>()});
+            var myTarget = SystemAPI.GetComponent<Target>(SystemAPI.GetSingletonEntity<LocalPlayer>());
+            if (myTarget.CanInteract)
+                EntityManager.AddComponentData(myTarget.Value, new Interacted
+                {
+                    Interactor = SystemAPI.GetSingletonEntity<LocalPlayer>()
+                });
         }
     }
 }

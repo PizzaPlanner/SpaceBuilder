@@ -38,7 +38,7 @@ public partial class CalculateCloseGridsSystem : SystemBase
         var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
         var playerLtg = SystemAPI.GetComponent<LocalToGalaxy>(localPlayer);
         var gridBuffer = SystemAPI.GetBuffer<CloseGrids>(localPlayer);
-        var playerPosition = SystemAPI.GetComponent<WorldTransform>(localPlayer);
+        var playerPosition = SystemAPI.GetComponent<LocalToWorld>(localPlayer);
 
         gridBuffer.Clear();
 

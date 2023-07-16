@@ -36,13 +36,10 @@ public partial class DebugSectorLoadingDisplaySystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var pendingSectors = SystemAPI.TryGetSingleton<LoadSectorSystem.HasPendingSectors>(out var pending)
-            ? pending.Count
-            : 0;
-        var loadedSectors = GetEntityQuery(ComponentType.ReadOnly<SectorData>()).CalculateEntityCount();
-        var toUnload = GetEntityQuery(
-            ComponentType.ReadOnly<UnloadCandidate>(),
-            ComponentType.Exclude<ToGenerate>()).CalculateEntityCount();
+        var pendingSectors = SystemAPI.GetSingleton<LoadSectorSystem.PendingSectors>();
+        var loadedSectors = pendingSectors.sectorsLoaded.Length;
+        var toLoad = pendingSectors.sectorsToLoad.Count;
+        var toUnload = pendingSectors.sectorsToUnload.Count;
 
         var stars = GetEntityQuery(typeof(Star)).CalculateEntityCount();
         var planets = GetEntityQuery(typeof(Planet)).CalculateEntityCount();
@@ -63,7 +60,7 @@ Current Speed: {GalaxyTools.ToGalacticDistanceWithUnit(speed.CurrentSpeed)}
 Running Speed: {GalaxyTools.ToGalacticDistanceWithUnit(player2.MovementSpeedRun)}";
 
         infoTexts.Q<Label>("sectors").text = $@"Loaded: {loadedSectors}
-Pending: +{pendingSectors} / -{toUnload}
+Pending: +{toLoad} / -{toUnload}
 ";
         
         infoTexts.Q<Label>("things").text = $@"Stars: {stars}

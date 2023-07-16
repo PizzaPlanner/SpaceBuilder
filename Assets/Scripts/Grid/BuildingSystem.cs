@@ -18,7 +18,7 @@ public struct GridChangedEvent : IComponentData
 
 [ExecuteAlways]
 [UpdateInGroup(typeof(TransformSystemGroup), OrderFirst = true)]
-public class BeforeReparentingEntitiyCommandBufferSystem : EntityCommandBufferSystem { }
+public partial class BeforeReparentingEntitiyCommandBufferSystem : EntityCommandBufferSystem { }
 
 public partial class BuildingSystem : SystemBase
 {
@@ -39,7 +39,7 @@ public partial class BuildingSystem : SystemBase
         [ReadOnly] public ComponentLookup<GridStructure> grids;
         [ReadOnly] public ComponentLookup<GridItem> gridItems;
         [ReadOnly] public ComponentLookup<PhysicsCollider> colliders;
-        [ReadOnly] public BufferLookup<OccupationBuffer> occupations;
+        [ReadOnly] public ComponentLookup<CellMap> occupations;
 
         public bool IsCreateGhostJob;
         public bool IsFinishConstructionJob;
@@ -69,9 +69,7 @@ public partial class BuildingSystem : SystemBase
             // Check if space is already occupied
             if (!IsCreateGhostJob && !IsFinishConstructionJob)
             {
-                var canBuild = newGridItem.Area.IsValid;
-                foreach (var item in occupations[part.Grid])
-                    canBuild &= !newGridItem.Area.Contains(item.Location);
+                var canBuild = newGridItem.Area.IsValid && !occupations[part.Grid].IsAnyOccupied(newGridItem.Area);
                 if (!canBuild)
                 {
                     Debug.Log($"Discarded pending part in invalid or occupied area {newGridItem.Area}");
@@ -153,13 +151,14 @@ public partial class BuildingSystem : SystemBase
             }
             else
             {
-                for (int x = newGridItem.Area.Min.x; x <= newGridItem.Area.Max.x; x++)
-                for (int y = newGridItem.Area.Min.y; y <= newGridItem.Area.Max.y; y++)
-                for (int z = newGridItem.Area.Min.z; z <= newGridItem.Area.Max.z; z++)
+                var echange = buffer.CreateEntity();
+                buffer.AddComponent(echange, new GridUpdate
                 {
-                    var eChange = buffer.CreateEntity();
-                    buffer.AddComponent(eChange, new GridChangedEvent{Grid = part.Grid, Position = new int3(x,y,z)});
-                }
+                    Area = newGridItem.Area, 
+                    Grid = part.Grid, 
+                    Type = GridUpdate.UpdateType.Add, 
+                    GridItem = entity
+                });
             }
         }
     }
@@ -173,7 +172,7 @@ public partial class BuildingSystem : SystemBase
             grids = GetComponentLookup<GridStructure>(true),
             gridItems = GetComponentLookup<GridItem>(true),
             colliders = GetComponentLookup<PhysicsCollider>(true),
-            occupations = GetBufferLookup<OccupationBuffer>(true),
+            occupations = GetComponentLookup<CellMap>(true),
             prefabMap = IdentifiableMappingSystem.EntitiesById,
             IsCreateGhostJob = false,
             RenderBlueprint = HasSingleton<BuilderMode_Blueprint>() || HasSingleton<BuilderMode_Build>() || HasSingleton<BuilderMode_Destroy>()
@@ -181,7 +180,6 @@ public partial class BuildingSystem : SystemBase
 
         buffer.DestroyEntity(query);
         buffer.Playback(EntityManager);
-        var e = EntityManager.CreateEntity(typeof(GridNeedsUpdate));
     }
 }
 

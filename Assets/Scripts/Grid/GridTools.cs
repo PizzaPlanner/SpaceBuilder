@@ -74,7 +74,7 @@ public static class GridTools
         return false;
     }
 
-    public static bool ViewIntersectsPlaneFromGridCell(float3x2 cameraPosForward, WorldTransform gridLtw, float3 originCellCenter, int3 cellTargetPlaneNormal,
+    public static bool ViewIntersectsPlaneFromGridCell(float3x2 cameraPosForward, LocalToWorld gridLtw, float3 originCellCenter, int3 cellTargetPlaneNormal,
         out float3 hit)
     {
         var camPosition = cameraPosForward.c0;

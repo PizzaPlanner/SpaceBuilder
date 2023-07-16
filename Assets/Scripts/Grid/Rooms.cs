@@ -1,18 +1,39 @@
+using System;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-public struct Rooms : IBufferElementData
+public struct Rooms : IBufferElementData, IDisposable
 {
-    public short Id;
-    public bool IsExposedToSpace;
-    public int3 Cell;
+    public Room Room;
+    
+    public void Dispose()
+    {
+        Room.Dispose();
+    }
 }
 
-public struct Walls : IBufferElementData
+public struct Room : IDisposable
 {
-    public int3 Cell;
+    public short Id;
+    public NativeList<int3> Cells;
+    public IntAABB BoundingBox;
+
+    public bool Contains(int3 cell)
+    {
+        if (!BoundingBox.Contains(cell))
+            return false;
+        foreach(var inside in Cells)
+            if (math.all(inside == cell))
+                return true;
+        return false;
+    }
+
+    public void Dispose()
+    {
+        Cells.Dispose();
+    }
 }
 
 public partial class RoomSystem : SystemBase
@@ -25,7 +46,7 @@ public partial class RoomSystem : SystemBase
         new(-1, 0, 0), new(0, -1, 0), new(0, 0, -1)
     };
     
-    public static void FindRoom(int3 origin, BoundingBox area, NativeParallelHashMap<int3, short> rooms, NativeQueue<int3> pendingCells)
+    public static void FindRoom(ref short currentRoomId, int3 origin, IntAABB area, NativeParallelHashMap<int3, short> rooms, NativeQueue<int3> pendingCells)
     {
         if (!rooms.ContainsKey(origin))
             return;
@@ -41,17 +62,17 @@ public partial class RoomSystem : SystemBase
             var id = rooms[origin];
             var nid = rooms[neighbour];
             
-            if(id == nid && id != -1)
+            if(id == nid && id != short.MaxValue)
                 continue;
             
-            if (id == -1 && nid == -1)
+            if (id == short.MaxValue && nid == short.MaxValue)
             {
-                id = GetFreeId(rooms);
+                id = ++currentRoomId;
                 rooms[origin] = id;
                 rooms[neighbour] = id;
                 pendingCells.Enqueue(neighbour);
             }
-            else if (id == -1 && nid != -1)
+            else if (id == short.MaxValue && nid != short.MaxValue)
             {
                 rooms[origin] = nid;
             }
@@ -61,22 +82,6 @@ public partial class RoomSystem : SystemBase
                 pendingCells.Enqueue(neighbour);
             }
         }
-    }
-
-    private static short GetFreeId(NativeParallelHashMap<int3, short> rooms)
-    {
-        var nextId = (short)1;
-        foreach(var item in rooms)
-            nextId = (short)math.max(nextId, item.Value + 1);
-        return nextId;
-    }
-
-    public static bool IsWall(int3 cell, DynamicBuffer<Walls> walls)
-    {
-        var isWall = false;
-        for (int i = 0; i < walls.Length; i++)
-            isWall |= math.all(walls[i].Cell == cell);
-        return isWall;
     }
 }
 

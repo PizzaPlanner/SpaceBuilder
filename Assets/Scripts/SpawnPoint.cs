@@ -9,35 +9,42 @@ public struct SpawnPoint : IComponentData
 
 public partial class PlayerSpawnSystem : SystemBase
 {
+    protected override void OnCreate()
+    {
+        RequireForUpdate<SpawnPoint>();
+    }
 
     protected override void OnUpdate()
     {
-        if (HasSingleton<LocalPlayer>())
+        if (SystemAPI.HasSingleton<LocalPlayer>())
         {
             Enabled = false;
             return;
         }
-        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
+        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                              .CreateCommandBuffer(World.Unmanaged);
 
-        Entities.ForEach((in SpawnPoint sp, in LocalToWorld ltw, in LocalToGalaxy ltg) =>
+        var spawnEntity = SystemAPI.GetSingletonEntity<SpawnPoint>();
+        var sp = SystemAPI.GetComponent<SpawnPoint>(spawnEntity);
+        var transform = SystemAPI.GetComponent<LocalTransform>(spawnEntity);
+        var ltg = SystemAPI.GetComponent<LocalToGalaxy>(spawnEntity);
+
+        var player = ecb.Instantiate(sp.Prefab);
+        ecb.AddBuffer<CloseGrids>(player);
+        ecb.SetComponent(player, transform);
+        ecb.AddComponent(player, ltg);
+        ecb.AddComponent(player, new CanTravelSectors());
+
+        var ctrl = ecb.CreateEntity();
+        ecb.AddComponent<InputSystem.ControlPlayer>(ctrl);
+
+        var update = ecb.CreateEntity();
+        ecb.AddComponent(update, new SectorChange
         {
-            var player = buffer.Instantiate(sp.Prefab);
-            buffer.AddBuffer<CloseGrids>(player);
-            buffer.SetComponent(player, new WorldTransform { Position = ltw.Position });
-            buffer.AddComponent(player, ltg);
-            buffer.AddComponent(player, new CanTravelSectors());
-
-            var ctrl = buffer.CreateEntity();
-            buffer.AddComponent<InputSystem.ControlPlayer>(ctrl);
-
-            var update = buffer.CreateEntity();
-            buffer.AddComponent(update, new SectorChange
-            {
-                Entity = player,
-                Previous = new LocalToGalaxy(),
-                New = ltg,
-                ChangeType = SectorChangeType.Spawn
-            });
-        }).Schedule();
+            Entity = player,
+            Previous = new LocalToGalaxy(),
+            New = ltg,
+            ChangeType = SectorChangeType.Spawn
+        });
     }
 }

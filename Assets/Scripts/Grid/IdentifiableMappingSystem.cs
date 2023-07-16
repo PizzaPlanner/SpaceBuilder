@@ -16,6 +16,7 @@ public partial class IdentifiableMappingSystem : SystemBase
     {
         query = GetEntityQuery(typeof(Identifieable), typeof(Prefab));
         RequireForUpdate(query);
+        EntitiesById = new NativeParallelHashMap<ulong, Entity>(0, Allocator.Persistent);
     }
 
     protected override void OnDestroy()
@@ -32,13 +33,14 @@ public partial class IdentifiableMappingSystem : SystemBase
     {
         var entities = query.ToEntityArray(Allocator.Temp);
         Debug.Log($"Found {entities.Length} ID Prefabs");
-        EntitiesById = new NativeParallelHashMap<ulong, Entity>(entities.Length, Allocator.Persistent);
-        Entities
-            .WithEntityQueryOptions(EntityQueryOptions.IncludePrefab)
-            .WithAll<Prefab>()
-            .ForEach((Entity e, in Identifieable id) =>
-            {
-                if (HasComponent<Parent>(e) && GetComponent<Parent>(e).Value != Entity.Null)
+        EntitiesById.Capacity = entities.Length;
+        IconById = new Dictionary<ulong, Texture2D>();
+        foreach (var (id, e) in SystemAPI.Query<Identifieable>()
+                                         .WithOptions(EntityQueryOptions.IncludePrefab)
+                                         .WithAll<Prefab>()
+                                         .WithEntityAccess())
+        {
+                if (SystemAPI.HasComponent<Parent>(e) && SystemAPI.GetComponent<Parent>(e).Value != Entity.Null)
                     return;
 
                 if(id.ItemId == 0)
@@ -48,23 +50,10 @@ public partial class IdentifiableMappingSystem : SystemBase
                 else
                     EntitiesById.Add(id.ItemId, e);
 
-                // if (HasComponent<LocalToWorld>(e))
-                //     EntityManager.RemoveComponent<LocalToWorld>(e);
-                // if (HasComponent<Translation>(e))
-                //     EntityManager.RemoveComponent<Translation>(e);
-                // if (HasComponent<Rotation>(e))
-                //     EntityManager.RemoveComponent<Rotation>(e);
-            }).WithStructuralChanges().WithoutBurst().Run();
+                if (SystemAPI.ManagedAPI.HasComponent<IconReference>(e))
+                    IconById[id.ItemId] = SystemAPI.ManagedAPI.GetComponent<IconReference>(e).Icon;
 
-        IconById = new Dictionary<ulong, Texture2D>();
-        Entities
-            .WithEntityQueryOptions(EntityQueryOptions.IncludePrefab)
-            .WithAll<Prefab>()
-            .ForEach((Entity iconEntity, in IconReference icon, in Identifieable id) =>
-        {
-            IconById[id.ItemId] = icon.Icon;
-            // EntityManager.RemoveComponent<IconReference>(iconEntity);
-        }).WithStructuralChanges().WithoutBurst().Run();
+        }
 
         Enabled = false;
     }

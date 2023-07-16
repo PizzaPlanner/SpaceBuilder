@@ -35,7 +35,7 @@ public struct BoundingBox
     public readonly int3 Size => Max - Min + 1;
     
     // TODO: How?
-    public readonly PostTransformScale ToScale(quaternion objectRotation) => new PostTransformScale{Value = float3x3.Scale(math.abs(Size.Rotated(math.inverse(objectRotation))))};
+    public readonly PostTransformMatrix ToScale(quaternion objectRotation) => new PostTransformMatrix{Value = float4x4.Scale(math.abs(Size.Rotated(math.inverse(objectRotation))))};
 
     public readonly BoundingBox AdjustedToObjectRotation(quaternion objectRotation)
     {
@@ -61,7 +61,7 @@ public struct BoundingBox
                value.z >= Min.z && value.z <= Max.z;
     }
 
-    public static void Draw(BoundingBox box, WorldTransform gridLtw, int3 normal, Color colorDefault, Color colorNormal)
+    public static void Draw(BoundingBox box, LocalToWorld gridLtw, int3 normal, Color colorDefault, Color colorNormal)
     {
         var p1 = box.Min;
         var p2 = box.Max + 1;
@@ -88,7 +88,7 @@ public struct BoundingBox
         Draw(p7, p3, normal, p1, p2, gridLtw, colorDefault, colorNormal);
     }
 
-    static void Draw(int3 p1, int3 p2, int3 normal, int3 min, int3 max, WorldTransform gridLtw, Color cd, Color cn)
+    static void Draw(int3 p1, int3 p2, int3 normal, int3 min, int3 max, LocalToWorld gridLtw, Color cd, Color cn)
     {
         var focus = ((normal == 1) & (p1 == max) & (p2 == max)) | ((normal == -1) & (p1 == min) & (p2 == min));
         Debug.DrawLine(GridStructure.PositionFromCell(gridLtw, p1), GridStructure.PositionFromCell(gridLtw, p2), math.any(focus) ? cn : cd);
@@ -116,7 +116,8 @@ public class BuildingPart : MonoBehaviour
     {
         public override void Bake(BuildingPart authoring)
         {
-            AddComponent(new GridItem
+            var entity = GetEntity(authoring, TransformUsageFlags.Dynamic);
+            AddComponent(entity, new GridItem
             {
                 Area = new BoundingBox{Origin = int3.zero, Extents = (int3)authoring.SizeInGrid - 1},
                 Scalable = math.all(authoring.SizeInGrid == 1) && authoring.Scalable,
@@ -125,9 +126,7 @@ public class BuildingPart : MonoBehaviour
             // TODO
             // AddComponent(new RotationPivot {Value = Grid.CELL_SIZE * 0.5f});
             // AddComponent<CompositeRotation>();
-            AddComponent<Parent>();
-            // AddComponent<LocalTransform>();
-            AddComponent<ParentTransform>();
+            AddComponent<Parent>(entity);
         }
     }
 }

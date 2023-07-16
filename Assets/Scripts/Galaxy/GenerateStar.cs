@@ -1,5 +1,6 @@
 using Galaxy;
 using System.Linq;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -22,48 +23,65 @@ public struct URPStarFlareIntensity : IComponentData, IQueryTypeParameter
     public float Value;
 }
 
-public partial class GenerateStarSystem : SystemBase
+[WithAll(typeof(GenerateStar))]
+partial struct GenerateStarJob : IJobEntity
 {
-    private Entity prefab;
-    private Star defaultStarData;
+    public Entity prefab;
+    public Star defaultStar;
+    public CelestialBody defaultBody;
+    public EntityCommandBuffer.ParallelWriter ecb;
+        
+    void Execute(Entity e, [EntityIndexInQuery] int index, in LocalToGalaxy ltg, in SubSectorData data)
+    {
+        var random = new Random(data.Seed);
+        var star = ecb.Instantiate(index, prefab);
+        var starData = defaultStar;
+        var starBody = defaultBody;
+        random.NextFloat();
+        starBody.Size = random.NextFloat(0.3f, GenerateStarSystem.STAR_MAX_SIZE_FACTOR) * GenerateStarSystem.STAR_SIZE_BASE;
+        starData.ColorTemperature = random.NextFloat(-2.1f, 2.06f);
+        starData.Brightness = random.NextFloat(200 + 40 * starData.ColorTemperature, 300);
+        ecb.SetComponent(index, star, starData);
+        ecb.SetComponent(index, star, starBody);
+        ecb.SetComponent(index, star, ltg);
+        ecb.SetComponent(index, star, new URPStarTemperature { Value = starData.ColorTemperature });
+        ecb.SetComponent(index, star, new URPStarFlareIntensity { Value = starData.Brightness });
+        ecb.SetComponent(index, star, new Name{Value = $"{GalaxyTools.GetStarName(data.Seed)}"});
+    }
+}
+
+[BurstCompile]
+public partial struct GenerateStarSystem : ISystem
+{
+    EntityQuery prefabQuery;
+    EntityQuery generateQuery;
+
+    public void OnCreate(ref SystemState state)
+    {
+        state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+        state.RequireForUpdate<GenerateStar>();
+        prefabQuery = state.GetEntityQuery(new EntityQueryBuilder(Allocator.Temp)
+                                           .WithOptions(EntityQueryOptions.IncludePrefab)
+                                           .WithAll<Star, Prefab>());
+        generateQuery = state.GetEntityQuery(typeof(GenerateStar));
+    }
 
     public const float STAR_SIZE_BASE = 5_000_000;
     public const float STAR_MAX_SIZE_FACTOR = 12;
-    
-    protected override void OnUpdate()
-    {
-        if (prefab == Entity.Null)
-        {
-            if (!GetEntityQuery(new EntityQueryBuilder(Allocator.Temp)
-                                .WithOptions(EntityQueryOptions.IncludePrefab)
-                                .WithAll<Star>())
-                    .TryGetSingletonEntity<Star>(out prefab))
-                return;
-            
-            defaultStarData = GetComponent<Star>(prefab);
-        }
 
-        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
-        var prefabStarData = defaultStarData;
-        var prefabLocal = prefab;
-        Entities
-            .WithAll<GenerateStar>()
-            .ForEach((Entity e, in LocalToGalaxy ltg, in SectorData data) =>
-            {
-                var random = new Random(data.Seed);
-                var star = buffer.Instantiate(prefabLocal);
-                var starData = prefabStarData;
-                var _ = random.NextFloat();
-                starData.Size = random.NextFloat(0.3f, STAR_MAX_SIZE_FACTOR) * STAR_SIZE_BASE;
-                starData.ColorTemperature = random.NextFloat(-2.1f, 2.06f);
-                starData.Brightness = random.NextFloat(200 + 40 * starData.ColorTemperature, 300);
-                buffer.SetComponent(star, starData);
-                buffer.SetComponent(star, ltg);
-                buffer.AddComponent(star, new URPStarTemperature { Value = starData.ColorTemperature });
-                buffer.AddComponent(star, new URPStarFlareIntensity { Value = starData.Brightness });
-                buffer.AddComponent(star, WorldTransform.Identity.WithScale(starData.Size));
-                buffer.SetComponent(star, new Name{Value = $"{GalaxyTools.GetStarName(data.Seed)}"});
-                buffer.RemoveComponent<GenerateStar>(e);
-            }).Schedule();
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
+    {
+        var prefab = prefabQuery.GetSingletonEntity();
+        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                           .CreateCommandBuffer(state.WorldUnmanaged);
+        ecb.RemoveComponent<GenerateStar>(generateQuery, EntityQueryCaptureMode.AtRecord);
+        new GenerateStarJob()
+        {
+            ecb = ecb.AsParallelWriter(),
+            prefab = prefab,
+            defaultStar = SystemAPI.GetComponent<Star>(prefab),
+            defaultBody = SystemAPI.GetComponent<CelestialBody>(prefab),   
+        }.ScheduleParallel();
     }
 }

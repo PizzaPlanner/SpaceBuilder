@@ -54,8 +54,6 @@ public partial class PlayerTargetSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        Dependency.Complete();
-
         var camera = Camera.main.transform;
         var camPosition = (float3)camera.position;
         var camForward = (float3) camera.forward;
@@ -135,7 +133,7 @@ public partial class PlayerTargetSystem : SystemBase
             if (t.Value == Entity.Null || !SystemAPI.HasComponent<GridItem>(target.Value)) return;
             // Calculate which grid cell was hit and on which side
             var gridItem = SystemAPI.GetComponent<GridItem>(target.Value);
-            var gridLtw = SystemAPI.GetComponent<WorldTransform>(gridItem.Grid);
+            var gridLtw = SystemAPI.GetComponent<LocalToWorld>(gridItem.Grid);
 
             var centerWorld = math.mul(gridLtw.Rotation, gridItem.Area.Center * GridStructure.CELL_SIZE) + gridLtw.Position;
             var diffLocal = math.mul(math.inverse(gridLtw.Rotation), target.Hit - centerWorld);

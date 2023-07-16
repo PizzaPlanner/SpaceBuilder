@@ -74,7 +74,7 @@ public partial class POIGenerator : SystemBase
         generatablePOIs.Dispose();
     }
 
-    public static void QueuePOISpawn(EntityCommandBuffer ecb, FixedString64Bytes path, LocalToGalaxy ltg, WorldTransform transform)
+    public static void QueuePOISpawn(EntityCommandBuffer ecb, FixedString64Bytes path, LocalToGalaxy ltg, LocalTransform transform)
     {
         if (!spawnables.IsCreated || !spawnables.ContainsKey(path))
         {
@@ -84,7 +84,7 @@ public partial class POIGenerator : SystemBase
         QueuePOISpawn(ecb, spawnables[path], ltg, transform);
     }
 
-    public static void QueuePOISpawn(EntityCommandBuffer ecb, Entity prefab, LocalToGalaxy ltg, WorldTransform transform)
+    public static void QueuePOISpawn(EntityCommandBuffer ecb, Entity prefab, LocalToGalaxy ltg, LocalTransform transform)
     {
         var e = ecb.Instantiate(prefab);
         ecb.SetComponent(e, ltg);
@@ -108,7 +108,7 @@ public partial class POIGenerator : SystemBase
                     var poiPrefab = keys[random.NextInt(keys.Length)];
                     var newLtg = ltg;
                     newLtg.LocalPosition = random.NextFloat3(Constants.MAX_POSITION);
-                    QueuePOISpawn(ecb, poiPrefab, newLtg, WorldTransform.Identity);
+                    QueuePOISpawn(ecb, poiPrefab, newLtg, LocalTransform.Identity);
                 }
             }).Schedule();
 
@@ -130,18 +130,15 @@ public partial class POIGenerator : SystemBase
             return Entity.Null;
 
         var prefab = manager.CreateEntity(typeof(LocalToWorld),
-            typeof(WorldTransform),
             typeof(LocalTransform),
             typeof(LocalToGalaxy),
             typeof(BuildingPartInfo),
-            typeof(OccupationBuffer),
-            typeof(Walls),
+            typeof(CellMap),
             typeof(Rooms),
             typeof(GridStructure), 
             typeof(Name), 
             typeof(Prefab));
         manager.SetComponentData(prefab, new Name {Value = data.Name});
-        manager.SetComponentData(prefab, WorldTransform.Identity);
         manager.SetComponentData(prefab, LocalTransform.Identity);
         var bpBuffer = manager.GetBuffer<BuildingPartInfo>(prefab);
         foreach (var part in data.Parts)

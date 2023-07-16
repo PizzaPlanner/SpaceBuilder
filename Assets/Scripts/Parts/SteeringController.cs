@@ -14,38 +14,36 @@ public partial class SteeringSystem : SystemBase
 {
     protected override void OnUpdate()
     {
-        Entities.ForEach((in SteeringController steer, in GridItem item, in DynamicBuffer<ControlledItems> items) =>
+        foreach(var(steer, item, items) in SystemAPI.Query<SteeringController, GridItem, DynamicBuffer<ControlledItems>>())
         {
             var grid = item.Grid;
             // if (!HasComponent<Flyable>(grid))
             //     return;
 
-            var transform = GetComponent<WorldTransform>(grid);
-            transform.Rotation = math.mul(transform.Rotation, quaternion.Euler(steer.SteeringAngle));
-            SetComponent(grid, transform);
+            var transform = SystemAPI.GetComponentRW<LocalTransform>(grid);
+            transform.ValueRW.Rotation = math.mul(transform.ValueRW.Rotation, quaternion.Euler(steer.SteeringAngle));
             for (int i = 0; i < items.Length; i++)
             {
                 var target = items[i].Target;
-                if (!HasComponent<Thruster>(target))
+                if (!SystemAPI.HasComponent<Thruster>(target))
                     continue;
 
-                var thruster = GetComponent<Thruster>(target);
+                var thruster = SystemAPI.GetComponentRW<Thruster>(target);
                 if (items[i].Type == ToggleType.ThrusterForward)
-                    thruster.Strength = steer.Thrust.z > 0 ? steer.Thrust.z : 0;
+                    thruster.ValueRW.Strength = steer.Thrust.z > 0 ? steer.Thrust.z : 0;
                 if (items[i].Type == ToggleType.ThrusterBackward)
-                    thruster.Strength = steer.Thrust.z < 0 ? -steer.Thrust.z : 0;
+                    thruster.ValueRW.Strength = steer.Thrust.z < 0 ? -steer.Thrust.z : 0;
                 if (items[i].Type == ToggleType.ThrusterUp)
-                    thruster.Strength = steer.Thrust.y > 0 ? steer.Thrust.y : 0;
+                    thruster.ValueRW.Strength = steer.Thrust.y > 0 ? steer.Thrust.y : 0;
                 if (items[i].Type == ToggleType.ThrusterDown)
-                    thruster.Strength = steer.Thrust.y < 0 ? -steer.Thrust.y : 0;
+                    thruster.ValueRW.Strength = steer.Thrust.y < 0 ? -steer.Thrust.y : 0;
                 if (items[i].Type == ToggleType.ThrusterRight)
-                    thruster.Strength = steer.Thrust.x > 0 ? steer.Thrust.x : 0;
+                    thruster.ValueRW.Strength = steer.Thrust.x > 0 ? steer.Thrust.x : 0;
                 if (items[i].Type == ToggleType.ThrusterLeft)
-                    thruster.Strength = steer.Thrust.x < 0 ? -steer.Thrust.x : 0;
-                thruster.Strength = math.clamp(thruster.Strength, 0, 1);
-                SetComponent(target, thruster);
+                    thruster.ValueRW.Strength = steer.Thrust.x < 0 ? -steer.Thrust.x : 0;
+                thruster.ValueRW.Strength = math.clamp(thruster.ValueRW.Strength, 0, 1);
             }
-        }).Schedule();
+        }
     }
 }
 

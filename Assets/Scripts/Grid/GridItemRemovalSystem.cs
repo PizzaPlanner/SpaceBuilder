@@ -126,7 +126,8 @@ public partial class GridItemRemovalSystem : SystemBase
         if (Input.GetMouseButtonDown(0))
         {
             EntityManager.DestroyEntity(modifiedEntities);
-            EntityManager.CreateEntity(typeof(GridNeedsUpdate));
+            // TODO
+            // EntityManager.CreateEntity(typeof(GridNeedsUpdate));
         }
     }
 }

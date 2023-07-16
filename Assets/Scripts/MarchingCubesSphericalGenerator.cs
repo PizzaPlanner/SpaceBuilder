@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 

@@ -69,8 +69,9 @@ public partial class SubSectorGeneratorSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-            .CreateCommandBuffer(World.Unmanaged).AsParallelWriter();
+        var buffer = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(World.Unmanaged)
+            .AsParallelWriter();
         var forceLoad = forceLoadArchetype;
         Entities
             .WithAll<ToGenerate>()
@@ -121,6 +122,7 @@ public partial class SubSectorGeneratorSystem : SystemBase
                     //     break;
                     // }
                     case SectorType.Empty:
+                    default:
                         break;
                 }
 
@@ -143,8 +145,8 @@ public partial class SubSectorGeneratorSystem : SystemBase
                         buffer.AddComponent<SectorLoadingDistance.CelestialBody>(nativeThreadIndex, e);
                         break;
                     case SubSectorType.Nebula:
-                        buffer.AddComponent<GenerateNebula>(nativeThreadIndex, e);
-                        buffer.AddComponent<SectorLoadingDistance.CelestialBody>(nativeThreadIndex, e);
+                        // buffer.AddComponent<GenerateNebula>(nativeThreadIndex, e);
+                        // buffer.AddComponent<SectorLoadingDistance.CelestialBody>(nativeThreadIndex, e);
                         break;
                     case SubSectorType.Empty when sectorData.Type != SectorType.Empty:
                         break;

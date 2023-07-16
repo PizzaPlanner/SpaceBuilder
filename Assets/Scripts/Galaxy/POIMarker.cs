@@ -1,4 +1,5 @@
 using System;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -55,7 +56,7 @@ public class POIMarker : VisualElement
         var relativePosition = LocalToGalaxy.RelativePosition(playerLtg, targetLtg);
         var distance = math.length(relativePosition);
         if (distance < 1000)
-            relativePosition = em.GetComponentData<WorldTransform>(Target).Position - (float3)Camera.main.transform.position;
+            relativePosition = em.GetComponentData<LocalTransform>(Target).Position - (float3)Camera.main.transform.position;
         var direction = (float3)math.normalizesafe(relativePosition);
 
 
@@ -116,15 +117,15 @@ public partial class POIMarkerSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        Entities
-            .WithNone<TrackedPOI>()
-            .WithAll<LocalToGalaxy>()
-            .WithAny<GridStructure, BigObjectInPoiRange>()
-            .ForEach((Entity e) =>
-            {
-                EntityManager.AddComponent<TrackedPOI>(e);
-                var hasGrid = HasComponent<GridStructure>(e);
-                var isShip = hasGrid && HasComponent<Flyable>(e);
+        var ecb = new EntityCommandBuffer(Allocator.Temp);
+        foreach (var (_, e) in SystemAPI.Query<LocalToGalaxy>()
+                                        .WithAny<GridStructure, BigObjectInPoiRange>()
+                                        .WithNone<TrackedPOI>()
+                                        .WithEntityAccess())
+        {
+                ecb.AddComponent<TrackedPOI>(e);
+                var hasGrid = SystemAPI.HasComponent<GridStructure>(e);
+                var isShip = hasGrid && SystemAPI.HasComponent<Flyable>(e);
 
                 var type = POIMarker.POIType.Other;
                 if (hasGrid)
@@ -133,8 +134,9 @@ public partial class POIMarkerSystem : SystemBase
                     type = POIMarker.POIType.Star;
 
                 uiRoot.Add(new POIMarker{Target = e, Type = type});
-            }).WithoutBurst().WithStructuralChanges().Run();
-
+        }
+        ecb.Playback(EntityManager);
+        
         var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
         var markerStyle = SystemAPI.GetSingleton<POIMarker.MarkerSettings>();
         uiRoot.Query<POIMarker>().ForEach(x => x.Update(EntityManager, localPlayer, markerStyle));

@@ -22,8 +22,6 @@ public unsafe partial class MovePlayerSystem : SystemBase
         RequireForUpdate<CameraAnchor>();
         RequireForUpdate<InputSystem.ControlPlayer>();
         RequireForUpdate<ControlScheme.OnFeet>();
-        RequireForUpdate(GetEntityQuery(typeof(LocalPlayer), typeof(LocalToWorld)));
-        RequireForUpdate(GetEntityQuery(typeof(CameraAnchor), typeof(LocalToWorld)));
     }
 
     protected override void OnUpdate()
@@ -96,41 +94,22 @@ public unsafe partial class MovePlayerSystem : SystemBase
 }
 
 [UpdateInGroup(typeof(TransformSystemGroup))]
-// [UpdateAfter(typeof(TRSToLocalToWorldSystem))]
-// [UpdateBefore(typeof(LocalToParentSystem))]
 public partial class UpdateDockedCharacterPositionRotationSystem : SystemBase
 {
     protected override void OnUpdate()
     {
         Entities.ForEach((ref Docked docked) =>
         {
-            var parentLtw = SystemAPI.GetComponent<WorldTransform>(docked.Target);
+            var parentLtw = SystemAPI.GetComponent<LocalToWorld>(docked.Target);
             docked.TargetRotation = parentLtw.Rotation;
             docked.TargetPosition = parentLtw.Position;
         }).ScheduleParallel();
 
-        Entities.ForEach((ref WorldTransform ltw, in Docked docked, in LocalToGalaxy ltg) =>
+        Entities.ForEach((ref LocalToWorld ltw, in Docked docked, in LocalToGalaxy ltg) =>
         {
             var trs = math.mul(float4x4.TRS(docked.TargetPosition, docked.TargetRotation, 1),
                 float4x4.TRS(docked.Position, docked.Rotation, 1));
-            ltw = WorldTransform.FromMatrix(trs);
+            ltw = new LocalToWorld { Value = trs };
         }).ScheduleParallel();
-
-        // Entities
-        //     .WithAll<AlignUpVector>()
-        //     .ForEach((ref ThirdPersonCharacterComponent character, ref KinematicCharacterBody props, in Docked docked) =>
-        // {
-        //     // character.Gravity = math.mul(docked.TargetRotation, math.up()) * -5;
-        // }).Run();
-
-        // Entities
-        //     .WithNone<Docked>()
-        //     .ForEach((ref ThirdPersonCharacterComponent character, ref KinematicCharacterBody props) =>
-        // {
-        //     character.Gravity = 0;
-        //     props.RelativeVelocity *= 0.95f;
-        //     if (math.all(math.abs(props.RelativeVelocity) < 0.001f))
-        //         props.RelativeVelocity = 0;
-        // }).Run();
     }
 }

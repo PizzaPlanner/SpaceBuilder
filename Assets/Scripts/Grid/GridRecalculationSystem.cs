@@ -1,136 +1,198 @@
+using System.Dynamic;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
+public struct IntAABB
+{
+    public int3 Min;
+    public int3 Max;
+
+    public int Size => (Max - Min).x * (Max - Min).y * (Max - Min).z;
+
+    public bool Contains(int3 cell) => math.all(cell >= Min) && math.all(cell <= Max);
+    
+    public static implicit operator IntAABB(BoundingBox bbox) => new IntAABB { Min = bbox.Min, Max = bbox.Max };
+}
+
 public struct GridStructure : IComponentData
 {
     public const float CELL_SIZE = 0.25f;
-    public int3 BoundsMin;
-    public int3 BoundsMax;
-
+    public int3 BoundsMin, BoundsMax;
+    
+    // Bounds in World Space
     public AABB AABB;
 
     public static int3 CellFromPosition(LocalToWorld ltw, float3 worldPosition) => (int3) math.floor(math.mul(math.inverse(ltw.Rotation), worldPosition - ltw.Position) / CELL_SIZE);
-    public static int3 CellFromPosition(WorldTransform transform, float3 worldPosition) => (int3) math.floor(math.mul(math.inverse(transform.Rotation), worldPosition - transform.Position) / CELL_SIZE);
     public static int3 CellFromPosition(float3 localPosition) => (int3) math.floor(localPosition / CELL_SIZE);
     public static float3 PositionFromCell(LocalToWorld ltw, int3 cell) =>  math.mul(ltw.Rotation, (float3)cell * CELL_SIZE) + ltw.Position;
-    public static float3 PositionFromCell(WorldTransform transform, int3 cell) =>  math.mul(transform.Rotation, (float3)cell * CELL_SIZE) + transform.Position;
     public static float3 GridToWorld(LocalToWorld gridLtw, float3 localPosition) =>  math.mul(gridLtw.Rotation, localPosition * CELL_SIZE) + gridLtw.Position;
-    public static float3 GridToWorld(WorldTransform gridLtw, float3 localPosition) =>  math.mul(gridLtw.Rotation, localPosition * CELL_SIZE) + gridLtw.Position;
     public static float3 WorldToGrid(LocalToWorld gridLtw, float3 worldPosition) => math.mul(math.inverse(gridLtw.Rotation), worldPosition - gridLtw.Position) / CELL_SIZE;
     public static float3 PositionFromCell(int3 cell) =>  (float3)cell * CELL_SIZE;
 }
 
-public struct OccupationBuffer : IBufferElementData
+public struct CellMap : ICleanupComponentData
 {
-    public GridItem.Side Value;
-    public int3 Location;
+    public FixedList4096Bytes<IntAABB> Walls;
+    public FixedList4096Bytes<IntAABB> Objects;
+
+    public bool IsWall(int3 position)
+    {
+        foreach(var wall in Walls)
+            if (wall.Contains(position))
+                return true;
+        return false;
+    }
+
+    public bool IsOccupied(int3 position)
+    {
+        if (IsWall(position))
+            return true;
+        foreach(var thing in Objects)
+            if (thing.Contains(position))
+                return true;
+        return false;
+    }
+
+    public bool IsAnyWall(IntAABB aabb)
+    {
+        for(int x = aabb.Min.x; x <= aabb.Max.x; x++)
+        for(int y = aabb.Min.y; y <= aabb.Max.y; y++)
+        for (int z = aabb.Min.z; z <= aabb.Max.z; z++)
+        {
+            var cell = new int3(x, y, z);
+            if (IsWall(cell))
+                return true;
+        }
+
+        return false;
+    }
+    
+    public bool IsAnyOccupied(IntAABB aabb)
+    {
+        for(int x = aabb.Min.x; x <= aabb.Max.x; x++)
+        for(int y = aabb.Min.y; y <= aabb.Max.y; y++)
+        for (int z = aabb.Min.z; z <= aabb.Max.z; z++)
+        {
+            var cell = new int3(x, y, z);
+            if (IsOccupied(cell))
+                return true;
+        }
+
+        return false;
+    }
 }
 
 public struct NeedsUpdate : IComponentData { }
-public struct GridNeedsUpdate : IComponentData { }
+
+public struct GridUpdate : IComponentData
+{
+    public enum UpdateType
+    {
+        Add,
+        Remove,
+        Change
+    }
+
+    public UpdateType Type;
+    public IntAABB Area;
+    public Entity Grid;
+    public Entity GridItem;
+}
 
 [UpdateInGroup(typeof(GridRecalculationSystemGroup), OrderFirst = true)]
 public partial class GridRecalculationSystem : SystemBase
 {
     protected override void OnCreate()
     {
-        RequireForUpdate(GetEntityQuery(typeof(GridNeedsUpdate)));
+        RequireForUpdate(GetEntityQuery(typeof(GridUpdate)));
     }
 
     protected override unsafe void OnUpdate()
     {
         Debug.Log("Recalculating Grids!");
-        Entities.WithAll<GridStructure>().ForEach((DynamicBuffer<OccupationBuffer> obuff, DynamicBuffer<Walls> walls, DynamicBuffer<Rooms> rooms) =>
+        var cells = GetComponentLookup<CellMap>();
+        Entities.ForEach((in GridUpdate update) =>
         {
-            obuff.Clear();
-            walls.Clear();
-            rooms.Clear();
-        }).Run();
-
-        Entities.ForEach((ref GridStructure grid) =>
-        {
-            grid.BoundsMax = int.MinValue;
-            grid.BoundsMin = int.MaxValue;
-        }).Run();
-
-        var occupationBuffers = GetBufferLookup<OccupationBuffer>();
-        var wallBuffers = GetBufferLookup<Walls>();
-        var grids = GetComponentLookup<GridStructure>();
-        Entities
-            .WithName("CalculateOccupation")
-            .ForEach((Entity e, in GridItem item) =>
-        {
-            if (occupationBuffers.HasComponent(item.Grid))
+            // Update bounds
+            var grid = SystemAPI.GetComponent<GridStructure>(update.Grid);
+            grid.BoundsMin = math.min(update.Area.Min, grid.BoundsMin);
+            grid.BoundsMin = math.max(update.Area.Max, grid.BoundsMax);
+            SystemAPI.SetComponent(update.Grid, grid);
+            
+            // Update walls
+            var gridWalls = cells[update.Grid];
+            var gridItem = SystemAPI.GetComponent<GridItem>(update.GridItem);
+            if (gridItem.IsWall)
             {
-                var min = item.Area.Min;
-                var max = item.Area.Max;
-                var occupations = occupationBuffers[item.Grid];
-                var walls = wallBuffers[item.Grid];
-                for (int x = min.x; x <= max.x; x++)
-                for (int y = min.y; y <= max.y; y++)
-                for (int z = min.z; z <= max.z; z++)
-                {
-                    var pos = new int3(x, y, z);
-                    bool found = false;
-                    for (int i = 0; i < occupations.Length; i++)
-                        found |= math.all(occupations[i].Location == pos);
-
-                    if (!found)
-                    {
-                        occupations.Add(new OccupationBuffer { Location = pos });
-                        if(item.IsWall && !HasComponent<Blueprinted>(e))
-                            walls.Add(new Walls { Cell = pos });
-                    }
-                }
+                gridWalls.Walls.Add(update.Area);
             }
 
-            if (grids.HasComponent(item.Grid))
+            // Update Rooms
+            var rooms = SystemAPI.GetBuffer<Rooms>(update.Grid);
+            var bbox = new IntAABB
             {
-                var gTemp = grids[item.Grid];
-                gTemp.BoundsMin = math.min(gTemp.BoundsMin, item.Area.Min);
-                gTemp.BoundsMax = math.max(gTemp.BoundsMax, item.Area.Max);
-                grids[item.Grid] = gTemp;
-            }
-        }).Run();
-
-        var cellToRoomMap = new NativeParallelHashMap<int3, short>(0, Allocator.TempJob);
-        var exposedRooms = new NativeList<short>(Allocator.TempJob);
-        var cellsNeedUpdate = new NativeQueue<int3>(Allocator.TempJob);
-        Entities
-            .WithDisposeOnCompletion(cellToRoomMap)
-            .WithDisposeOnCompletion(exposedRooms)
-            .WithDisposeOnCompletion(cellsNeedUpdate)
-            .ForEach((DynamicBuffer<Walls> walls, DynamicBuffer<Rooms> rooms, in GridStructure grid) =>
-        {
-            cellToRoomMap.Clear();
-            cellsNeedUpdate.Clear();
-            exposedRooms.Clear();
-            var bbox = new BoundingBox { Origin = grid.BoundsMin, Extents = grid.BoundsMax - grid.BoundsMin }; 
-            cellToRoomMap.Capacity = math.max(cellToRoomMap.Capacity, bbox.Size.x * bbox.Size.y * bbox.Size.z);
+                Min = math.max(grid.BoundsMin, update.Area.Min),
+                Max = math.min(grid.BoundsMax, update.Area.Max),
+            };
+            var exposedRooms = new NativeList<short>(Allocator.TempJob);
+            var cellToRoomMap = new NativeParallelHashMap<int3, short>(bbox.Size, Allocator.TempJob);
+            var cellsNeedUpdate = new NativeQueue<int3>(Allocator.TempJob);
             for (int x = bbox.Min.x; x <= bbox.Max.x; x++)
             for (int y = bbox.Min.y; y <= bbox.Max.y; y++)
             for (int z = bbox.Min.z; z <= bbox.Max.z; z++)
-                if (!RoomSystem.IsWall(new int3(x, y, z), walls))
-                {
-                    cellToRoomMap[new int3(x, y, z)] = -1;
-                    cellsNeedUpdate.Enqueue(new int3(x, y, z));
-                }
+            {
+                var point = new int3(x, y, z);
+                cellsNeedUpdate.Enqueue(point);
+                cellToRoomMap[point] = short.MaxValue;
+                foreach(var room in rooms)
+                    if (room.Room.Contains(point))
+                        cellToRoomMap[point] = room.Room.Id;
+            }
             
+            var currentRoom = (short)0;
             while(cellsNeedUpdate.TryDequeue(out var cell))
-                RoomSystem.FindRoom(cell, bbox, cellToRoomMap, cellsNeedUpdate);
-
+                RoomSystem.FindRoom(ref currentRoom, cell, bbox, cellToRoomMap, cellsNeedUpdate);
+            
             foreach (var item in cellToRoomMap)
                 if (math.any(item.Key == bbox.Min | item.Key == bbox.Max) && !exposedRooms.Contains(item.Value))
                     exposedRooms.Add(item.Value);
             
             foreach (var item in cellToRoomMap)
-                rooms.Add(new Rooms{Cell = item.Key, Id = item.Value, IsExposedToSpace = exposedRooms.Contains(item.Value)});
+            {
+                if (exposedRooms.Contains(item.Value))
+                    continue;
+                bool roomListed = false;
+                for (int i = 0; i < rooms.Length; i++)
+                {
+                    if (rooms[i].Room.Id != item.Value)
+                        continue;
+                        
+                    roomListed = true;
+                    var r = rooms[i].Room;
+                    r.Cells.Add(item.Key);
+                    r.BoundingBox.Min = math.min(r.BoundingBox.Min, item.Key);
+                    r.BoundingBox.Max = math.max(r.BoundingBox.Max, item.Key);
+                    rooms[i] = new Rooms{Room = r};
+                }
+                
+                if (!roomListed)
+                {
+                    Debug.Log($"MAKING NEW ROOM #{item.Value}");   
+                    rooms.Add(new Rooms{ Room = new Room
+                    {
+                        Id = item.Value, 
+                        Cells = new NativeList<int3>(Allocator.Persistent){ item.Key },
+                        BoundingBox = new IntAABB { Min = item.Key, Max = item.Key }
+                    }});
+                }
+            }
         }).Run();
 
         var buffer = GetSingleton<EndInitializationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
-        buffer.DestroyEntity(GetEntityQuery(typeof(GridNeedsUpdate)));
+        buffer.DestroyEntity(GetEntityQuery(typeof(GridUpdate)));
     }
 }

@@ -1,6 +1,10 @@
+using Galaxy;
 using System.Collections.Generic;
+using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -9,15 +13,121 @@ public struct ForceLoadSector : IComponentData
     public LocalToGalaxy Sector;
 }
 
-public partial class LoadSectorSystem : SystemBase
+public partial struct SectorLoadJob : IJob
 {
-    private NativeQueue<LocalToGalaxy> sectorsToLoad;
+    public LoadSectorSystem.PendingSectors sectorsToLoad;
+    public LoadSectorSystem.SectorLoadSettings sectorLoadSettings;
+    public EntityArchetype sectorArchetype;
+    public EntityCommandBuffer ecb;
+    public LocalToGalaxy playerLtg;
+    
+    public void Execute()
+    {
+        var sectorsLoadedThisFrame = 0;
+        while (sectorsLoadedThisFrame++ < sectorLoadSettings.MaxSectorsLoadedPerFrame && sectorsToLoad.sectorsToLoad.TryDequeue(out var newSector))
+        {
+            newSector.LocalPosition = 0;
+            var sectorType = GalaxyTools.GetSubSectorData(newSector).Type;
+            var skipLoading = sectorType == SubSectorType.Empty || GalaxyTools.ShouldUnloadSector(playerLtg, newSector,
+                sectorType.IsCelestialScale() ? sectorLoadSettings.MaxLoadedSectorDistanceCelestial :
+                sectorType == SubSectorType.Planet ? sectorLoadSettings.MaxLoadedSectorDistancePlanetoid :
+                sectorLoadSettings.MaxLoadedSectorDistanceDefault
+            );
+
+            for (int i = 0; i < sectorsToLoad.sectorsLoaded.Length && !skipLoading; i++)
+            {
+                skipLoading |= sectorsToLoad.sectorsLoaded[i] == newSector;
+            }
+
+            if (skipLoading)
+            {
+                sectorsLoadedThisFrame--;
+                continue;
+            }
+
+            sectorsToLoad.sectorsLoaded.Add(newSector);
+            var e = ecb.CreateEntity(sectorArchetype);
+            ecb.SetComponent(e, newSector);
+        }
+    }
+}
+
+public partial struct ProcessSectorChangesJob : IJobEntity
+{
+    public LoadSectorSystem.PendingSectors sectorsToLoad;
+    public LoadSectorSystem.SectorLoadSettings sectorLoadSettings;
+    void Execute(Entity e, in SectorChange sc)
+    {
+        var sectorsToLoadLocal = sectorsToLoad.sectorsToLoad;
+        if (sc.ChangeType != SectorChangeType.FTL)
+        {
+            for (int x = -2; x <= 2; x++)
+            for (int y = -2; y <= 2; y++)
+            for (int z = -2; z <= 2; z++)
+            {
+                var newLtg = sc.New + new LocalToGalaxy {SubSector = new int3(x, y, z)};
+                sectorsToLoadLocal.Enqueue(newLtg);
+            }
+        }
+        if (sc.ChangeType is SectorChangeType.Teleport or SectorChangeType.Spawn)
+        {
+            var maxDistance = sectorLoadSettings.MaxLoadedSectorDistanceCelestial / (int)Constants.MAX_SUBSECTOR;
+            for (int x = 0; x < maxDistance; x++)
+            for (int y = 0; y < maxDistance; y++)
+            for (int z = 0; z < maxDistance; z++)
+            {
+                if(x + y + z > maxDistance)
+                    continue;
+                
+                TryEnqueueCelestialSector(new int3(x, y, z),    sc, sectorsToLoadLocal);
+                TryEnqueueCelestialSector(new int3(-x, y, z),   sc, sectorsToLoadLocal);
+                TryEnqueueCelestialSector(new int3(x, -y, z),   sc, sectorsToLoadLocal);
+                TryEnqueueCelestialSector(new int3(-x, -y, z),  sc, sectorsToLoadLocal);
+                TryEnqueueCelestialSector(new int3(x, y, -z),   sc, sectorsToLoadLocal);
+                TryEnqueueCelestialSector(new int3(-x, y, -z),  sc, sectorsToLoadLocal);
+                TryEnqueueCelestialSector(new int3(x, -y, -z),  sc, sectorsToLoadLocal);
+                TryEnqueueCelestialSector(new int3(-x, -y, -z), sc, sectorsToLoadLocal);
+            } 
+        }
+        else if(math.any(sc.New.Sector != sc.Previous.Sector))
+        {
+            var maxDistance = sectorLoadSettings.MaxLoadedSectorDistanceCelestial / (int)Constants.MAX_SUBSECTOR;
+            var diff = sc.New.Sector - sc.Previous.Sector;
+            diff = math.max(math.min(diff, -2 * maxDistance), 2 * maxDistance);
+            var diffsign = (int3)math.round(math.sign(diff));
+            for (int x = diffsign.x * maxDistance; x != diffsign.x * (maxDistance - diff.x); x-= diffsign.x)
+            for (int y = diffsign.y * maxDistance; y != diffsign.y * (maxDistance - diff.y); y-= diffsign.y)
+            for (int z = diffsign.z * maxDistance; z != diffsign.z * (maxDistance - diff.z); z-= diffsign.z)
+            {
+                TryEnqueueCelestialSector(new int3(x, y, z), sc, sectorsToLoadLocal);
+            }
+        }
+    }
+    
+    static void TryEnqueueCelestialSector(int3 offset, SectorChange sc,
+                                          NativeQueue<LocalToGalaxy> sectorsToLoadLocal)
+    {
+        var pos = offset + sc.New.Sector;
+        if (GalaxyTools.GetSectorType(pos).IsCelestialScale())
+            sectorsToLoadLocal.Enqueue(new LocalToGalaxy
+            {
+                Sector = pos,
+                SubSector = GalaxyTools.GetCelestialSectorCenter(pos, out _)
+            });
+    }
+}
+
+public partial struct LoadSectorSystem : ISystem
+{
     private EntityArchetype sectorArchetype;
     private LocalToGalaxy lastPlayerLtg;
+    EntityQuery sectorChangeQuery;
 
-    public struct HasPendingSectors : IComponentData
+    public struct PendingSectors : IComponentData
     {
-        public int Count;
+        public NativeQueue<LocalToGalaxy> sectorsToLoad;
+        public NativeQueue<LocalToGalaxy> sectorsToUnload;
+        public NativeList<LocalToGalaxy> sectorsLoaded;
     }
 
     public struct SectorLoadSettings : IComponentData
@@ -28,20 +138,33 @@ public partial class LoadSectorSystem : SystemBase
         public int MaxSectorsLoadedPerFrame;
     }
 
-    protected override void OnCreate()
+    public void OnCreate(ref SystemState state)
     {
-        RequireForUpdate(GetEntityQuery(new EntityQueryDesc{Any = new[]
+        sectorChangeQuery = state.GetEntityQuery(new EntityQueryDesc
         {
-            ComponentType.ReadOnly<SectorChange>(),
-            ComponentType.ReadOnly<ForceLoadSector>(),
-            ComponentType.ReadOnly<HasPendingSectors>()
-        }}));
-        sectorsToLoad = new NativeQueue<LocalToGalaxy>(Allocator.Persistent);
-        sectorArchetype = EntityManager.CreateArchetype(typeof(SubSector), typeof(LocalToGalaxy), typeof(TravellerInSector),
+            Any = new[]
+            {
+                ComponentType.ReadOnly<SectorChange>(),
+                ComponentType.ReadOnly<ForceLoadSector>(),
+            }
+        });
+
+        state.EntityManager.CreateEntity(typeof(PendingSectors));
+        SystemAPI.SetSingleton(new PendingSectors
+        {
+            sectorsToLoad = new NativeQueue<LocalToGalaxy>(Allocator.Persistent),
+            sectorsToUnload = new NativeQueue<LocalToGalaxy>(Allocator.Persistent), 
+            sectorsLoaded = new NativeList<LocalToGalaxy>(Allocator.Persistent) 
+        });
+        
+        sectorArchetype = state.EntityManager.CreateArchetype(
+            typeof(SubSector), 
+            typeof(LocalToGalaxy), 
+            typeof(TravellerInSector),
             typeof(ToGenerate));
 
-        EntityManager.CreateEntity(typeof(SectorLoadSettings));
-        SetSingleton(new SectorLoadSettings
+        state.EntityManager.CreateEntity(typeof(SectorLoadSettings));
+        SystemAPI.SetSingleton(new SectorLoadSettings
         {
             MaxLoadedSectorDistanceCelestial = 40 * (int)Constants.MAX_SUBSECTOR,
             MaxLoadedSectorDistancePlanetoid = 3 * (int)Constants.MAX_SUBSECTOR,
@@ -49,163 +172,65 @@ public partial class LoadSectorSystem : SystemBase
             MaxSectorsLoadedPerFrame = 45
         });
         lastPlayerLtg = new LocalToGalaxy {Sector = int.MaxValue, SubSector = int.MaxValue};
+        
+        state.RequireForUpdate<PendingSectors>();
+        state.RequireForUpdate<LocalPlayer>();
+        state.RequireForUpdate<CalculateClosestStarSystem.ClosestStarSector>();
+        state.RequireForUpdate<LocalPlayer>();
+        state.RequireForUpdate<SectorLoadSettings>();
     }
 
-    protected override void OnDestroy()
+    public void OnDestroy(ref SystemState state)
     {
-        sectorsToLoad.Dispose();
+        var pendingSectors = SystemAPI.GetSingleton<PendingSectors>();
+        pendingSectors.sectorsToLoad.Dispose();
+        pendingSectors.sectorsLoaded.Dispose();
+        pendingSectors.sectorsToUnload.Dispose();
     }
 
-    protected override void OnUpdate()
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
     {
-        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
-        var loadedSectorsQuery = GetEntityQuery(new EntityQueryDesc() {
-            Options = EntityQueryOptions.IncludeDisabledEntities,
-            All = new ComponentType[]
-            {
-                typeof(SubSector), typeof(LocalToGalaxy)
-            }});
-        var sectors = loadedSectorsQuery.ToComponentDataArray<LocalToGalaxy>(Allocator.Temp);
-        var sectorsToLoadLocal = sectorsToLoad;
-        var sectorLoadSettings = GetSingleton<SectorLoadSettings>();
+        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                           .CreateCommandBuffer(state.WorldUnmanaged);
+        var sectorLoadSettings = SystemAPI.GetSingleton<SectorLoadSettings>();
+        var sectorsToLoad = SystemAPI.GetSingletonRW<PendingSectors>();
 
-        Entities
-            .WithName("ProcessSectorChanges")
-            .ForEach((Entity e, in SectorChange sc) =>
-            {
-                buffer.DestroyEntity(e);
-
-                if (sc.ChangeType != SectorChangeType.FTL)
-                {
-                    for(int x = -2; x <= 2; x++)
-                    for(int y = -2; y <= 2; y++)
-                    for (int z = -2; z <= 2; z++)
-                    {
-                        var newLtg = sc.New + new LocalToGalaxy {SubSector = new int3(x, y, z)};
-                        sectorsToLoadLocal.Enqueue(newLtg);
-                    }
-                }
-                if (sc.ChangeType is SectorChangeType.Teleport or SectorChangeType.Spawn)
-                {
-                    var maxDistance = sectorLoadSettings.MaxLoadedSectorDistanceCelestial / (int)Constants.MAX_SUBSECTOR;
-                    for (int x = 0; x < maxDistance; x++)
-                    for (int y = 0; y < maxDistance; y++)
-                    for (int z = 0; z < maxDistance; z++)
-                    {
-                        TryEnqueueCelestialSector(new int3(x, y, z),    sc, maxDistance, sectorsToLoadLocal);
-                        TryEnqueueCelestialSector(new int3(-x, y, z),   sc, maxDistance, sectorsToLoadLocal);
-                        TryEnqueueCelestialSector(new int3(x, -y, z),   sc, maxDistance, sectorsToLoadLocal);
-                        TryEnqueueCelestialSector(new int3(-x, -y, z),  sc, maxDistance, sectorsToLoadLocal);
-                        TryEnqueueCelestialSector(new int3(x, y, -z),   sc, maxDistance, sectorsToLoadLocal);
-                        TryEnqueueCelestialSector(new int3(-x, y, -z),  sc, maxDistance, sectorsToLoadLocal);
-                        TryEnqueueCelestialSector(new int3(x, -y, -z),  sc, maxDistance, sectorsToLoadLocal);
-                        TryEnqueueCelestialSector(new int3(-x, -y, -z), sc, maxDistance, sectorsToLoadLocal);
-                    } 
-                }
-                else if(math.any(sc.New.Sector != sc.Previous.Sector))
-                {
-                    var maxDistance = sectorLoadSettings.MaxLoadedSectorDistanceCelestial / (int)Constants.MAX_SUBSECTOR;
-                    var diff = sc.New.Sector - sc.Previous.Sector;
-                    diff = math.max(math.min(diff, -2 * maxDistance), 2 * maxDistance);
-                    var diffsign = (int3)math.round(math.sign(diff));
-                    for (int x = diffsign.x * maxDistance; x != diffsign.x * (maxDistance - diff.x); x-= diffsign.x)
-                    for (int y = diffsign.y * maxDistance; y != diffsign.y * (maxDistance - diff.y); y-= diffsign.y)
-                    for (int z = diffsign.z * maxDistance; z != diffsign.z * (maxDistance - diff.z); z-= diffsign.z)
-                    {
-                        TryEnqueueCelestialSector(new int3(x, y, z), sc, maxDistance, sectorsToLoadLocal);
-                    }
-                }
-            }).Run();
-
-        var playerLtg = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
+        var playerLtg = SystemAPI.GetComponent<LocalToGalaxy>(SystemAPI.GetSingletonEntity<LocalPlayer>());
         var shouldRecalculateSectors = playerLtg != lastPlayerLtg;
         lastPlayerLtg = playerLtg;
         if (shouldRecalculateSectors)
         {
-            var css = GetSingleton<Galaxy.CalculateClosestStarSystem.ClosestStarSector>();
+            var css = SystemAPI.GetSingleton<Galaxy.CalculateClosestStarSystem.ClosestStarSector>();
             var starsec = GalaxyTools.GetStarSectorData(css.StarLTG.Sector);
             for (byte i = 0; i < starsec.NumberOfPlanets; i++)
             {
                 var planetsec = css.StarLTG;
                 planetsec.SubSector = GalaxyTools.GetPlanetData(starsec, i).SubSector;
                 if(GalaxyTools.DistanceInSubsectors(playerLtg, planetsec) < sectorLoadSettings.MaxLoadedSectorDistancePlanetoid)
-                    sectorsToLoadLocal.Enqueue(planetsec);
+                    sectorsToLoad.ValueRW.sectorsToLoad.Enqueue(planetsec);
             }
         }
-
-        Entities.ForEach((Entity e, in ForceLoadSector fls) =>
+        
+        foreach(var fls in SystemAPI.Query<ForceLoadSector>())
         {
-            sectorsToLoadLocal.Enqueue(fls.Sector);
-            buffer.DestroyEntity(e);
-        }).Run();
+            sectorsToLoad.ValueRW.sectorsToLoad.Enqueue(fls.Sector);
+        }
+        ecb.DestroyEntity(sectorChangeQuery, EntityQueryCaptureMode.AtRecord);
+        
+        state.Dependency = new ProcessSectorChangesJob
+        {
+            sectorsToLoad = sectorsToLoad.ValueRW,
+            sectorLoadSettings = sectorLoadSettings,
+        }.Schedule(state.Dependency);
 
-        var added = new NativeList<LocalToGalaxy>(Allocator.Temp);
-        var sectorArchetypeLocal = sectorArchetype;
-        var hasPendingSectors = HasSingleton<HasPendingSectors>() ? GetSingletonEntity<HasPendingSectors>() : Entity.Null;
-
-        Job
-            .WithName("LoadSectors")
-            .WithCode(() =>
-            {
-                var sectorsLoadedThisFrame = 0;
-                while (sectorsLoadedThisFrame++ < sectorLoadSettings.MaxSectorsLoadedPerFrame && sectorsToLoadLocal.TryDequeue(out var newSector))
-                {
-                    newSector.LocalPosition = 0;
-                    var sectorType = GalaxyTools.GetSubSectorData(newSector).Type;
-                    var skipLoading = sectorType == SubSectorType.Empty || GalaxyTools.ShouldUnloadSector(playerLtg, newSector,
-                        sectorType.IsCelestialScale() ? sectorLoadSettings.MaxLoadedSectorDistanceCelestial :
-                        sectorType == SubSectorType.Planet ? sectorLoadSettings.MaxLoadedSectorDistancePlanetoid :
-                        sectorLoadSettings.MaxLoadedSectorDistanceDefault
-                    );
-
-                    foreach (var sector in added)
-                    {
-                        skipLoading |= sector == newSector;
-                    }
-
-                    for (int i = 0; i < sectors.Length && !skipLoading; i++)
-                    {
-                        skipLoading |= sectors[i] == newSector;
-                    }
-
-                    if (skipLoading)
-                    {
-                        sectorsLoadedThisFrame--;
-                        continue;
-                    }
-
-                    added.Add(newSector);
-                    var e = buffer.CreateEntity(sectorArchetypeLocal);
-                    buffer.SetComponent(e, newSector);
-                }
-
-                if(sectorsToLoadLocal.IsEmpty() && hasPendingSectors != Entity.Null)
-                    buffer.DestroyEntity(hasPendingSectors);
-                else if (!sectorsToLoadLocal.IsEmpty())
-                {
-                    if (hasPendingSectors == Entity.Null)
-                    {
-                        hasPendingSectors = buffer.CreateEntity();
-                        buffer.AddComponent(hasPendingSectors, new HasPendingSectors{Count = sectorsToLoadLocal.Count});
-                    }
-                    else
-                        buffer.SetComponent(hasPendingSectors, new HasPendingSectors{Count = sectorsToLoadLocal.Count});
-                }
-            }).Run();
-
-        sectorsToLoad = sectorsToLoadLocal;
-    }
-
-    static void TryEnqueueCelestialSector(int3 offset, SectorChange sc, int maxDistance,
-                                          NativeQueue<LocalToGalaxy> sectorsToLoadLocal)
-    {
-        var pos = offset + sc.New.Sector;
-        if (GalaxyTools.GetSectorType(pos).IsCelestialScale() &&
-            math.csum(math.abs(offset)) < maxDistance)
-            sectorsToLoadLocal.Enqueue(new LocalToGalaxy
-            {
-                Sector = pos,
-                SubSector = GalaxyTools.GetCelestialSectorCenter(pos, out _)
-            });
+        state.Dependency = new SectorLoadJob
+        {
+            sectorsToLoad = sectorsToLoad.ValueRW,
+            sectorLoadSettings = sectorLoadSettings,
+            ecb = ecb,
+            playerLtg = playerLtg,
+            sectorArchetype = sectorArchetype
+        }.Schedule(state.Dependency);
     }
 }

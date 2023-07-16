@@ -33,7 +33,7 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
-  m_LockedProperties: 
+  m_LockedProperties: _DefaultIntensity _FlareFrequency
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -104,16 +104,16 @@ Material:
     - _ClearCoatSmoothness: 0
     - _Cull: 2
     - _Cutoff: 0
-    - _DefaultIntensity: 13
+    - _DefaultIntensity: 20
     - _DetailAlbedoMapScale: 2
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _DstBlendAlpha: 0
     - _EnvironmentReflections: 0
     - _Falloff: 0.3
-    - _FlareDensity: 5
-    - _FlareFrequency: 30
-    - _FlareIntensity: 300
+    - _FlareDensity: 200
+    - _FlareFrequency: 20
+    - _FlareIntensity: 20
     - _GlossMapScale: 1
     - _Glossiness: 0
     - _GlossyReflections: 1
@@ -132,13 +132,13 @@ Material:
     - _SrcBlendAlpha: 1
     - _Surface: 0
     - _Temperature: 1
-    - _TimeScale: 0.5
+    - _TimeScale: 0.75
     - _UVSec: 0
     - _WorkflowMode: 0
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _Color: {r: 3.5648696, g: 3.5648696, b: 3.5648696, a: 1}
+    - _Color: {r: 3.1171284, g: 3.1171284, b: 3.1171284, a: 1}
     - _EmissionColor: {r: 21.361254, g: 21.361254, b: 21.361254, a: 1}
     - _SpecColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []

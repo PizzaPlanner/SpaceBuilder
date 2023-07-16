@@ -77,14 +77,14 @@ public partial class InputSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var entity = GetSingletonEntity<InputData>();
-        var input = GetSingleton<InputData>();
+        var entity = SystemAPI.GetSingletonEntity<InputData>();
+        var input = SystemAPI.GetSingleton<InputData>();
 
-        if (HasSingleton<BuilderMode_Build>() && input.CurrentAction != ActionState.Construct)
+        if (SystemAPI.HasSingleton<BuilderMode_Build>() && input.CurrentAction != ActionState.Construct)
             EntityManager.RemoveComponent<BuilderMode_Build>(entity);
-        if (HasSingleton<BuilderMode_Destroy>() && input.CurrentAction != ActionState.Deconstruct)
+        if (SystemAPI.HasSingleton<BuilderMode_Destroy>() && input.CurrentAction != ActionState.Deconstruct)
             EntityManager.RemoveComponent<BuilderMode_Destroy>(entity);
-        if (HasSingleton<BuilderMode_Blueprint>() && input.CurrentAction != ActionState.Blueprint)
+        if (SystemAPI.HasSingleton<BuilderMode_Blueprint>() && input.CurrentAction != ActionState.Blueprint)
             EntityManager.RemoveComponent<BuilderMode_Blueprint>(entity);
 
         if (Input.GetMouseButtonDown(1))

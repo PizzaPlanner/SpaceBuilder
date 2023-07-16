@@ -144,47 +144,52 @@ namespace Parts {
     [UpdateBefore(typeof(ProgressConstructionSystem))]
     public partial class FinishConstructionSystem : SystemBase
     {
-        protected override void OnUpdate()
+        protected override void OnCreate()
         {
-            foreach (var entity in GetEntityQuery(typeof(Disabled), typeof(FinishConstruction)).ToEntityArray(Allocator.Temp))
-                EntityManager.DestroyEntity(entity);
-            Entities.WithAll<FinishConstruction, UnderConstruction>().ForEach((Entity e) =>
-            {
-                ConstructBlueprint(e);
-            }).WithStructuralChanges().WithoutBurst().Run();
+            RequireForUpdate<IdentifiableMappingSystem.Loaded>();
         }
 
-        private void ConstructBlueprint(Entity bp)
+        protected override void OnUpdate()
         {
-            var pp = EntityManager.CreateEntity(typeof(PendingPart), typeof(UnderConstruction));
-            var transform =GetComponent<WorldTransform>(bp);
-            var rotation = transform.Rotation; 
-            SetComponent(pp, new PendingPart
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(World.Unmanaged);
+            var ecbNow = new EntityCommandBuffer(Allocator.Temp);
+            EntityManager.DestroyEntity(GetEntityQuery(typeof(Disabled), typeof(FinishConstruction)));
+            foreach (var (transform, bp) in SystemAPI.Query<LocalTransform>()
+                                                     .WithAll<FinishConstruction, UnderConstruction>()
+                                                     .WithEntityAccess())
             {
-                Data = new BuildingPartInfo
+                var pp = ecbNow.CreateEntity();
+                var rotation = transform.Rotation;
+                ecbNow.AddComponent<UnderConstruction>(pp);
+                ecbNow.AddComponent(pp, new PendingPart
                 {
-                    Id = GetComponent<Identifieable>(bp).ItemId,
-                    Area = GetComponent<GridItem>(bp).Area,
-                    Orientation = new RightAngleRotation(rotation),
-                    BuildStatus = ushort.MaxValue
-                },
-                Grid = GetComponent<GridItem>(bp).Grid
-            });
+                    Data = new BuildingPartInfo
+                    {
+                        Id = GetComponent<Identifieable>(bp).ItemId,
+                        Area = GetComponent<GridItem>(bp).Area,
+                        Orientation = new RightAngleRotation(rotation),
+                        BuildStatus = ushort.MaxValue
+                    },
+                    Grid = GetComponent<GridItem>(bp).Grid
+                });
+                ecbNow.AddComponent<Disabled>(bp);
+            }
+
+            ecbNow.Playback(EntityManager);
+            
             var ppquery = GetEntityQuery(typeof(UnderConstruction), typeof(PendingPart));
             new BuildingSystem.BuildJob
             {
-                buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged),
+                buffer = ecb,
                 grids = GetComponentLookup<GridStructure>(true),
                 gridItems = GetComponentLookup<GridItem>(true),
                 colliders = GetComponentLookup<PhysicsCollider>(true),
-                occupations = GetBufferLookup<OccupationBuffer>(true),
+                occupations = GetComponentLookup<CellMap>(true),
                 prefabMap = IdentifiableMappingSystem.EntitiesById,
                 IsFinishConstructionJob = true
             }.Run(ppquery);
-            EntityManager.DestroyEntity(pp);
-            EntityManager.AddComponent<Disabled>(bp);
-
-            EntityManager.CreateEntity(typeof(GridNeedsUpdate));
+            EntityManager.DestroyEntity(ppquery);
         }
     }
 }

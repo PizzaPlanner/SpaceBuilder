@@ -90,14 +90,14 @@ public partial class AsteroidRelativeToPlayerSystem : SystemBase
         var camPosition = (float3)Camera.main.transform.position;
         Entities
             .WithAll<AsteroidData, LocalToGalaxy>()
-            .ForEach((Entity e, int nativeThreadIndex, ref LocalToWorld ltw, in WorldTransform transform) =>
+            .ForEach((Entity e, int nativeThreadIndex, ref LocalToWorld ltw, in LocalTransform transform) =>
             {
                 var tBefore = transform.Position - camPosition;
                 var newScale = math.min(farClipPlane / math.length(tBefore), 1);
                 var tNew = math.select(math.normalize(tBefore) * farClipPlane + camPosition, tBefore, newScale >= 1);
-                if (newScale < 0.2f && !HasComponent<DisableRendering>(e))
+                if (newScale < 0.2f && !SystemAPI.HasComponent<DisableRendering>(e))
                     ecb.AddComponent<DisableRendering>(nativeThreadIndex, e);
-                else if(newScale > 0.2f && HasComponent<DisableRendering>(e))
+                else if(newScale > 0.2f && SystemAPI.HasComponent<DisableRendering>(e))
                     ecb.RemoveComponent<DisableRendering>(nativeThreadIndex, e);
                 ltw.Value = float4x4.TRS(tNew, ltw.Rotation, newScale);
             }).ScheduleParallel();
