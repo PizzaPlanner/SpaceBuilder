@@ -31,7 +31,7 @@
 //     protected override void OnUpdate()
 //     {
 //         var buffer = bufferSystem.CreateCommandBuffer();
-//         var forceGenerate = HasSingleton<ForceGenerateSector>() ? GetSingleton<ForceGenerateSector>().Sector : 0ul;
+//         var forceGenerate = HasSingleton<ForceGenerateSector>() ? GetSingleton<ForceGenerateSector>().StarSector : 0ul;
 //         var asteroidPrefab = Entity.Null;
 //         Entities
 //             .WithAll<ToGenerate>()

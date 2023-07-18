@@ -16,16 +16,16 @@ partial struct GeneratePlanetJob : IJobEntity
     public CelestialBody defaultBody;
     public EntityCommandBuffer.ParallelWriter ecb;
         
-    void Execute(Entity e, [EntityIndexInQuery] int index, in LocalToGalaxy ltg, in SubSectorData data)
+    void Execute(Entity e, [EntityIndexInQuery] int index, in LocalToGalaxy ltg, in PlanetSectorData data)
     {
-        var planetRank = byte.MaxValue;
-        var starSectorData = GalaxyTools.GetStarSectorData(ltg.Sector);
+        var starSectorData = GalaxyTools.GetStarSectorData(ltg);
+        var name = $"{GalaxyTools.GetStarName(GalaxyTools.GetSectorSeed(ltg.StarSector))}";
         for (byte i = 0; i < byte.MaxValue; i++)
         {
-            if (math.all(GalaxyTools.GetPlanetData(starSectorData, i).SubSector == ltg.SubSector))
+            if (math.all(starSectorData.GetPlanetSector(i) == ltg.PlanetSector))
             {
-                planetRank = i;
-                break;
+                name = $"{GalaxyTools.GetStarName(GalaxyTools.GetSectorSeed(ltg.StarSector))} {GalaxyTools.ToRomanNumeral(i)}";
+            break;
             }
         }
 
@@ -35,7 +35,7 @@ partial struct GeneratePlanetJob : IJobEntity
         planetData.Color = Color.HSVToRGB(random.NextFloat(), random.NextFloat(0.6f, 1f),
             random.NextFloat(0.8f, 1));
         var body = defaultBody;
-        body.Size = random.NextFloat(1f, GeneratePlanetSystem.PLANET_MAX_SIZE_FACTOR) * GeneratePlanetSystem.PLANET_SIZE_BASE;
+        body.Size = random.NextFloat(0.3f, 1);
         ecb.SetComponent(index, planet, planetData);
         ecb.SetComponent(index, planet, body);
         ecb.SetComponent(index, planet, ltg);
@@ -43,7 +43,7 @@ partial struct GeneratePlanetJob : IJobEntity
         {
             Value = new float4(planetData.Color.a, planetData.Color.g, planetData.Color.b, 0)
         });
-        ecb.SetComponent(index, planet, new Name{Value = $"{GalaxyTools.GetStarName(GalaxyTools.GetSectorSeed(ltg.Sector))} {GalaxyTools.ToRomanNumeral(planetRank)}"});
+        ecb.SetComponent(index, planet, new Name{Value = name});
     }
 }
 
@@ -61,9 +61,6 @@ public partial struct GeneratePlanetSystem : ISystem
                                            .WithAll<Planet, Prefab>());
         generateQuery = state.GetEntityQuery(typeof(GeneratePlanet));
     }
-
-    public const float PLANET_SIZE_BASE = 30_000;
-    public const float PLANET_MAX_SIZE_FACTOR = 9f;
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)

@@ -58,7 +58,7 @@ namespace Galaxy {
                 .WithAll<Star>()
                 .ForEach((in LocalToGalaxy ltg) =>
                 {
-                    var len = GalaxyTools.DistanceInSubsectors(playerLtg, ltg);
+                    var len = GalaxyTools.DistanceInSubsectors(ltg - playerLtg);
                     if (len < closestDistance)
                     {
                         closestDistance = len;

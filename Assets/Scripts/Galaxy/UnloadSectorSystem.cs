@@ -19,7 +19,7 @@ public partial class UnloadSectorSystem : SystemBase
     protected override void OnCreate()
     {
         RequireForUpdate<LocalPlayer>();
-        lastPlayerLtg = new LocalToGalaxy {Sector = int.MaxValue, SubSector = int.MaxValue};
+        lastPlayerLtg = new LocalToGalaxy {StarSector = int.MaxValue, PlanetSector = int.MaxValue};
     }
 
     protected override void OnUpdate()
@@ -33,8 +33,8 @@ public partial class UnloadSectorSystem : SystemBase
         var playerLtg = SystemAPI.GetComponent<LocalToGalaxy>(SystemAPI.GetSingletonEntity<LocalPlayer>());
         var toRemoveList = new NativeList<Entity>(Allocator.Temp);
 
-        var shouldRecalculateSectors = math.any(playerLtg.Sector != lastPlayerLtg.Sector);
-        var shouldRecalculateSubSectors = shouldRecalculateSectors || math.any(playerLtg.SubSector != lastPlayerLtg.SubSector);
+        var shouldRecalculateSectors = math.any(playerLtg.StarSector != lastPlayerLtg.StarSector);
+        var shouldRecalculateSubSectors = shouldRecalculateSectors || math.any(playerLtg.PlanetSector != lastPlayerLtg.PlanetSector);
         lastPlayerLtg = playerLtg;
         var sectorLoadSettings = SystemAPI.GetSingleton<LoadSectorSystem.SectorLoadSettings>();
         var pendingSectors = SystemAPI.GetSingletonRW<LoadSectorSystem.PendingSectors>();
@@ -44,13 +44,12 @@ public partial class UnloadSectorSystem : SystemBase
                 .WithNone<UnloadCandidate>()
                 .WithNone<ToGenerate>()
                 .WithAll<SectorLoadingDistance.CelestialBody>()
-                .WithAll<SubSector>()
                 .ForEach((Entity e, in LocalToGalaxy ltg) =>
                 {
                     var unloadDistance = SystemAPI.HasComponent<SectorLoadingDistance.Planetoid>(e)
-                        ? sectorLoadSettings.MaxLoadedSectorDistancePlanetoid 
-                        : sectorLoadSettings.MaxLoadedSectorDistanceCelestial;
-                    if (GalaxyTools.ShouldUnloadSector(playerLtg, ltg,
+                        ? sectorLoadSettings.MaxLoadedPlanetSectorDistance 
+                        : sectorLoadSettings.MaxLoadedStarSectorDistance;
+                    if (GalaxyTools.ShouldUnloadSector(ltg - playerLtg,
                             unloadDistance))
                         ecb.AddComponent<UnloadCandidate>(e);
                 }).Schedule();
@@ -60,34 +59,33 @@ public partial class UnloadSectorSystem : SystemBase
                 .ForEach((Entity e, in LocalToGalaxy ltg) =>
                 {
                     var unloadDistance = SystemAPI.HasComponent<SectorLoadingDistance.Planetoid>(e)
-                        ? sectorLoadSettings.MaxLoadedSectorDistancePlanetoid 
-                        : sectorLoadSettings.MaxLoadedSectorDistanceCelestial;
-                    if(!GalaxyTools.ShouldUnloadSector(playerLtg, ltg, unloadDistance))
+                        ? sectorLoadSettings.MaxLoadedPlanetSectorDistance 
+                        : sectorLoadSettings.MaxLoadedStarSectorDistance;
+                    if(!GalaxyTools.ShouldUnloadSector(ltg - playerLtg, unloadDistance))
                         ecb.RemoveComponent<UnloadCandidate>(e);
                 }).Schedule();
         }
 
         if (shouldRecalculateSubSectors)
         {
-            Entities
-                .WithNone<UnloadCandidate, SectorLoadingDistance.Planetoid, SectorLoadingDistance.CelestialBody>()
-                .WithNone<ToGenerate>()
-                .WithAny<SubSector, GridStructure>()
-                .ForEach((Entity e, in LocalToGalaxy ltg) =>
-                {
-                    if (GalaxyTools.ShouldUnloadSector(playerLtg, ltg,
-                            sectorLoadSettings.MaxLoadedSectorDistanceDefault))
-                        ecb.AddComponent<UnloadCandidate>(e);
-                }).Schedule();
-
-            Entities
-                .WithAll<UnloadCandidate>()
-                .WithNone<SectorLoadingDistance.Planetoid, SectorLoadingDistance.CelestialBody>()
-                .ForEach((Entity e, in LocalToGalaxy ltg) =>
-                {
-                    if(!GalaxyTools.ShouldUnloadSector(playerLtg, ltg, sectorLoadSettings.MaxLoadedSectorDistanceDefault))
-                        ecb.RemoveComponent<UnloadCandidate>(e);
-                }).Schedule();
+            // Entities
+            //     .WithNone<UnloadCandidate, SectorLoadingDistance.Planetoid, SectorLoadingDistance.CelestialBody>()
+            //     .WithNone<ToGenerate>()
+            //     .ForEach((Entity e, in LocalToGalaxy ltg) =>
+            //     {
+            //         if (GalaxyTools.ShouldUnloadSector(ltg - playerLtg,
+            //                 sectorLoadSettings.MaxLoadedSectorDistanceDefault))
+            //             ecb.AddComponent<UnloadCandidate>(e);
+            //     }).Schedule();
+            //
+            // Entities
+            //     .WithAll<UnloadCandidate>()
+            //     .WithNone<SectorLoadingDistance.Planetoid, SectorLoadingDistance.CelestialBody>()
+            //     .ForEach((Entity e, in LocalToGalaxy ltg) =>
+            //     {
+            //         if(!GalaxyTools.ShouldUnloadSector(ltg - playerLtg, sectorLoadSettings.MaxLoadedSectorDistanceDefault))
+            //             ecb.RemoveComponent<UnloadCandidate>(e);
+            //     }).Schedule();
         }
 
 
@@ -112,14 +110,6 @@ public partial class UnloadSectorSystem : SystemBase
                 if(pendingSectors.ValueRW.sectorsLoaded[i] == ltg)
                     pendingSectors.ValueRW.sectorsLoaded.RemoveAt(i--);
         }
-
-        Entities
-            .WithNone<Parent>()
-            .WithAll<GridItem>()
-            .ForEach((Entity e) =>
-            {
-                toRemoveList.Add(e);
-            }).Run();
 
         EntityManager.DestroyEntity(toRemoveList);
     }

@@ -11,11 +11,15 @@
         "Unity.Transforms",
         "Unity.Transforms.Hybrid",
         "Unity.Entities.Graphics",
-        "YamlDotNet",
         "Unity.Burst",
-        "Unity.Properties",
         "Unity.Mathematics.Extensions",
-        "Unity.RenderPipelines.Core.Runtime"
+        "Unity.RenderPipelines.Core.Runtime",
+        "Galaxy",
+        "Player",
+        "Grid",
+        "Items",
+        "Identifiables",
+        "Blueprints"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

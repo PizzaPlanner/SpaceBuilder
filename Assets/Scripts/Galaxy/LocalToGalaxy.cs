@@ -1,200 +1,195 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
+using UnityEngine;
 
 public struct TravellerInSector : IBufferElementData
 {
     public Entity Player;
 }
 
-public static class Constants
+public struct LocalToGalaxy : IComponentData
 {
-    public const long MAX_POSITION = 0x2A00; // Must satisfy MAX_POSITION * MAX_POSITION < int.MaxValue
-    public const long MAX_SUBSECTOR = 0x0003_FFFF; // Must satisfy MAX_SUBSECTOR * MAX_SUBSECTOR < int.MaxValue
-    public const long DISTANCE_PER_SECTOR = MAX_POSITION * MAX_SUBSECTOR;
+    [SerializeField] long bitsX, bitsY, bitsZ;
+    [SerializeField] double3 _localPosition;
+    
+    public static LocalToGalaxy Center => new LocalToGalaxy
+    {
+        LightSector = 0,
+        StarSector = MAX_STARSECTOR / 2,
+        PlanetSector = MAX_PLANETSECTOR / 2,
+        LocalPosition = MAX_POSITION / 2,
+    };
+
+    public int3 LightSector
+    {
+        get => GetFromMaskAndShift(LIGHTSECTOR_MASK, LIGHTSECTOR_SHIFT);
+        set => OverwriteAndAddRemainder(value, LIGHTSECTOR_MASK, LIGHTSECTOR_SHIFT);
+    }
+    
+    public int3 StarSector
+    {
+        get => GetFromMaskAndShift(STARSECTOR_MASK, STARSECTOR_SHIFT);
+        set => OverwriteAndAddRemainder(value, STARSECTOR_MASK, STARSECTOR_SHIFT);
+    }
+
+    public int3 PlanetSector
+    {
+        get => GetFromMaskAndShift(PLANETSECTOR_MASK, PLANETSECTOR_SHIFT);
+        set => OverwriteAndAddRemainder(value, PLANETSECTOR_MASK, PLANETSECTOR_SHIFT);
+    }
+
+    int3 GetFromMaskAndShift(long mask, int shift)
+    {
+        return new int3(
+            (int)((bitsX & mask) >> shift),
+            (int)((bitsY & mask) >> shift),
+            (int)((bitsZ & mask) >> shift));
+    }
+
+    void OverwriteAndAddRemainder(int3 value, long mask, int shift)
+    {
+        var cutoutX = bitsX & ~mask;
+        var cutoutY = bitsY & ~mask;
+        var cutoutZ = bitsZ & ~mask;
+        bitsX = cutoutX + ((long)value.x << shift);
+        bitsY = cutoutY + ((long)value.y << shift);
+        bitsZ = cutoutZ + ((long)value.z << shift);
+    }
+
+    public double3 LocalPosition
+    {
+        get => _localPosition;
+        set
+        {
+            var floor = math.floor(value / MAX_POSITION);
+            _localPosition = (value % MAX_POSITION + MAX_POSITION) % MAX_POSITION;
+            bitsX += (long)floor.x;
+            bitsY += (long)floor.y;
+            bitsZ += (long)floor.z;
+        }
+    }
+
+    const int LOCALPOSITION_BITS = 16;
+    public const int MAX_POSITION = 1 << LOCALPOSITION_BITS;
+
+    const int PLANETSECTOR_BITS = 12;
+    const int PLANETSECTOR_SHIFT = 0;
+    const long PLANETSECTOR_MASK = (MAX_PLANETSECTOR - 1L) << PLANETSECTOR_SHIFT;
+    public const short MAX_PLANETSECTOR = 1 << PLANETSECTOR_BITS;
+    
+    const int STARSECTOR_BITS = 12;
+    const int STARSECTOR_SHIFT = PLANETSECTOR_BITS + PLANETSECTOR_SHIFT;
+    const long STARSECTOR_MASK = (MAX_STARSECTOR - 1L) << STARSECTOR_SHIFT;
+    public const short MAX_STARSECTOR = 1 << STARSECTOR_BITS;
+    
+    const int LIGHTSECTOR_BITS = 39;
+    const int LIGHTSECTOR_SHIFT = STARSECTOR_BITS + STARSECTOR_SHIFT;
+    const long LIGHTSECTOR_MASK = (MAX_LIGHTSECTOR - 1L) << LIGHTSECTOR_SHIFT;
+    public const long MAX_LIGHTSECTOR = 1L << LIGHTSECTOR_BITS;
+
+    const int MAX_MEASURABLE_SECTOR_BITS = 39;
+    public const double MAX_MEASURABLE_DISTANCE = (1L << MAX_MEASURABLE_SECTOR_BITS) * DISTANCE_PER_PLANETSECTOR - 1;
+    const double MAX_MEASURABLE_LY = MAX_MEASURABLE_DISTANCE / DISTANCE_LIGHTYEAR;
+    
+    public const double DISTANCE_PER_LIGHTSECTOR = DISTANCE_PER_STARSECTOR * MAX_STARSECTOR;
+    public const double DISTANCE_PER_STARSECTOR = DISTANCE_PER_PLANETSECTOR * MAX_PLANETSECTOR;
+    public const double DISTANCE_PER_PLANETSECTOR = MAX_POSITION;
+    
     public const float DISTANCE_PARSEC = 3.0857e+16f;
     public const float DISTANCE_LIGHTYEAR = 9_460_730_472_580_800;
     public const float DISTANCE_ASTRONOMICAL_UNIT = 149_597_870_700;
-}
 
-public struct LocalToGalaxy : IComponentData
-{
-    public int3 Sector;
-    public int3 SubSector;
-    public float3 LocalPosition;
-
-    public static double3 RelativePosition(LocalToGalaxy origin, LocalToGalaxy target)
+    public bool3 DistanceMeasureable => math.abs(new double3(
+        bitsX,
+        bitsY,
+        bitsZ
+    )) <= 1L << MAX_MEASURABLE_SECTOR_BITS;
+    
+    public double3 Distance
     {
-        var diff = target - origin;
-        return (double3)diff.LocalPosition +
-               (double3)diff.SubSector * Constants.MAX_POSITION +
-               (double3)diff.Sector * Constants.DISTANCE_PER_SECTOR;
+        get
+        {
+            var bitsAsDouble = new double3(
+                bitsX,
+                bitsY,
+                bitsZ
+            );
+            return math.select(double.PositiveInfinity,
+                _localPosition + bitsAsDouble * DISTANCE_PER_PLANETSECTOR,
+                DistanceMeasureable); 
+        }
+    } 
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static LocalToGalaxy operator +(LocalToGalaxy lhs, LocalToGalaxy rhs)
+    {
+        var result = new LocalToGalaxy
+        {
+            LightSector = lhs.LightSector + rhs.LightSector,
+            StarSector = lhs.StarSector + rhs.StarSector,
+            PlanetSector = lhs.PlanetSector + rhs.PlanetSector,
+            LocalPosition = lhs.LocalPosition + rhs.LocalPosition,
+        };
+        return result;
     }
-
-    public static LocalToGalaxy OffsetBy(LocalToGalaxy origin, double3 offset)
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static LocalToGalaxy operator +(LocalToGalaxy lhs, double3 rhs)
     {
-        var totalMoveSectors = (int3)(offset / Constants.DISTANCE_PER_SECTOR);
-        offset %= Constants.DISTANCE_PER_SECTOR;
-
-        var totalMoveSubSectors = (int3)(offset / Constants.MAX_POSITION);
-        offset %= Constants.MAX_POSITION;
-
-        var totalLocal = (float3)offset;
-        var result = origin + new LocalToGalaxy
-            {Sector = totalMoveSectors, SubSector = totalMoveSubSectors, LocalPosition = totalLocal};
+        var result = lhs;
+        result.LocalPosition += rhs;
         return result;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    [BurstCompile]
-    public static LocalToGalaxy Corrected(LocalToGalaxy ltg)
-    {
-        var overflowSubSector = (int3) math.floor(ltg.LocalPosition / (int) Constants.MAX_POSITION);
-        // var overflowLocalPos = (double3)ltg.LocalPosition + math.sign(overflowSubSector) * (int) Constants.MAX_POSITION;
-        var overflow = new LocalToGalaxy()
-        {
-            Sector = (ltg.SubSector + overflowSubSector + (int)Constants.MAX_SUBSECTOR) /
-                (int)Constants.MAX_SUBSECTOR - 1,
-            SubSector = overflowSubSector
-        };
-        var correction = new LocalToGalaxy()
-        {
-            Sector = ltg.Sector + overflow.Sector,
-            SubSector = GridTools.mod(ltg.SubSector + overflow.SubSector, (int)Constants.MAX_SUBSECTOR),
-            LocalPosition = (float3)GridTools.mod((double3)ltg.LocalPosition, (int)Constants.MAX_POSITION)
-        };
-        return correction;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    [BurstCompile]
-    public static LocalToGalaxy operator +(LocalToGalaxy lhs, LocalToGalaxy rhs)
-    {
-        var sum = new LocalToGalaxy()
-        {
-            Sector = lhs.Sector + rhs.Sector,
-            SubSector = lhs.SubSector + rhs.SubSector,
-            LocalPosition = lhs.LocalPosition + rhs.LocalPosition
-        };
-        return Corrected(sum);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    [BurstCompile]
     public static LocalToGalaxy operator -(LocalToGalaxy lhs, LocalToGalaxy rhs)
     {
-        var sum = new LocalToGalaxy()
+        var result = new LocalToGalaxy
         {
-            Sector = lhs.Sector - rhs.Sector,
-            SubSector = lhs.SubSector - rhs.SubSector,
-            LocalPosition = lhs.LocalPosition - rhs.LocalPosition
+            LightSector = lhs.LightSector - rhs.LightSector,
+            StarSector = lhs.StarSector - rhs.StarSector,
+            PlanetSector = lhs.PlanetSector - rhs.PlanetSector,
+            LocalPosition = lhs.LocalPosition - rhs.LocalPosition,
         };
-        return Corrected(sum);
+        return result;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    [BurstCompile]
+    public static LocalToGalaxy operator -(LocalToGalaxy lhs, double3 rhs)
+    {
+        var result = lhs;
+        result.LocalPosition -= rhs;
+        return result;
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(LocalToGalaxy l1, LocalToGalaxy l2)
     {
-        return math.all(l1.Sector == l2.Sector) && math.all(l1.SubSector == l2.SubSector);
+        return
+               math.all(l1.LightSector == l2.LightSector) && 
+               math.all(l1.PlanetSector == l2.PlanetSector) &&
+               math.all(l1.StarSector == l2.StarSector);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [BurstCompile]
     public static bool operator !=(LocalToGalaxy l1, LocalToGalaxy l2)
     {
-        return math.any(l1.Sector != l2.Sector) || math.any(l1.SubSector != l2.SubSector);
+        return 
+               math.any(l1.StarSector != l2.StarSector) ||
+               math.any(l1.PlanetSector != l2.PlanetSector) ||
+               math.any(l1.LightSector != l2.LightSector);
     }
 
     public override string ToString()
     {
-        return $"({Sector.x:X}:{SubSector.x:X}, {Sector.y:X}:{SubSector.y:X}, {Sector.z:X}:{SubSector.z:X}) @ ({LocalPosition:F0})";
+        return $"({LightSector.x:X}:{StarSector.x:X}:{PlanetSector.x:X}:{LocalPosition.x:F0}, {LightSector.y:X}:{StarSector.y:X}:{PlanetSector.y:X}:{LocalPosition.y:F0}, {LightSector.z:X}:{StarSector.z:X}:{PlanetSector.z:X}:{LocalPosition.z:F0})";
     }
-}
 
-public enum SectorChangeType
-{
-    Normal,
-    FTL,
-    Teleport,
-    Spawn
-}
-
-public struct SectorChange : IComponentData
-{
-    public Entity Entity;
-    public LocalToGalaxy Previous;
-    public LocalToGalaxy New;
-    public SectorChangeType ChangeType;
-}
-
-public struct CanTravelSectors : IComponentData
-{
-    public LocalToGalaxy PreviousSector;
-    public SectorChangeType CurrentTravelType;
-    public double CurrentSpeed;
-}
-
-[UpdateInGroup(typeof(InitializationSystemGroup))]
-public partial class MakeTravellerSystem : SystemBase
-{
-    protected override void OnUpdate()
-    {
-        Entities
-            .WithNone<CanTravelSectors>()
-            .WithAny<Player, Flyable>()
-            .WithAll<LocalToGalaxy>()
-            .ForEach((Entity e) =>
-            {
-                EntityManager.AddComponent<CanTravelSectors>(e);
-            }).WithoutBurst().WithStructuralChanges().Run();
-    }
-}
-
-[UpdateInGroup(typeof(TransformSystemGroup))]
-[UpdateBefore(typeof(LocalToWorldSystem))]
-public partial class TRSToLocalToGalaxySystem : SystemBase
-{
-    protected override void OnUpdate()
-    {
-        var ecb = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
-
-        Entities
-            .WithNone<Parent>()
-            .ForEach((Entity e, ref LocalToGalaxy ltg, ref CanTravelSectors cts) =>
-            {
-                if (ltg != cts.PreviousSector && cts.CurrentTravelType != SectorChangeType.FTL)
-                {
-                    var update = ecb.CreateEntity();
-                    ecb.AddComponent(update, new SectorChange
-                    {
-                        Entity = e,
-                        Previous = cts.PreviousSector,
-                        New = ltg,
-                        ChangeType = cts.CurrentTravelType
-                    });
-                }
-
-                cts.PreviousSector = ltg;
-            }).Run();
-
-        var refFrame = GetSingleton<ReferenceFrame>();
-        var refFramePrevRotInverse = math.inverse(refFrame.PreviousLtw.Value);
-        Entities
-            .WithNone<ReferenceFrameOrigin>()
-            .WithNone<Parent>()
-            .WithNone<Docked>()
-            .ForEach((Entity e, ref LocalTransform transform, in LocalToGalaxy ltg) =>
-            {
-                var ltgDiff = LocalToGalaxy.RelativePosition(refFrame.PreviousLtg, ltg);
-                var relativeRotation = math.mul(new quaternion(refFramePrevRotInverse), transform.Rotation);
-                var localTRS = float4x4.TRS((float3)ltgDiff, relativeRotation, 1);
-                
-                transform.Position = (float3)ltgDiff;
-                transform.Rotation = math.mul(relativeRotation, refFrame.CurrentLtw.Rotation);
-            }).ScheduleParallel();
-    }
+    [BurstDiscard]
+    public string DebugX => $"({bitsX:X}:{LocalPosition.x:F0})";
 }

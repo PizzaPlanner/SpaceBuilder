@@ -2,15 +2,19 @@ using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Mathematics;
+using Unity.Transforms;
+using UnityEngine;
+using UnityEngine.SocialPlatforms;
+using Random = Unity.Mathematics.Random;
 
 public static class GalaxyTools
 {
     private const float PERLIN_SECTOR_RESOLUTION = 0.01f;
-    private const int SECTOR_CENTRAL_SUBSECTOR = (int) Constants.MAX_SUBSECTOR >> 1;
-    private const uint SUN_MAX_DIST_FROM_CENTER = (int) (SECTOR_CENTRAL_SUBSECTOR * 0.024f);
-    private const uint MIN_DIST_FROM_SUN_TO_PLANET = (int) (10 * GenerateStarSystem.STAR_SIZE_BASE * GenerateStarSystem.STAR_MAX_SIZE_FACTOR / Constants.MAX_POSITION);
-    private const uint MIN_DIST_BETWEEN_PLANETS = (int) (22 * GeneratePlanetSystem.PLANET_SIZE_BASE / Constants.MAX_POSITION * GeneratePlanetSystem.PLANET_MAX_SIZE_FACTOR );
-    private const int PLANET_MAX_Y_DISTANCE = (int) (Constants.MAX_SUBSECTOR * 0.003f);
+    public const float PLANET_SIZE_MAX = (float)LocalToGalaxy.DISTANCE_PER_PLANETSECTOR * 0.8f;
+    public const float STAR_SIZE_MAX = (float)LocalToGalaxy.DISTANCE_PER_PLANETSECTOR * 52;
+    private const uint MIN_SECTORS_FROM_STAR_TO_PLANET = 120;
+    private const uint MIN_SECTORS_BETWEEN_PLANETS = 7;
+    private const int PLANET_MAX_Y_DISTANCE = (int) (LocalToGalaxy.MAX_PLANETSECTOR * 0.003f);
     
     public static float Perlin3D(in float3 xyz)
     {
@@ -45,14 +49,14 @@ public static class GalaxyTools
     public static string ToGalacticDistanceWithUnit(double distance)
     {
         var unit = "m";
-        if (distance >= 0.01 * Constants.DISTANCE_PARSEC)
+        if (distance >= 0.01 * LocalToGalaxy.DISTANCE_PARSEC)
         {
-            distance /= Constants.DISTANCE_PARSEC;
+            distance /= LocalToGalaxy.DISTANCE_PARSEC;
             unit = "pc";
         }
-        else if (distance >= Constants.DISTANCE_ASTRONOMICAL_UNIT)
+        else if (distance >= LocalToGalaxy.DISTANCE_ASTRONOMICAL_UNIT)
         {
-            distance /= Constants.DISTANCE_ASTRONOMICAL_UNIT;
+            distance /= LocalToGalaxy.DISTANCE_ASTRONOMICAL_UNIT;
             unit = "au";
         }
         else if (distance > 1000_000_000)
@@ -148,171 +152,106 @@ public static class GalaxyTools
         return it1;
     }
 
-    public static int3 GetCelestialSectorCenter(in int3 sector, out Random random)
-    {
-        if (!GetSectorType(sector, out random).IsCelestialScale())
-            return default;
+    public static readonly int3 StarSectorCenter = LocalToGalaxy.MAX_STARSECTOR >> 1;
+    public static readonly int3 PlanetSectorCenter = LocalToGalaxy.MAX_PLANETSECTOR >> 1;
 
-        var center = (int3)random.NextUInt3(0, SUN_MAX_DIST_FROM_CENTER);
-        return SECTOR_CENTRAL_SUBSECTOR + math.select(center, -center, random.NextBool3());
-    }
-
-    public static StarSectorData GetStarSectorData(in int3 sector)
-    {
-        if (GetSectorType(sector, out var random) != SectorType.Star)
-            return default;
-
-        var center = GetCelestialSectorCenter(sector, out random);
-        var planetRandom = random.NextFloat();
-        return new StarSectorData
-        {
-            Center = center,
-            PlanetGeneratorSeed = GetSubsectorSeed(GetSectorSeed(sector), center),
-            NumberOfPlanets = (byte)(
-                planetRandom < 0.001f ? 0u :
-                planetRandom < 0.2f ? random.NextUInt(1, 4) :
-                planetRandom < 0.95f ? random.NextUInt(4, 6) :
-                random.NextUInt(6, 10))
-        };
-    }
-
-    public static StarSectorPlanetData GetPlanetData(in StarSectorData sectorData, in byte id)
-    {
-        var random = new Random(sectorData.PlanetGeneratorSeed);
-        var data = new StarSectorPlanetData();
-        var lastDistance = MIN_DIST_FROM_SUN_TO_PLANET;
-
-        for (byte i = 0; i <= id; i++)
-        {
-            lastDistance += random.NextUInt(MIN_DIST_BETWEEN_PLANETS, MIN_DIST_BETWEEN_PLANETS * 2) * id;
-            var angle = random.NextFloat(0, math.PI * 2);
-            data = new StarSectorPlanetData
-            {
-                SubSector = sectorData.Center + new int3(
-                    (int)(lastDistance * math.sin(angle)),
-                    random.NextInt(-PLANET_MAX_Y_DISTANCE, PLANET_MAX_Y_DISTANCE),
-                    (int)(lastDistance * math.cos(angle))
-                )
-            };
-        }
-
-        return data;
-    }
-    
-    public static bool IsCelestialScale(this SubSectorType type) =>
-        type is SubSectorType.Star or SubSectorType.Nebula;
-    
-    public static bool IsCelestialScale(this SectorType type) =>
-        type is SectorType.Star or SectorType.Nebula;
-    
-    public static SectorType GetSectorType(int3 sector) => GetSectorType(sector, out _);
-    
-    static SectorType GetSectorType(int3 sector, out Random random)
-    {
-        var hash = GetSectorSeed(sector);
-        random = new Random(hash);
-        var nextType = random.NextInt(0, 100000);
-        return
-            nextType < 3438 ? SectorType.Star :
-            // nextType < 2865 ? SectorType.Nebula :
-            nextType < 3439 ? SectorType.BlackHole :
-            SectorType.Empty;
-    }
-    
     public static uint GetSectorSeed(in int3 sector)
     {
         return math.hash(sector);
     }
     
-    public static uint GetSubsectorSeed(LocalToGalaxy ltg)
+    public static uint GetPlanetSectorSeed(LocalToGalaxy ltg)
     {
-        return GetSubsectorSeed(GetSectorSeed(ltg.Sector), ltg.SubSector);
+        return GetPlanetSectorSeed(GetSectorSeed(ltg.StarSector), ltg.PlanetSector);
     }
     
-    public static uint GetSubsectorSeed(in uint sectorSeed, in int3 subSector)
+    public static uint GetPlanetSectorSeed(in uint sectorSeed, in int3 subSector)
     {
         return math.hash(new uint2(math.hash(subSector), sectorSeed));
     }
     
-    public static SectorData GetSectorData(in LocalToGalaxy ltg)
+    #region SectorType
+    public static LightSectorType GetLightSectorType(in LocalToGalaxy pos, out float perlin)
     {
-        var data = new SectorData();
-        data.Seed = GetSectorSeed(ltg.Sector);
-        data.Type = GetSectorType(ltg.Sector);
-        return data;
+        perlin = Perlin3D((float3)pos.LightSector * 1f / LocalToGalaxy.MAX_LIGHTSECTOR);
+        return perlin < 0.0f ? LightSectorType.Empty : LightSectorType.Stars;
     }
     
-    public static SubSectorData GetSubSectorData(in LocalToGalaxy ltg)
+    public static StarSectorType GetStarSectorType(in LocalToGalaxy ltg)
     {
-        var sectorType = GetSectorType(ltg.Sector);
-        var data = new SubSectorData
+        return StarSectorType.Star;
+    }
+    #endregion
+    
+    #region SectorData
+    public static LightSectorData GetLightSectorData(in LocalToGalaxy ltg)
+    {
+        var data = new LightSectorData();
+        var random = new Random(GetSectorSeed(ltg.LightSector));
+        data.Type = GetLightSectorType(ltg, out data.Perlin);
+        if (data.Type == LightSectorType.Stars)
         {
-            Seed = GetSubsectorSeed(ltg),
-            Type = SubSectorType.Unknown
-        };
+            data.NumberOfStars = (byte)(data.Perlin * 32 * random.NextFloat(0.7f, 1f));
+            data.StarSectorBytes = new FixedList128Bytes<ushort>();
 
-        switch (sectorType)
-        {
-            case SectorType.Star:
-                var starsector = GetStarSectorData(ltg.Sector);
-                if (math.all(ltg.SubSector == starsector.Center))
-                    data.Type = SubSectorType.Star;
-                else
-                {
-                    for (byte i = 0; i < starsector.NumberOfPlanets; i++)
-                    {
-                        var planetsector = GetPlanetData(starsector, i);
-                        var distToPlanetSq = math.distancesq(planetsector.SubSector, ltg.SubSector);
-                        // Is a planet ?
-                        if (math.all(planetsector.SubSector == ltg.SubSector))
-                            data.Type = SubSectorType.Planet;
-                        // Is in Planet POI Range ?
-                        else if (distToPlanetSq < MIN_DIST_BETWEEN_PLANETS * 0.04f * MIN_DIST_BETWEEN_PLANETS * 0.04f)
-                        {
-                            var random = new Random(data.Seed).NextFloat();
-                            data.Type = random < 0.0021f ? SubSectorType.POI : SubSectorType.Empty;
-                        }
-                        // non-POI space close to planets is empty
-                        else if(distToPlanetSq < MIN_DIST_BETWEEN_PLANETS * 0.15f * MIN_DIST_BETWEEN_PLANETS * 0.15f)
-                        {
-                            data.Type = SubSectorType.Empty;
-                        }
-                    }
-
-                    // Is not next to a planet or a planet's orbit
-                    if (data.Type == SubSectorType.Unknown)
-                    {
-                        var random = new Random(data.Seed).NextFloat();
-                        data.Type = random < 0.00027f ? SubSectorType.AsteroidField : SubSectorType.Empty;
-                    }
-                }
-                break;
-            case SectorType.Nebula:
+            for (int i = 0; i < data.NumberOfStars; i++)
             {
-                data.Type = math.all(ltg.SubSector == GetCelestialSectorCenter(ltg.Sector, out _))
-                    ? SubSectorType.Nebula
-                    : SubSectorType.Empty;
-                break;
-            }
-            default:
-            {
-                var perlin = Perlin3D((float3)ltg.SubSector / Constants.MAX_SUBSECTOR + ltg.Sector);
-                data.Type = perlin > 0.2f ? SubSectorType.AsteroidField : SubSectorType.Empty;
-                break;
+                var starSector = random.NextInt3(LocalToGalaxy.MAX_STARSECTOR);
+                var starLtg = ltg;
+                starLtg.StarSector = starSector;
+                starLtg.PlanetSector = PlanetSectorCenter;
+                data.StarSectorBytes.Add((ushort)starLtg.StarSector.x);
+                data.StarSectorBytes.Add((ushort)starLtg.StarSector.y);
+                data.StarSectorBytes.Add((ushort)starLtg.StarSector.z);
             }
         }
 
         return data;
     }
-    
-    public static double DistanceInSubsectors(LocalToGalaxy playerSector, LocalToGalaxy sector)
+
+    public static StarSectorData GetStarSectorData(in LocalToGalaxy ltg)
     {
-        var rpos = math.abs(LocalToGalaxy.RelativePosition(playerSector, sector));
-        return math.csum(math.abs(rpos / Constants.MAX_POSITION));
+        var random = new Random(GetSectorSeed(ltg.StarSector));
+        var data = new StarSectorData();
+        data.Type = GetStarSectorType(ltg);
+        if (data.Type != StarSectorType.Empty)
+        {
+            data.NumberOfPlanets = (byte)random.NextInt(9);
+            data.PlanetSectorBytes = new FixedList128Bytes<ushort>();
+            data.StarGeneratorSeed = random.NextUInt();
+
+            var lastDistance = MIN_SECTORS_FROM_STAR_TO_PLANET - MIN_SECTORS_BETWEEN_PLANETS;
+            for (byte i = 0; i <= data.NumberOfPlanets; i++)
+            {
+                lastDistance += random.NextUInt(11) + MIN_SECTORS_BETWEEN_PLANETS;
+                var angle = random.NextFloat(0, math.PI * 2);
+                var delta = new LocalToGalaxy
+                {
+                    PlanetSector = PlanetSectorCenter + new int3(
+                        (int)(lastDistance * math.sin(angle)),
+                        random.NextInt(-PLANET_MAX_Y_DISTANCE, PLANET_MAX_Y_DISTANCE),
+                        (int)(lastDistance * math.cos(angle))
+                    )
+                };
+                var planetLtg = ltg + delta;
+                data.PlanetSectorBytes.Add((ushort)planetLtg.StarSector.x);
+                data.PlanetSectorBytes.Add((ushort)planetLtg.StarSector.y);
+                data.PlanetSectorBytes.Add((ushort)planetLtg.StarSector.z);
+            }
+        }
+
+        return data;
+    }
+    #endregion
+    
+    public static double DistanceInSubsectors(LocalToGalaxy delta)
+    {
+        var rpos = math.abs(delta.Distance);
+        return math.csum(math.abs(rpos / LocalToGalaxy.MAX_POSITION));
     }
     
-    public static bool ShouldUnloadSector(LocalToGalaxy playerSector, LocalToGalaxy sector, int unloadDistances)
+    public static bool ShouldUnloadSector(LocalToGalaxy delta, int unloadDistances)
     {
-        return DistanceInSubsectors(playerSector, sector) > unloadDistances;
+        return DistanceInSubsectors(delta) > unloadDistances;
     }
 }

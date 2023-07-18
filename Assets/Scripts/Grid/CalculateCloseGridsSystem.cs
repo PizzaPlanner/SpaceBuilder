@@ -51,7 +51,7 @@ public partial class CalculateCloseGridsSystem : SystemBase
                 return;
             }
             
-            var relPos = (float3)LocalToGalaxy.RelativePosition(playerLtg, ltg);
+            var relPos = (float3)(ltg - playerLtg).Distance;
             var distSq = math.lengthsq(relPos);
             if (distSq > MAX_DISTANCE_SQ)
                 return;

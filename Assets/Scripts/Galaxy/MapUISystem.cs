@@ -12,7 +12,7 @@ public partial class MapUISystem : SystemBase
     {
         RequireForUpdate<LocalPlayer>();
         maxSectorSegments = sizeof(int);
-        for (int i = 0; i < sizeof(long) && (Constants.MAX_SUBSECTOR & (0x1FF << (i*9))) > 0; i++)
+        for (int i = 0; i < sizeof(long) && ((long)LocalToGalaxy.MAX_PLANETSECTOR & (0x1FF << (i*9))) > 0; i++)
         {
             maxSubSectorSegments = i + 1;
         }
@@ -52,7 +52,7 @@ public partial class MapUISystem : SystemBase
         var secX = coordinates.Q("X").Q("Sector");
         for (int i = 0; i < secX.childCount; i++)
         {
-            var seg = (short)((ltg.Sector.x >> (9*i)) & 0x1FF);
+            var seg = (short)((ltg.StarSector.x >> (9*i)) & 0x1FF);
             secX[i].ClearClassList();
             secX[i].AddToClassList("coorsys-segment");
             secX[i].AddToClassList($"segment-{seg}");
@@ -61,7 +61,7 @@ public partial class MapUISystem : SystemBase
         var secY = coordinates.Q("Y").Q("Sector");
         for (int i = 0; i < secY.childCount; i++)
         {
-            var seg = (short)((ltg.Sector.y >> (9*i)) & 0x1FF);
+            var seg = (short)((ltg.StarSector.y >> (9*i)) & 0x1FF);
             secY[i].ClearClassList();
             secY[i].AddToClassList("coorsys-segment");
             secY[i].AddToClassList($"segment-{seg}");
@@ -70,7 +70,7 @@ public partial class MapUISystem : SystemBase
         var secZ = coordinates.Q("Z").Q("Sector");
         for (int i = 0; i < secZ.childCount; i++)
         {
-            var seg = (short)((ltg.Sector.z >> (9*i)) & 0x1FF);
+            var seg = (short)((ltg.StarSector.z >> (9*i)) & 0x1FF);
             secZ[i].ClearClassList();
             secZ[i].AddToClassList("coorsys-segment");
             secZ[i].AddToClassList($"segment-{seg}");
@@ -79,7 +79,7 @@ public partial class MapUISystem : SystemBase
         var secXS = coordinates.Q("X").Q("SubSector");
         for (int i = 0; i < secXS.childCount; i++)
         {
-            var seg = (short)((ltg.SubSector.x >> (9*i)) & 0x1FF);
+            var seg = (short)((ltg.PlanetSector.x >> (9*i)) & 0x1FF);
             secXS[i].ClearClassList();
             secXS[i].AddToClassList("coorsys-segment");
             secXS[i].AddToClassList($"segment-{seg}");
@@ -88,7 +88,7 @@ public partial class MapUISystem : SystemBase
         var secYS = coordinates.Q("Y").Q("SubSector");
         for (int i = 0; i < secYS.childCount; i++)
         {
-            var seg = (short)((ltg.SubSector.y >> (9*i)) & 0x1FF);
+            var seg = (short)((ltg.PlanetSector.y >> (9*i)) & 0x1FF);
             secYS[i].ClearClassList();
             secYS[i].AddToClassList("coorsys-segment");
             secYS[i].AddToClassList($"segment-{seg}");
@@ -97,7 +97,7 @@ public partial class MapUISystem : SystemBase
         var secZS = coordinates.Q("Z").Q("SubSector");
         for (int i = 0; i < secZS.childCount; i++)
         {
-            var seg = (short)((ltg.SubSector.z >> (9*i)) & 0x1FF);
+            var seg = (short)((ltg.PlanetSector.z >> (9*i)) & 0x1FF);
             secZS[i].ClearClassList();
             secZS[i].AddToClassList("coorsys-segment");
             secZS[i].AddToClassList($"segment-{seg}");

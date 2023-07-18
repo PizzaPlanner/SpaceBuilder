@@ -31,14 +31,14 @@ partial struct GenerateStarJob : IJobEntity
     public CelestialBody defaultBody;
     public EntityCommandBuffer.ParallelWriter ecb;
         
-    void Execute(Entity e, [EntityIndexInQuery] int index, in LocalToGalaxy ltg, in SubSectorData data)
+    void Execute([EntityIndexInQuery] int index, in LocalToGalaxy ltg, in StarSectorData data)
     {
-        var random = new Random(data.Seed);
+        var random = new Random(data.StarGeneratorSeed);
         var star = ecb.Instantiate(index, prefab);
         var starData = defaultStar;
         var starBody = defaultBody;
         random.NextFloat();
-        starBody.Size = random.NextFloat(0.3f, GenerateStarSystem.STAR_MAX_SIZE_FACTOR) * GenerateStarSystem.STAR_SIZE_BASE;
+        starBody.Size = random.NextFloat(0.3f, 1f);
         starData.ColorTemperature = random.NextFloat(-2.1f, 2.06f);
         starData.Brightness = random.NextFloat(200 + 40 * starData.ColorTemperature, 300);
         ecb.SetComponent(index, star, starData);
@@ -46,7 +46,10 @@ partial struct GenerateStarJob : IJobEntity
         ecb.SetComponent(index, star, ltg);
         ecb.SetComponent(index, star, new URPStarTemperature { Value = starData.ColorTemperature });
         ecb.SetComponent(index, star, new URPStarFlareIntensity { Value = starData.Brightness });
-        ecb.SetComponent(index, star, new Name{Value = $"{GalaxyTools.GetStarName(data.Seed)}"});
+        ecb.SetComponent(index, star, new Name
+        {
+            Value = $"{GalaxyTools.GetStarName(random.NextUInt())}"
+        });
     }
 }
 
@@ -66,9 +69,6 @@ public partial struct GenerateStarSystem : ISystem
         generateQuery = state.GetEntityQuery(typeof(GenerateStar));
     }
 
-    public const float STAR_SIZE_BASE = 5_000_000;
-    public const float STAR_MAX_SIZE_FACTOR = 12;
-
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
@@ -76,6 +76,7 @@ public partial struct GenerateStarSystem : ISystem
         var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                            .CreateCommandBuffer(state.WorldUnmanaged);
         ecb.RemoveComponent<GenerateStar>(generateQuery, EntityQueryCaptureMode.AtRecord);
+        Debug.Log($"Generating {generateQuery.CalculateEntityCount()} Stars...");
         new GenerateStarJob()
         {
             ecb = ecb.AsParallelWriter(),

@@ -5,6 +5,7 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Unity.Mathematics",
+        "Galaxy",
         "Main"
     ],
     "includePlatforms": [

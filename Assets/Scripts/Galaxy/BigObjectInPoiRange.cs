@@ -8,8 +8,8 @@ public struct BigObjectInPoiRange : IComponentData { }
 [UpdateInGroup(typeof(UpdatePresentationSystemGroup))]
 public partial class MarkObjectsInRangeSystem : SystemBase
 {
-    public const double IN_RANGE = 2.0 * Constants.MAX_POSITION *
-                                   Constants.MAX_SUBSECTOR;
+    public const double IN_RANGE = 2.0 * LocalToGalaxy.MAX_POSITION *
+                                   LocalToGalaxy.MAX_PLANETSECTOR;
 
     public const double IN_RANGE_SQ = IN_RANGE * IN_RANGE;
 
@@ -30,7 +30,7 @@ public partial class MarkObjectsInRangeSystem : SystemBase
             .WithNone<BigObjectInPoiRange>()
             .ForEach((Entity e, in LocalToGalaxy ltg) =>
             {
-                if(math.lengthsq(LocalToGalaxy.RelativePosition(ltg, playerLtg)) < IN_RANGE_SQ)
+                if(math.lengthsq((playerLtg - ltg).Distance) < IN_RANGE_SQ)
                     buffer.AddComponent<BigObjectInPoiRange>(e);
             }).Schedule();
     }

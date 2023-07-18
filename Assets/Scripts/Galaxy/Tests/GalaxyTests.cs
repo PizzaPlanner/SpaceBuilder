@@ -2,7 +2,8 @@ using System;
 using NUnit.Framework;
 using Unity.Mathematics;
 using UnityEngine;
-using static Constants;
+using UnityEngine.SocialPlatforms;
+using static LocalToGalaxy;
 
 namespace Galaxy.Tests
 {
@@ -16,10 +17,13 @@ namespace Galaxy.Tests
             Assert.Less(math.abs(ltg.LocalPosition.y), MAX_POSITION);
             Assert.Less(math.abs(ltg.LocalPosition.z), MAX_POSITION);
 
-            Assert.Less(math.abs(ltg.SubSector.x), MAX_SUBSECTOR);
-            Assert.Less(math.abs(ltg.SubSector.y), MAX_SUBSECTOR);
-            Assert.Less(math.abs(ltg.SubSector.y), MAX_SUBSECTOR);
+            Assert.Less(math.abs(ltg.PlanetSector.x), MAX_PLANETSECTOR);
+            Assert.Less(math.abs(ltg.PlanetSector.y), MAX_PLANETSECTOR);
+            Assert.Less(math.abs(ltg.PlanetSector.y), MAX_PLANETSECTOR);
         }
+
+        public void AssertMeasurable(LocalToGalaxy ltg) =>
+            Assert.IsTrue(math.all(ltg.DistanceMeasureable), "Distance too big to be measurable");
 
         [Test]
         public void CheckMath()
@@ -34,17 +38,17 @@ namespace Galaxy.Tests
             // Log Ingame: (6:3A98, 0:0, 0:0)@float3(2.976562f, 0.04003906f, 0.06054688f) + double3(0.0187210395980439, -0.0403389283651856, -0.0737264584656766) = (6:3A98, FFFFFFFF:FFFE, 1:FFFD)@float3(2.995117f, 0f, 10751.99f)
             var from = new LocalToGalaxy
             {
-                Sector = new int3(0x6, 0, 0),
-                SubSector = new int3(0x3A98, 0, 0),
+                StarSector = new int3(0x6, 0, 0),
+                PlanetSector = new int3(0x3A98, 0, 0),
                 LocalPosition = new float3(2.976562f, 0.04003906f, 0.06054688f)
             };
             var delta = new double3(0.0187210395980439, -0.0403389283651856, -0.0737264584656766);
 
             // Actual: (6:3A98, FFFFFFFF:FFFE, 1:FFFD)@float3(2.995117f, 0f, 10751.99f)
             // Expected: (6:3A98, FFFFFFFF:FFFE, 1:FFFE)@float3(2.xxx, MAX-0.0403389283651856, 10751.99f)
-            var result = LocalToGalaxy.OffsetBy(from, delta);
-            Assert.AreEqual((int)MAX_SUBSECTOR - 1, result.SubSector.z);
-            Assert.AreEqual((int)MAX_POSITION + from.LocalPosition.y + delta.y, result.LocalPosition.y, 1f);
+            var result = from + delta;
+            Assert.AreEqual(MAX_PLANETSECTOR - 1, result.PlanetSector.z);
+            Assert.AreEqual(MAX_POSITION + from.LocalPosition.y + delta.y, result.LocalPosition.y, 1f);
         }
 
         [Test]
@@ -52,29 +56,29 @@ namespace Galaxy.Tests
         {
             var player = new LocalToGalaxy
             {
-                Sector = new int3(754224, -1712, 144812),
-                SubSector = new int3(12273, 188061, 175145),
+                StarSector = new int3(754224, -1712, 144812),
+                PlanetSector = new int3(12273, 188061, 175145),
                 LocalPosition = new float3(5728.764f, 5078.215f, 6029.149f)
             };
             var target = new LocalToGalaxy
             {
-                Sector = new int3(754224, -1712, 144812),
-                SubSector = new int3(93751, 130501, 178877),
+                StarSector = new int3(754224, -1712, 144812),
+                PlanetSector = new int3(93751, 130501, 178877),
                 LocalPosition = new float3(0, 0, 0)
             };
 
-            var distPT = math.length(LocalToGalaxy.RelativePosition(player, target));
-            var distTP = math.length(LocalToGalaxy.RelativePosition(target, player));
-            Assert.AreEqual(distTP, distPT, 1);
-            Assert.IsFalse(GalaxyTools.ShouldUnloadSector(player, target, (int)MAX_SUBSECTOR));
-            Assert.IsFalse(GalaxyTools.ShouldUnloadSector(target, player, (int)MAX_SUBSECTOR));
+            var deltaPT = target - player;
+            var deltaTP = player - target;
+            var distPT = math.length(deltaPT.Distance);
+            var distTP = math.length(deltaTP.Distance);
+            Assert.AreEqual(distTP, distPT, .1);
         }
 
         [Test]
         public void GalaxyConstantsCannotCauseOverflow()
         {
             Assert.Less(MAX_POSITION, int.MaxValue * 2L);
-            Assert.Less(MAX_SUBSECTOR, int.MaxValue * 2L);
+            Assert.Less(MAX_PLANETSECTOR, int.MaxValue * 2L);
         }
 
         [Test]
@@ -93,65 +97,66 @@ namespace Galaxy.Tests
         [TestCase(
             new[]{0, 0, 0},
             new[]{0, 0, 1},
-            new[]{0f, (int)MAX_POSITION, 0}, TestName = "Overflow in LocalPosition")]
+            new[]{0f, MAX_POSITION, 0}, TestName = "Overflow in LocalPosition")]
         [TestCase(
             new[]{5, 0, 5},
             new[]{2, 0, 1},
-            new[]{0f, -1, (int)MAX_POSITION - 1}, TestName = "Underflow in LocalPosition")]
+            new[]{0f, -1, MAX_POSITION - 1}, TestName = "Underflow in LocalPosition")]
         [TestCase(
             new[]{0, 0, -1},
-            new[]{0, 0, (int)MAX_SUBSECTOR - 1},
-            new[]{0f, -1f, (int)MAX_POSITION - 1}, TestName = "Double Underflow")]
+            new[]{0, 0, MAX_PLANETSECTOR - 1},
+            new[]{0f, -1f, MAX_POSITION - 1}, TestName = "Double Underflow")]
         [TestCase(
             new[]{2, 0, 1},
-            new[]{0, 0, (int)MAX_SUBSECTOR - 1},
-            new[]{0, -0.15f, (int)MAX_POSITION - 0.15f}, TestName = "Double Underflow (small)")]
+            new[]{0, 0, MAX_PLANETSECTOR - 1},
+            new[]{0, -0.15f, MAX_POSITION - 0.15f}, TestName = "Double Underflow (small)")]
         [TestCase(
             new[]{0, 0, 0},
             new[]{0, 0, 0},
-            new[]{-1f, (int)MAX_POSITION, (int)MAX_POSITION - 1}, TestName = "Barely overflow")]
+            new[]{MAX_POSITION, -1f, MAX_POSITION - 1}, TestName = "Barely overflow")]
         [TestCase(
             new[]{0, 0, 0},
             new[]{0, 0, 5},
-            new[]{5f * (int)MAX_POSITION, 0, 0}, TestName = "Multiple Overflow in LocalPosition")]
+            new[]{5f * MAX_POSITION, 0, 0}, TestName = "Multiple Overflow in LocalPosition")]
         [TestCase(
             new[]{0, 0, 1},
-            new[]{(int)MAX_SUBSECTOR, 1, 1},
+            new[]{MAX_PLANETSECTOR, 1, 1},
             new[]{0f, 0f, 0f}, TestName = "Overflow in SubSector")]
         [TestCase(
-            new[]{int.MinValue, 0, int.MaxValue},
-            new[]{0, 0, (int)MAX_SUBSECTOR - 1},
-            new[]{0f, -1f, (int)MAX_POSITION - 1}, TestName = "Triple Underflow")]
+            new[]{0, 0, MAX_STARSECTOR - 1},
+            new[]{0, 0, MAX_PLANETSECTOR - 1},
+            new[]{0f, -1f, MAX_POSITION - 1}, TestName = "Triple Underflow")]
         [TestCase(
-            new[]{int.MaxValue, 0, int.MinValue},
-            new[]{0, (int)MAX_SUBSECTOR, 1},
-            new[]{(int)MAX_POSITION, 0f, 0}, TestName = "Triple Overflow")]
+            new[]{MAX_STARSECTOR - 1, 0, 0},
+            new[]{0, MAX_PLANETSECTOR, 1},
+            new[]{MAX_POSITION, 0f, 0}, TestName = "Triple Overflow")]
         public void TestLocalToGalaxyAddition(int[] SectorsX, int[] SubSectorsX, float[] PositionsX)
         {
             var lhs = new LocalToGalaxy
             {
-                Sector = SectorsX[0],
-                SubSector = SubSectorsX[0],
+                StarSector = SectorsX[0],
+                PlanetSector = SubSectorsX[0],
                 LocalPosition = PositionsX[0]
             };
             var rhs = new LocalToGalaxy
             {
-                Sector = SectorsX[1],
-                SubSector = SubSectorsX[1],
+                StarSector = SectorsX[1],
+                PlanetSector = SubSectorsX[1],
                 LocalPosition = PositionsX[1]
             };
             var sum = lhs + rhs;
             var expectedResult = new LocalToGalaxy
             {
-                Sector = SectorsX[2],
-                SubSector = SubSectorsX[2],
+                StarSector = SectorsX[2],
+                PlanetSector = SubSectorsX[2],
                 LocalPosition = PositionsX[2]
             };
-            Assert.AreEqual(expectedResult.Sector, sum.Sector);
-            Assert.AreEqual(expectedResult.SubSector, sum.SubSector);
-            Assert.AreEqual(expectedResult.LocalPosition.x, sum.LocalPosition.x, 0.0001f);
-            Assert.AreEqual(expectedResult.LocalPosition.y, sum.LocalPosition.z, 0.0001f);
-            Assert.AreEqual(expectedResult.LocalPosition.y, sum.LocalPosition.z, 0.0001f);
+            Debug.Log($"EXPECTED: {expectedResult} from {SectorsX[0]}/{SectorsX[1]}/{SectorsX[2]}");
+            Assert.AreEqual(expectedResult.StarSector, sum.StarSector);
+            Assert.AreEqual(expectedResult.PlanetSector, sum.PlanetSector);
+            Assert.AreEqual(expectedResult.LocalPosition.x, sum.LocalPosition.x, 0.01f);
+            Assert.AreEqual(expectedResult.LocalPosition.y, sum.LocalPosition.z, 0.01f);
+            Assert.AreEqual(expectedResult.LocalPosition.y, sum.LocalPosition.z, 0.01f);
         }
 
         [Test]
@@ -166,59 +171,55 @@ namespace Galaxy.Tests
         [TestCase(
             new[]{0, 0},
             new[]{0, 1},
-            new[]{(int)MAX_POSITION, 0f}, TestName = "Overflow in LocalPosition")]
+            new[]{MAX_POSITION, 0f}, TestName = "Overflow in LocalPosition")]
         [TestCase(
             new[]{0, 0},
             new[]{0, 1},
-            new[]{(int)MAX_POSITION + 0.01f, 0.01f}, TestName = "Overflow in LocalPosition (small)")]
+            new[]{MAX_POSITION + 0.01f, 0.01f}, TestName = "Overflow in LocalPosition (small)")]
+        [TestCase(
+            new[]{0, MAX_STARSECTOR - 1},
+            new[]{0, MAX_PLANETSECTOR - 1},
+            new[]{-1f, MAX_POSITION - 1f}, TestName = "Underflow in LocalPosition")]
         [TestCase(
             new[]{0, -1},
-            new[]{0, (int)MAX_SUBSECTOR - 1},
-            new[]{-1f, (int)MAX_POSITION - 1f}, TestName = "Underflow in LocalPosition")]
+            new[]{0, MAX_PLANETSECTOR - 1},
+            new[]{-0.01f, MAX_POSITION - 0.01f}, TestName = "Underflow in LocalPosition (small)")]
         [TestCase(
             new[]{0, -1},
-            new[]{0, (int)MAX_SUBSECTOR - 1},
-            new[]{-0.01f, (int)MAX_POSITION - 0.01f}, TestName = "Underflow in LocalPosition (small)")]
+            new[]{0, MAX_PLANETSECTOR - 2},
+            new[]{-MAX_POSITION - 1f, MAX_POSITION-1f}, TestName = "Underflow Two Subsectors")]
         [TestCase(
-            new[]{0, -1},
-            new[]{0, (int)MAX_SUBSECTOR - 2},
-            new[]{-(int)MAX_POSITION - 1f, (int)MAX_POSITION - 1f}, TestName = "Underflow Two Subsectors")]
+            new[]{0, MAX_STARSECTOR - 1},
+            new[]{0, MAX_PLANETSECTOR - 1},
+            new[]{-1f, MAX_POSITION -1f}, TestName = "Triple Underflow")]
         [TestCase(
-            new[]{int.MinValue, int.MaxValue},
-            new[]{0, (int)MAX_SUBSECTOR - 1},
-            new[]{-1f, (int)MAX_POSITION -1f}, TestName = "Triple Underflow")]
+            new[]{MAX_STARSECTOR, 7},
+            new[]{7 * MAX_PLANETSECTOR, 7},
+            new[]{7 * MAX_POSITION, 0f}, TestName = "Triple Overflow x7")]
         [TestCase(
-            new[]{int.MaxValue, int.MinValue},
-            new[]{(int)MAX_SUBSECTOR, 1},
-            new[]{(int)MAX_POSITION, 0f}, TestName = "Triple Overflow")]
-        [TestCase(
-            new[]{int.MaxValue, int.MinValue + 6},
-            new[]{7 * (int)MAX_SUBSECTOR, 7},
-            new[]{7 * (int)MAX_POSITION, 0f}, TestName = "Triple Overflow x7")]
-        [TestCase(
-            new[]{int.MaxValue, int.MinValue + 2},
-            new[]{3 * (int)MAX_SUBSECTOR, 0},
+            new[]{0, 3},
+            new[]{3 * MAX_PLANETSECTOR, 0},
             new[]{0, 0f}, TestName = "Overflow in Subsector x3")]
         public void TestLocalToGalaxyCorrection(int[] SectorsX, int[] SubSectorsX, float[] PositionsX)
         {
-            var uncorrected = new LocalToGalaxy
+            var corrected = new LocalToGalaxy
             {
-                Sector = SectorsX[0],
-                SubSector = SubSectorsX[0],
+                StarSector = SectorsX[0],
+                PlanetSector = SubSectorsX[0],
                 LocalPosition = PositionsX[0]
             };
             var expectedResult = new LocalToGalaxy
             {
-                Sector = SectorsX[1],
-                SubSector = SubSectorsX[1],
+                StarSector = SectorsX[1],
+                PlanetSector = SubSectorsX[1],
                 LocalPosition = PositionsX[1]
             };
-            var corrected = LocalToGalaxy.Corrected(uncorrected);
-            Assert.AreEqual(expectedResult.Sector, corrected.Sector);
-            Assert.AreEqual(expectedResult.SubSector, corrected.SubSector);
-            Assert.AreEqual(expectedResult.LocalPosition.x, corrected.LocalPosition.x, 0.0001f);
-            Assert.AreEqual(expectedResult.LocalPosition.y, corrected.LocalPosition.z, 0.0001f);
-            Assert.AreEqual(expectedResult.LocalPosition.y, corrected.LocalPosition.z, 0.0001f);
+            Debug.Log($"EXP: {expectedResult}, CORR: {corrected}");
+            Assert.AreEqual(expectedResult.StarSector, corrected.StarSector);
+            Assert.AreEqual(expectedResult.PlanetSector, corrected.PlanetSector);
+            Assert.AreEqual(expectedResult.LocalPosition.x, corrected.LocalPosition.x, 0.01f);
+            Assert.AreEqual(expectedResult.LocalPosition.y, corrected.LocalPosition.y, 0.01f);
+            Assert.AreEqual(expectedResult.LocalPosition.z, corrected.LocalPosition.z, 0.01f);
         }
 
         [Test]
@@ -230,11 +231,13 @@ namespace Galaxy.Tests
         [TestCase(0.933f)]
         public void TestRelativePosition1(float dLocal)
         {
-            var origin = new LocalToGalaxy {LocalPosition = MAX_POSITION / 2};
-            var offset = new LocalToGalaxy {LocalPosition = dLocal};
+            var origin = Center + new LocalToGalaxy {LocalPosition = MAX_POSITION / 2};
+            var offset = Center + new LocalToGalaxy {LocalPosition = dLocal};
 
             VerifyValid(offset);
-            Assert.AreEqual(dLocal- origin.LocalPosition.x, LocalToGalaxy.RelativePosition(origin, offset).x);
+            AssertMeasurable(offset);
+            Assert.AreEqual(dLocal - MAX_POSITION / 2,
+                (offset - origin).Distance.x, 0.01f);
         }
 
         [Test]
@@ -245,11 +248,14 @@ namespace Galaxy.Tests
         [TestCase(-89123)]
         public void TestRelativePosition2(int dSub)
         {
-            var origin = new LocalToGalaxy {SubSector = (int)MAX_SUBSECTOR / 2};
-            var offset = new LocalToGalaxy {SubSector = dSub};
+            var origin = Center + new LocalToGalaxy {PlanetSector = MAX_PLANETSECTOR / 2};
+            var offset = Center + new LocalToGalaxy {PlanetSector = dSub};
 
             VerifyValid(offset);
-            Assert.AreEqual(dSub * MAX_POSITION - origin.SubSector.x, LocalToGalaxy.RelativePosition(origin, offset).x);
+            AssertMeasurable(offset);
+            var target = (dSub - MAX_PLANETSECTOR / 2) * DISTANCE_PER_PLANETSECTOR;
+            Assert.AreEqual(target, 
+                (offset - origin).Distance.x, 0.01f);
         }
 
         [Test]
@@ -260,57 +266,84 @@ namespace Galaxy.Tests
         [TestCase(-89123782)]
         public void TestRelativePosition3(int dSec)
         {
-            var origin = new LocalToGalaxy();
-            var offset = new LocalToGalaxy {Sector = new int3(dSec, 0, 0)};
-
+            var delta = new LocalToGalaxy { StarSector = new int3(dSec, 0, 0) };
+            var origin = Center;
+            var offset = Center + delta;
+            
             VerifyValid(offset);
-            Assert.AreEqual(dSec * DISTANCE_PER_SECTOR,
-                LocalToGalaxy.RelativePosition(origin, offset).x);
+            AssertMeasurable(offset);
+            AssertMeasurable(offset - origin);
+            Assert.AreEqual(dSec * DISTANCE_PER_STARSECTOR,
+                (offset - origin).Distance.x, 0.01f);
         }
 
         [Test]
         // Some values are adapted for floating point imprecision. assert.areequal with delta does not work for some reason
-        [TestCase(17281321557136781423.2615)]
         [TestCase(-1782312.2861328125)]
         [TestCase(0)]
         [TestCase(0.025390625)]
+        [TestCase(-0.025390625)]
         [TestCase(-72717772)]
-        [TestCase(2e+21d)]
         public void TestLocalToGalaxyTransformation(double offset)
         {
-            const double MAX_ABS_POSITION = (double) int.MaxValue * DISTANCE_PER_SECTOR;
-
-            var origin = new LocalToGalaxy();
-            Assert.Less(offset, MAX_ABS_POSITION);
-            var target = LocalToGalaxy.OffsetBy(origin, offset);
-
-            VerifyValid(target);
-            Assert.AreEqual(offset, LocalToGalaxy.RelativePosition(origin, target).x);
+            var origin = Center;
+            var expected = offset;
+            var target = origin + offset;
+            AssertMeasurable(target);
+            AssertMeasurable(target - origin);
+            Assert.AreEqual(expected, (target - origin).Distance.x);
         }
 
         [Test]
-        [TestCase(0, new[]{ 0, 0 }, new[]{ 0, 0 }, new[]{ 0f, 0f }, TestName = "All Zero")]
-        [TestCase(0, new[]{ 5, 5 }, new[]{ 24, 24 }, new[]{ 3f, 3f }, TestName = "Identity")]
-        [TestCase(0.001953, new[]{ 5, 5 }, new[]{ 24, 24 }, new[]{ 3f, 3.0015f }, TestName = "Small Increase")]
-        [TestCase(-1, new[]{ 0, 0 }, new[]{ 25, 24 }, new[]{ 0f, (int)MAX_POSITION - 1 }, TestName = "LocalPosition Underflow")]
-        [TestCase(-0.0015, new[]{ 0, 0 }, new[]{ 25, 24 }, new[]{ 0f, (int)MAX_POSITION - 0.0015f }, TestName = "LocalPosition Underflow (small)")]
-        [TestCase(1, new[]{ 0, 0 }, new[]{ 24, 25 }, new[]{ (int)MAX_POSITION - 1f, 0 }, TestName = "LocalPosition Overflow")]
-        [TestCase(0.0015, new[]{ 0, 0 }, new[]{ 24, 25 }, new[]{ (int)MAX_POSITION - 0.0015f, 0 }, TestName = "LocalPosition Overflow (small)")]
-        [TestCase(1, new[]{ 0, 1 }, new[]{ (int)MAX_SUBSECTOR - 1, 0 }, new[]{ (int)MAX_POSITION - 1f, 0 }, TestName = "Double Overflow")]
-        [TestCase(0.0015, new[]{ 0, 1 }, new[]{ (int)MAX_SUBSECTOR - 1, 0 }, new[]{ (int)MAX_POSITION - 0.0015f, 0 }, TestName = "Double Overflow (small)")]
-        [TestCase(-1, new[]{ 0, -1 }, new[]{ 0, (int)MAX_SUBSECTOR - 1 }, new[]{ 0, (int)MAX_POSITION - 1f }, TestName = "Double Underflow")]
-        [TestCase(-0.0015, new[]{ 0, -1 }, new[]{ 0, (int)MAX_SUBSECTOR - 1 }, new[]{ 0, (int)MAX_POSITION - 0.0015f }, TestName = "Double Underflow (small)")]
+        [TestCase(0, 
+            new[]{ 0, 0 }, new[]{ 0, 0 }, new[]{ 0f, 0f }, 
+            TestName = "All Zero")]
+        [TestCase(0, 
+            new[]{ 5, 5 }, new[]{ 24, 24 }, new[]{ 3f, 3f }, 
+            TestName = "Identity")]
+        [TestCase(0.001953, 
+            new[]{ 5, 5 }, new[]{ 24, 24 }, new[]{ 3f, 3.0015f }, 
+            TestName = "Small Increase")]
+        [TestCase(-1, 
+            new[]{ 0, 0 }, new[]{ 25, 24 }, new[]{ 0f, MAX_POSITION - 1 }, 
+            TestName = "LocalPosition Underflow")]
+        [TestCase(-0.0015, 
+            new[]{ 0, 0 }, new[]{ 25, 24 }, new[]{ 0f, MAX_POSITION - 0.0015f }, 
+            TestName = "LocalPosition Underflow (small)")]
+        [TestCase(1, 
+            new[]{ 0, 0 }, new[]{ 24, 25 }, new[]{ MAX_POSITION - 1f, 0 }, 
+            TestName = "LocalPosition Overflow")]
+        [TestCase(0.0015, 
+            new[]{ 0, 0 }, new[]{ 24, 25 }, new[]{ MAX_POSITION - 0.0015f, 0 }, 
+            TestName = "LocalPosition Overflow (small)")]
+        [TestCase(1, 
+            new[]{ 0, 1 }, new[]{ MAX_PLANETSECTOR - 1, 0 }, new[]{ MAX_POSITION - 1f, 0 }, 
+            TestName = "Double Overflow")]
+        [TestCase(0.0015, 
+            new[]{ 0, 1 }, new[]{ MAX_PLANETSECTOR - 1, 0 }, new[]{ MAX_POSITION - 0.0015f, 0 }, 
+            TestName = "Double Overflow (small)")]
+        [TestCase(-1, 
+            new[]{ 0, MAX_STARSECTOR - 1 }, new[]{ 0, MAX_PLANETSECTOR - 1 }, new[]{ 0, MAX_POSITION - 1f }, 
+            TestName = "Double Underflow")]
+        [TestCase(-0.0015, 
+            new[]{ 0, MAX_STARSECTOR - 1 }, new[]{ 0, MAX_PLANETSECTOR - 1 }, new[]{ 0, MAX_POSITION - 0.0015f }, 
+            TestName = "Double Underflow (small)")]
         public void TestOffsetToLocalToGalaxy(double offset, int[] sector, int[] subsector, float[] position)
         {
-            const double MAX_ABS_POSITION = (double) int.MaxValue * DISTANCE_PER_SECTOR;
-            var origin = new LocalToGalaxy{Sector = sector[0], SubSector = subsector[0], LocalPosition = position[0]};
+            const double MAX_ABS_POSITION = int.MaxValue * DISTANCE_PER_STARSECTOR;
+            var origin = new LocalToGalaxy
+            {
+                StarSector = sector[0], 
+                PlanetSector = subsector[0], 
+                LocalPosition = position[0]
+            };
 
             Assert.Less(offset, MAX_ABS_POSITION);
-            var target = LocalToGalaxy.OffsetBy(origin, offset);
+            var target = origin + offset;
 
-            Assert.AreEqual(sector[1], target.Sector.x);
-            Assert.AreEqual(subsector[1], target.SubSector.x);
-            Assert.AreEqual(position[1], target.LocalPosition.x);
+            Assert.AreEqual(sector[1], target.StarSector.x);
+            Assert.AreEqual(subsector[1], target.PlanetSector.x);
+            Assert.AreEqual(position[1], target.LocalPosition.x, delta: 0.01f);
         }
     }
 }

@@ -4,19 +4,21 @@ using UnityEngine;
 
 public class LocalToGalaxyAuthoring : MonoBehaviour
 {
-    public int3 Sector;
-    public int3 SubSector;
-    public float3 LocalPosition;
-    
+    public int3 LightSector;
+    public int3 StarSector;
+    public int3 PlanetSector;
+    public double3 LocalPosition;
+
     class Baker : Baker<LocalToGalaxyAuthoring>
     {
         public override void Bake(LocalToGalaxyAuthoring authoring)
         {
-            AddComponent<LocalToGalaxy>(new LocalToGalaxy
+            AddComponent(new LocalToGalaxy
             {
-                Sector = authoring.Sector,
-                SubSector = authoring.SubSector,
-                LocalPosition = authoring.LocalPosition,
+                LightSector   = authoring.LightSector,
+                StarSector   = authoring.StarSector,
+                PlanetSector   = authoring.PlanetSector,
+                LocalPosition   = authoring.LocalPosition,
             });
         }
     }

@@ -52,10 +52,10 @@ public partial class DebugSectorLoadingDisplaySystem : SystemBase
         var ltg = SystemAPI.GetComponent<LocalToGalaxy>(player);
         
         infoTexts.Q<Label>("player").text = $@"Sector: 
-  x: {ltg.Sector.x:X}:{ltg.SubSector.x:X}@{ltg.LocalPosition.x}
-  y: {ltg.Sector.y:X}:{ltg.SubSector.y:X}@{ltg.LocalPosition.y} 
-  z: {ltg.Sector.z:X}:{ltg.SubSector.z:X}@{ltg.LocalPosition.z}
-  {GalaxyTools.GetSectorType(ltg.Sector)} > {GalaxyTools.GetSubSectorData(ltg).Type}
+  x: {ltg.LightSector.x:X}:{ltg.StarSector.x:X}:{ltg.PlanetSector.x:X}@{ltg.LocalPosition.x}
+  y: {ltg.LightSector.y:X}:{ltg.StarSector.y:X}:{ltg.PlanetSector.y:X}@{ltg.LocalPosition.y} 
+  z: {ltg.LightSector.z:X}:{ltg.StarSector.z:X}:{ltg.PlanetSector.z:X}@{ltg.LocalPosition.z}
+  {GalaxyTools.GetLightSectorType(ltg, out _)} > {GalaxyTools.GetStarSectorType(ltg)}
 Current Speed: {GalaxyTools.ToGalacticDistanceWithUnit(speed.CurrentSpeed)}
 Running Speed: {GalaxyTools.ToGalacticDistanceWithUnit(player2.MovementSpeedRun)}";
 

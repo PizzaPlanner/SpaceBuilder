@@ -3,11 +3,6 @@ using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
 
-public class IconReference : IComponentData
-{
-    public Texture2D Icon;
-}
-
 public class ItemAuthoring : MonoBehaviour
 {
     [Range(1, 9999)]

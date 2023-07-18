@@ -24,7 +24,7 @@ public partial class NebulaRelativeToPlayerSystem : SystemBase
         Entities.WithAll<Nebula, ToGenerate>()
             .ForEach((VisualEffect sfx, in LocalToGalaxy ltg) =>
             {
-                var seed = GalaxyTools.GetSubsectorSeed(ltg);
+                var seed = GalaxyTools.GetPlanetSectorSeed(ltg);
                 sfx.startSeed = seed;
                 sfx.Reinit();
             }).WithoutBurst().Run();
