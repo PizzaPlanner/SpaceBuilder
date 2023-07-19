@@ -30,17 +30,14 @@ public static class SectorLoadingDistance
 
 }
 
-public struct LightSectorData : IComponentData
+public struct LightSectorData
 {
     public float Perlin;
     public byte NumberOfStars;
     public LightSectorType Type;
-    public FixedList128Bytes<ushort> StarSectorBytes;
+    public uint StarGenerationSeed;
 
-    public int3 GetStarSector(byte i) => new int3(
-        StarSectorBytes[i * 3],
-        StarSectorBytes[i * 3 + 1],
-        StarSectorBytes[i * 3 + 2]);
+    public NativeArray<int3> CalculateStarSectors => GalaxyTools.GetStarSectorsOfLightSector(this);
 }
 
 public struct StarSectorData : IComponentData
@@ -54,6 +51,8 @@ public struct StarSectorData : IComponentData
         PlanetSectorBytes[i * 3],
         PlanetSectorBytes[i * 3 + 1],
         PlanetSectorBytes[i * 3 + 2]);
+
+    public string Name => GalaxyTools.GetStarName(StarGeneratorSeed).Value;
 }
 
 public struct PlanetSectorData : IComponentData

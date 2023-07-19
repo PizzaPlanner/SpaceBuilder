@@ -22,6 +22,8 @@ public partial class DockingSystem : SystemBase
 
     protected override void OnUpdate()
     {
+        var ecb = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>()
+                           .CreateCommandBuffer(World.Unmanaged);
         var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
         if (SystemAPI.HasComponent<AlignUpVector>(localPlayer))
             return;
@@ -32,7 +34,7 @@ public partial class DockingSystem : SystemBase
         if (grids.Length == 0 || !EntityManager.Exists(grids[0].Grid))
         {
             if(isDocked)
-                Dock(localPlayer, Entity.Null);
+                Dock(localPlayer, Entity.Null, ecb);
             swapRoot.Q("Station", "dockingbutton").Q<Label>().text = "<None>";
             swapRoot.Q("Station", "dockingbutton").SetEnabled(false);
             swapRoot.Q("Swap").SetEnabled(false);
@@ -55,13 +57,13 @@ public partial class DockingSystem : SystemBase
             swapRoot.Q("Swap").SetEnabled(isPlayerInRoom);
 
             if(isPlayerInRoom && !isDocked)
-                Dock(localPlayer, gridToDisplay);
+                Dock(localPlayer, gridToDisplay, ecb);
             else if(!isPlayerInRoom && isDocked)
-                Dock(localPlayer, Entity.Null);
+                Dock(localPlayer, Entity.Null, ecb);
         }
     }
 
-    void Dock(Entity entity, Entity newParent)
+    void Dock(Entity entity, Entity newParent, EntityCommandBuffer ecb)
     {
         swapRoot.Q(newParent != Entity.Null ? "System" : "Station", "dockingbutton").RemoveFromClassList("dockingbutton-on");
         swapRoot.Q(newParent == Entity.Null ? "System" : "Station", "dockingbutton").AddToClassList("dockingbutton-on");
@@ -86,17 +88,10 @@ public partial class DockingSystem : SystemBase
                 TargetRotation = parentLtw.Rotation
             };
 
-            if (!SystemAPI.HasComponent<Docked>(entity))
-            {
-                EntityManager.AddComponentData(entity, docked);
-            }
-            else
-            {
-                EntityManager.SetComponentData(entity, docked);
-            }
-            
+            ecb.AddComponent(entity, docked);
+
             if (!SystemAPI.HasComponent<AlignUpVector>(entity))
-                EntityManager.AddComponent<AlignUpVector>(entity);
+                ecb.AddComponent<AlignUpVector>(entity);
         }
         else
         {
@@ -104,9 +99,9 @@ public partial class DockingSystem : SystemBase
             
             var docked = SystemAPI.GetComponent<Docked>(entity);
             var oldParent = docked.Target;
-            var parentLtg = SystemAPI.GetComponent<LocalToGalaxy>(oldParent);
+            var parentLtg = SystemAPI.GetComponentRW<LocalToGalaxy>(oldParent);
             var parentRotation = SystemAPI.GetComponent<LocalToWorld>(oldParent).Rotation;
-            SystemAPI.SetComponent(entity, parentLtg + math.mul(parentRotation, docked.Position));
+            parentLtg.ValueRW += math.mul(parentRotation, docked.Position);
                 
             EntityManager.RemoveComponent<Docked>(entity);
         }

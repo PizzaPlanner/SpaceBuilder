@@ -1,17 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-public struct TravellerInSector : IBufferElementData
-{
-    public Entity Player;
-}
-
-public struct LocalToGalaxy : IComponentData
+public partial struct LocalToGalaxy : IComponentData, IEquatable<LocalToGalaxy>, IComparable<LocalToGalaxy>
 {
     [SerializeField] long bitsX, bitsY, bitsZ;
     [SerializeField] double3 _localPosition;
@@ -21,6 +15,7 @@ public struct LocalToGalaxy : IComponentData
         LightSector = 0,
         StarSector = MAX_STARSECTOR / 2,
         PlanetSector = MAX_PLANETSECTOR / 2,
+        LocalSector = MAX_LOCALSECTOR / 2,
         LocalPosition = MAX_POSITION / 2,
     };
 
@@ -40,6 +35,12 @@ public struct LocalToGalaxy : IComponentData
     {
         get => GetFromMaskAndShift(PLANETSECTOR_MASK, PLANETSECTOR_SHIFT);
         set => OverwriteAndAddRemainder(value, PLANETSECTOR_MASK, PLANETSECTOR_SHIFT);
+    }
+    
+    public int3 LocalSector
+    {
+        get => GetFromMaskAndShift(LOCALSECTOR_MASK, LOCALSECTOR_SHIFT);
+        set => OverwriteAndAddRemainder(value, LOCALSECTOR_MASK, LOCALSECTOR_SHIFT);
     }
 
     int3 GetFromMaskAndShift(long mask, int shift)
@@ -73,36 +74,6 @@ public struct LocalToGalaxy : IComponentData
         }
     }
 
-    const int LOCALPOSITION_BITS = 16;
-    public const int MAX_POSITION = 1 << LOCALPOSITION_BITS;
-
-    const int PLANETSECTOR_BITS = 12;
-    const int PLANETSECTOR_SHIFT = 0;
-    const long PLANETSECTOR_MASK = (MAX_PLANETSECTOR - 1L) << PLANETSECTOR_SHIFT;
-    public const short MAX_PLANETSECTOR = 1 << PLANETSECTOR_BITS;
-    
-    const int STARSECTOR_BITS = 12;
-    const int STARSECTOR_SHIFT = PLANETSECTOR_BITS + PLANETSECTOR_SHIFT;
-    const long STARSECTOR_MASK = (MAX_STARSECTOR - 1L) << STARSECTOR_SHIFT;
-    public const short MAX_STARSECTOR = 1 << STARSECTOR_BITS;
-    
-    const int LIGHTSECTOR_BITS = 39;
-    const int LIGHTSECTOR_SHIFT = STARSECTOR_BITS + STARSECTOR_SHIFT;
-    const long LIGHTSECTOR_MASK = (MAX_LIGHTSECTOR - 1L) << LIGHTSECTOR_SHIFT;
-    public const long MAX_LIGHTSECTOR = 1L << LIGHTSECTOR_BITS;
-
-    const int MAX_MEASURABLE_SECTOR_BITS = 39;
-    public const double MAX_MEASURABLE_DISTANCE = (1L << MAX_MEASURABLE_SECTOR_BITS) * DISTANCE_PER_PLANETSECTOR - 1;
-    const double MAX_MEASURABLE_LY = MAX_MEASURABLE_DISTANCE / DISTANCE_LIGHTYEAR;
-    
-    public const double DISTANCE_PER_LIGHTSECTOR = DISTANCE_PER_STARSECTOR * MAX_STARSECTOR;
-    public const double DISTANCE_PER_STARSECTOR = DISTANCE_PER_PLANETSECTOR * MAX_PLANETSECTOR;
-    public const double DISTANCE_PER_PLANETSECTOR = MAX_POSITION;
-    
-    public const float DISTANCE_PARSEC = 3.0857e+16f;
-    public const float DISTANCE_LIGHTYEAR = 9_460_730_472_580_800;
-    public const float DISTANCE_ASTRONOMICAL_UNIT = 149_597_870_700;
-
     public bool3 DistanceMeasureable => math.abs(new double3(
         bitsX,
         bitsY,
@@ -119,7 +90,7 @@ public struct LocalToGalaxy : IComponentData
                 bitsZ
             );
             return math.select(double.PositiveInfinity,
-                _localPosition + bitsAsDouble * DISTANCE_PER_PLANETSECTOR,
+                _localPosition + bitsAsDouble * MAX_POSITION,
                 DistanceMeasureable); 
         }
     } 
@@ -129,9 +100,9 @@ public struct LocalToGalaxy : IComponentData
     {
         var result = new LocalToGalaxy
         {
-            LightSector = lhs.LightSector + rhs.LightSector,
-            StarSector = lhs.StarSector + rhs.StarSector,
-            PlanetSector = lhs.PlanetSector + rhs.PlanetSector,
+            bitsX = lhs.bitsX + rhs.bitsX,
+            bitsY = lhs.bitsY + rhs.bitsY,
+            bitsZ = lhs.bitsZ + rhs.bitsZ,
             LocalPosition = lhs.LocalPosition + rhs.LocalPosition,
         };
         return result;
@@ -150,9 +121,9 @@ public struct LocalToGalaxy : IComponentData
     {
         var result = new LocalToGalaxy
         {
-            LightSector = lhs.LightSector - rhs.LightSector,
-            StarSector = lhs.StarSector - rhs.StarSector,
-            PlanetSector = lhs.PlanetSector - rhs.PlanetSector,
+            bitsX = lhs.bitsX - rhs.bitsX,
+            bitsY = lhs.bitsY - rhs.bitsY,
+            bitsZ = lhs.bitsZ - rhs.bitsZ,
             LocalPosition = lhs.LocalPosition - rhs.LocalPosition,
         };
         return result;
@@ -169,20 +140,14 @@ public struct LocalToGalaxy : IComponentData
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(LocalToGalaxy l1, LocalToGalaxy l2)
     {
-        return
-               math.all(l1.LightSector == l2.LightSector) && 
-               math.all(l1.PlanetSector == l2.PlanetSector) &&
-               math.all(l1.StarSector == l2.StarSector);
+        return l1.bitsX == l2.bitsX && l1.bitsY == l2.bitsY && l1.bitsZ == l2.bitsZ;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [BurstCompile]
     public static bool operator !=(LocalToGalaxy l1, LocalToGalaxy l2)
     {
-        return 
-               math.any(l1.StarSector != l2.StarSector) ||
-               math.any(l1.PlanetSector != l2.PlanetSector) ||
-               math.any(l1.LightSector != l2.LightSector);
+        return l1.bitsX != l2.bitsX || l1.bitsY != l2.bitsY || l1.bitsZ != l2.bitsZ;
     }
 
     public override string ToString()
@@ -192,4 +157,28 @@ public struct LocalToGalaxy : IComponentData
 
     [BurstDiscard]
     public string DebugX => $"({bitsX:X}:{LocalPosition.x:F0})";
+
+    public bool Equals(LocalToGalaxy other)
+    {
+        return bitsX == other.bitsX && bitsY == other.bitsY && bitsZ == other.bitsZ;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is LocalToGalaxy other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(bitsX, bitsY, bitsZ);
+    }
+
+    public int CompareTo(LocalToGalaxy other)
+    {
+        var bitsXComparison = bitsX.CompareTo(other.bitsX);
+        if (bitsXComparison != 0) return bitsXComparison;
+        var bitsYComparison = bitsY.CompareTo(other.bitsY);
+        if (bitsYComparison != 0) return bitsYComparison;
+        return bitsZ.CompareTo(other.bitsZ);
+    }
 }

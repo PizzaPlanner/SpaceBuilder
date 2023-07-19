@@ -13,13 +13,15 @@ public class LocalToGalaxyAuthoring : MonoBehaviour
     {
         public override void Bake(LocalToGalaxyAuthoring authoring)
         {
-            AddComponent(new LocalToGalaxy
+            var e = GetEntity(TransformUsageFlags.None);
+            AddComponent(e, new LocalToGalaxy
             {
                 LightSector   = authoring.LightSector,
                 StarSector   = authoring.StarSector,
                 PlanetSector   = authoring.PlanetSector,
                 LocalPosition   = authoring.LocalPosition,
             });
+            AddComponent<TooFarAway>(e);
         }
     }
 }

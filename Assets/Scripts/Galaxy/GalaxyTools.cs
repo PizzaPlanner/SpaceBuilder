@@ -1,21 +1,19 @@
 using System.Runtime.CompilerServices;
-using Unity.Burst;
 using Unity.Collections;
 using Unity.Mathematics;
-using Unity.Transforms;
-using UnityEngine;
-using UnityEngine.SocialPlatforms;
 using Random = Unity.Mathematics.Random;
 
 public static class GalaxyTools
 {
-    private const float PERLIN_SECTOR_RESOLUTION = 0.01f;
+    private const float PERLIN_SECTOR_RESOLUTION = 0.001f;
     public const float PLANET_SIZE_MAX = (float)LocalToGalaxy.DISTANCE_PER_PLANETSECTOR * 0.8f;
-    public const float STAR_SIZE_MAX = (float)LocalToGalaxy.DISTANCE_PER_PLANETSECTOR * 52;
-    private const uint MIN_SECTORS_FROM_STAR_TO_PLANET = 120;
-    private const uint MIN_SECTORS_BETWEEN_PLANETS = 7;
-    private const int PLANET_MAX_Y_DISTANCE = (int) (LocalToGalaxy.MAX_PLANETSECTOR * 0.003f);
-    
+    public const float STAR_SIZE_MAX = (float)(LocalToGalaxy.DISTANCE_PER_STARSECTOR / 5);
+    private const uint MIN_SECTORS_FROM_STAR_TO_PLANET = (uint)(2 * STAR_SIZE_MAX / LocalToGalaxy.DISTANCE_PER_PLANETSECTOR);
+    private const uint MIN_SECTORS_BETWEEN_PLANETS = (int) (LocalToGalaxy.MAX_PLANETSECTOR * 0.03f);
+    private const int PLANET_MAX_Y_DISTANCE = (int) (LocalToGalaxy.MAX_PLANETSECTOR * 0.03f);
+    const float LIGHTSECTOR_MAX_DENSITY = 0.00003f;
+    private const uint MAX_STARS_PER_LIGHTSECTOR = (int)(LIGHTSECTOR_MAX_DENSITY * LocalToGalaxy.MAX_STARSECTOR * LocalToGalaxy.MAX_STARSECTOR * LocalToGalaxy.MAX_STARSECTOR);
+
     public static float Perlin3D(in float3 xyz)
     {
         float xy = noise.cnoise(xyz.xy);
@@ -25,8 +23,11 @@ public static class GalaxyTools
         float zx = noise.cnoise(xyz.zx);
         float zy = noise.cnoise(xyz.zy);
 
-        return (xy + xz + yz + yx + zx + zy) / 6;
-    }
+        // Should be between 0 and 1, but appears to be something between +- 0.25
+        var intermediate = (xy + xz + yz + yx + zx + zy) / 6;
+
+        return math.clamp(intermediate * 2 + 0.5f, 0, 1);
+}
     
     public static FixedString32Bytes ToRomanNumeral(byte b)
     {
@@ -173,7 +174,9 @@ public static class GalaxyTools
     #region SectorType
     public static LightSectorType GetLightSectorType(in LocalToGalaxy pos, out float perlin)
     {
-        perlin = Perlin3D((float3)pos.LightSector * 1f / LocalToGalaxy.MAX_LIGHTSECTOR);
+        var xyz = (float3)((double3)pos.LightSector * PERLIN_SECTOR_RESOLUTION);
+        perlin = Perlin3D(xyz);
+        // Debug.Log($"Perlin of {xyz} is {perlin}");
         return perlin < 0.0f ? LightSectorType.Empty : LightSectorType.Stars;
     }
     
@@ -191,22 +194,31 @@ public static class GalaxyTools
         data.Type = GetLightSectorType(ltg, out data.Perlin);
         if (data.Type == LightSectorType.Stars)
         {
-            data.NumberOfStars = (byte)(data.Perlin * 32 * random.NextFloat(0.7f, 1f));
-            data.StarSectorBytes = new FixedList128Bytes<ushort>();
-
-            for (int i = 0; i < data.NumberOfStars; i++)
-            {
-                var starSector = random.NextInt3(LocalToGalaxy.MAX_STARSECTOR);
-                var starLtg = ltg;
-                starLtg.StarSector = starSector;
-                starLtg.PlanetSector = PlanetSectorCenter;
-                data.StarSectorBytes.Add((ushort)starLtg.StarSector.x);
-                data.StarSectorBytes.Add((ushort)starLtg.StarSector.y);
-                data.StarSectorBytes.Add((ushort)starLtg.StarSector.z);
-            }
+            data.NumberOfStars = (byte)(data.Perlin * MAX_STARS_PER_LIGHTSECTOR * random.NextFloat(0.7f, 1f));
+            data.StarGenerationSeed = random.state;
         }
 
         return data;
+    }
+
+    public static NativeArray<int3> GetStarSectorsOfLightSector(LightSectorData data)
+    {
+        var array = new NativeArray<int3>(data.NumberOfStars, Allocator.Temp);
+        var random = new Random(data.StarGenerationSeed);
+        for (int i = 0; i < data.NumberOfStars; i++)
+        {
+            var next = random.NextInt3(LocalToGalaxy.MAX_STARSECTOR);
+            int j = 0;
+            for(; j < i; j++)
+                if (math.all(array[j] == next))
+                    j = data.NumberOfStars;
+            if (j == i)
+                array[i] = random.NextInt3(LocalToGalaxy.MAX_STARSECTOR);
+            else
+                i--;
+
+        }
+        return array;
     }
 
     public static StarSectorData GetStarSectorData(in LocalToGalaxy ltg)

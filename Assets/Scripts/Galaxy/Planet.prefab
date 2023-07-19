@@ -13,8 +13,8 @@ GameObject:
   - component: {fileID: 3085529603478266223}
   - component: {fileID: 3085529603478266192}
   - component: {fileID: 2371249212117280412}
-  - component: {fileID: 3085529603478266219}
   - component: {fileID: 7220150554515766447}
+  - component: {fileID: 3959288577399482325}
   m_Layer: 0
   m_Name: Planet
   m_TagString: Untagged
@@ -49,11 +49,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 837e146cd4a5498b95c507bdc2524a4c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Sector:
+  LightSector:
     x: 0
     y: 0
     z: 0
-  SubSector:
+  StarSector:
+    x: 0
+    y: 0
+    z: 0
+  PlanetSector:
     x: 0
     y: 0
     z: 0
@@ -123,19 +127,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b527274b1e114021aeaf7d3f1dc11cd6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &3085529603478266219
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3085529603478266193}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70b15ed1d1d64b0b90724d5975a46644, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Name: Planet
 --- !u!114 &7220150554515766447
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -146,5 +137,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4a4bc5a70e1b401e95ace4099fbd1d82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &3959288577399482325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3085529603478266193}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4539eadf0b6541779653cf9370915ef8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

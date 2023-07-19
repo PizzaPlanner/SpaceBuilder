@@ -349,31 +349,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 837e146cd4a5498b95c507bdc2524a4c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Sector:
-    OuterSector:
-      x: 0
-      y: 0
-      z: 0
-    StarSector:
-      x: 0
-      y: 0
-      z: 0
-    LightSector:
-      x: 0
-      y: 0
-      z: 0
-    PlanetSector:
-      x: 0
-      y: 0
-      z: 0
-    LocalSector:
-      x: 0
-      y: 0
-      z: 0
-    LocalPosition:
-      x: 0
-      y: 0
-      z: 0
+  LightSector:
+    x: 0
+    y: 0
+    z: 0
+  StarSector:
+    x: 0
+    y: 0
+    z: 0
+  PlanetSector:
+    x: 0
+    y: 0
+    z: 0
+  LocalPosition:
+    x: 0
+    y: 0
+    z: 0
 --- !u!1 &1068672480
 GameObject:
   m_ObjectHideFlags: 0
@@ -419,31 +410,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 837e146cd4a5498b95c507bdc2524a4c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Sector:
-    OuterSector:
-      x: 85
-      y: 122
-      z: 412
-    StarSector:
-      x: 41
-      y: 2
-      z: 55
-    LightSector:
-      x: 65
-      y: 2
-      z: 1
-    PlanetSector:
-      x: 0
-      y: 0
-      z: 0
-    LocalSector:
-      x: 0
-      y: 0
-      z: 0
-    LocalPosition:
-      x: 0
-      y: 0
-      z: 0
+  LightSector:
+    x: 4267660
+    y: 6224254
+    z: 2921827
+  StarSector:
+    x: 0
+    y: 0
+    z: 0
+  PlanetSector:
+    x: 0
+    y: 0
+    z: 0
+  LocalPosition:
+    x: 0
+    y: 0
+    z: 0
 --- !u!114 &1068672485
 MonoBehaviour:
   m_ObjectHideFlags: 0

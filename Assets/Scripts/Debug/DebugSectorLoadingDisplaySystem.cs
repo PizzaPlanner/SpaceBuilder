@@ -1,6 +1,7 @@
 using Galaxy;
 using System;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -8,6 +9,7 @@ using UnityEngine.UIElements;
 public partial class DebugSectorLoadingDisplaySystem : SystemBase
 {
     private VisualElement infoTexts;
+    VisualElement addSpeed;
     
     protected override void OnCreate()
     {
@@ -17,6 +19,20 @@ public partial class DebugSectorLoadingDisplaySystem : SystemBase
     protected override void OnStartRunning()
     {
         infoTexts ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("InfoTexts");
+        var player = SystemAPI.GetSingletonEntity<LocalPlayer>();
+        if (addSpeed == null)
+        {
+            addSpeed = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("MoreSpeed");
+            addSpeed.RegisterCallback<MouseDownEvent>(x =>
+            {
+                var cts = EntityManager.GetComponentData<Player>(player);
+                if (x.button == 0)
+                    cts.MovementSpeedRun *= 10;
+                else
+                    cts.MovementSpeedRun /= 10;
+                EntityManager.SetComponentData(player, cts);
+            });
+        }
         infoTexts.style.display = DisplayStyle.Flex;
         infoTexts.Q<EnumField>().UnregisterValueChangedCallback(OnMarkerStyleChange);
     }
@@ -36,10 +52,18 @@ public partial class DebugSectorLoadingDisplaySystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var pendingSectors = SystemAPI.GetSingleton<LoadSectorSystem.PendingSectors>();
-        var loadedSectors = pendingSectors.sectorsLoaded.Length;
-        var toLoad = pendingSectors.sectorsToLoad.Count;
-        var toUnload = pendingSectors.sectorsToUnload.Count;
+        var pendingSectors = SystemAPI.GetSingleton<PendingSectors>();
+        var loadedLS = pendingSectors.LightSectors.Loaded.Length;
+        var lsToLoad = pendingSectors.LightSectors.ToLoad.Count;
+        var lsToUnload = pendingSectors.LightSectors.ToUnload.Count;
+        
+        var loadedStars = pendingSectors.StarSectors.Loaded.Length;
+        var starsToLoad = pendingSectors.StarSectors.ToLoad.Count;
+        var starsToUnload = pendingSectors.StarSectors.ToUnload.Count;
+        
+        var loadedPlanets = pendingSectors.PlanetSectors.Loaded.Length;
+        var planetsToLoad = pendingSectors.PlanetSectors.ToLoad.Count;
+        var planetsToUnload = pendingSectors.PlanetSectors.ToUnload.Count;
 
         var stars = GetEntityQuery(typeof(Star)).CalculateEntityCount();
         var planets = GetEntityQuery(typeof(Planet)).CalculateEntityCount();
@@ -50,17 +74,30 @@ public partial class DebugSectorLoadingDisplaySystem : SystemBase
         var speed = SystemAPI.GetComponent<CanTravelSectors>(player);
         var player2 = SystemAPI.GetComponent<Player>(player);
         var ltg = SystemAPI.GetComponent<LocalToGalaxy>(player);
+
+        var sectorData = GalaxyTools.GetLightSectorData(ltg);
+        var isInStarSector = false;
+        var starSectors = sectorData.CalculateStarSectors;
+        for (byte i = 0; i < sectorData.NumberOfStars; i++)
+            isInStarSector |= math.all(ltg.StarSector == starSectors[i]);
+        var starSectorInfo = sectorData.Type switch
+        {
+            LightSectorType.Empty => $"[{sectorData.Perlin}] Empty",
+            LightSectorType.Stars => $"[{sectorData.Perlin}] {sectorData.NumberOfStars}⭐ > {(isInStarSector ? "Solar" : "Empty")}"
+        };
         
         infoTexts.Q<Label>("player").text = $@"Sector: 
-  x: {ltg.LightSector.x:X}:{ltg.StarSector.x:X}:{ltg.PlanetSector.x:X}@{ltg.LocalPosition.x}
-  y: {ltg.LightSector.y:X}:{ltg.StarSector.y:X}:{ltg.PlanetSector.y:X}@{ltg.LocalPosition.y} 
-  z: {ltg.LightSector.z:X}:{ltg.StarSector.z:X}:{ltg.PlanetSector.z:X}@{ltg.LocalPosition.z}
-  {GalaxyTools.GetLightSectorType(ltg, out _)} > {GalaxyTools.GetStarSectorType(ltg)}
-Current Speed: {GalaxyTools.ToGalacticDistanceWithUnit(speed.CurrentSpeed)}
-Running Speed: {GalaxyTools.ToGalacticDistanceWithUnit(player2.MovementSpeedRun)}";
+  x: {ltg.LightSector.x:X}:{ltg.StarSector.x:X}:{ltg.PlanetSector.x:X}@{ltg.LocalPosition.x:F0}
+  y: {ltg.LightSector.y:X}:{ltg.StarSector.y:X}:{ltg.PlanetSector.y:X}@{ltg.LocalPosition.y:F0} 
+  z: {ltg.LightSector.z:X}:{ltg.StarSector.z:X}:{ltg.PlanetSector.z:X}@{ltg.LocalPosition.z:F0}
+  {starSectorInfo}
 
-        infoTexts.Q<Label>("sectors").text = $@"Loaded: {loadedSectors}
-Pending: +{toLoad} / -{toUnload}
+Speed: {GalaxyTools.ToGalacticDistanceWithUnit(speed.CurrentSpeed)}/{GalaxyTools.ToGalacticDistanceWithUnit(player2.MovementSpeedRun)}
+Travel: {speed.CurrentTravelType}";
+
+        infoTexts.Q<Label>("sectors").text = $@"Sectors: {loadedLS} +{lsToLoad} / -{lsToUnload}
+Stars: {loadedStars} +{starsToLoad} / -{starsToUnload}
+Planets: {loadedPlanets} +{planetsToLoad} / -{planetsToUnload}
 ";
         
         infoTexts.Q<Label>("things").text = $@"Stars: {stars}

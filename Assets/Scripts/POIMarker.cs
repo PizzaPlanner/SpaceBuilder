@@ -1,7 +1,9 @@
+using Galaxy;
 using System;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -31,40 +33,28 @@ public class POIMarker : VisualElement
     }
 
     public POIType Type;
-    public Entity Target;
+    public string Name;
+    
     private const int SIZE = 32;
     public POIMarker()
     {
         AddToClassList("poi-marker");
         style.width = SIZE;
         style.height = SIZE;
+        style.position = Position.Absolute;
         Add(new Label());
     }
 
-    public void Update(EntityManager em, Entity localPlayer, POIMarker.MarkerSettings settings)
+    public void Update(LocalToGalaxy deltaLtg, LocalToWorld ltw, CanTravelSectors traveller, MarkerSettings settings)
     {
-        if (!em.Exists(Target) || !em.HasComponent<LocalToGalaxy>(Target))
-        {
-            RemoveFromHierarchy();
-            return;
-        }
-
-        var playerLtg = em.GetComponentData<LocalToGalaxy>(localPlayer);
-        var playerCts = em.GetComponentData<CanTravelSectors>(localPlayer);
-        var targetLtg = em.GetComponentData<LocalToGalaxy>(Target);
-        var diffLtg = playerLtg - targetLtg;
-        var relativePosition = diffLtg.Distance;
+        var relativePosition = deltaLtg.Distance;
         var distance = math.length(relativePosition);
-        if (distance < 1000)
-            relativePosition = em.GetComponentData<LocalTransform>(Target).Position - (float3)Camera.main.transform.position;
         var direction = (float3)math.normalizesafe(relativePosition);
 
-
-
-        Vector2 position2D = Camera.main.WorldToScreenPoint((float3)Camera.main.transform.position + direction);
-        style.position = Position.Absolute;
-        style.left = math.clamp(position2D.x - SIZE / 2, -SIZE / 2, Screen.width + SIZE / 2);
-        style.bottom = math.clamp(position2D.y - SIZE / 2, -SIZE / 2, Screen.height + SIZE / 2);
+        var screenPosition =
+            (float2)RuntimePanelUtils.CameraTransformWorldToPanel(this.panel, ltw.Position, Camera.main) - SIZE / 2;
+        style.left = screenPosition.x;
+        style.top = screenPosition.y;
         var dot = math.dot(Camera.main.transform.forward, direction);
         if (dot < 0.3f)
         {
@@ -73,22 +63,17 @@ public class POIMarker : VisualElement
         }
 
         this.style.opacity = math.min(0.9f, math.lerp(0f, 0.9f, math.min(((float)distance - 3) * 0.1f, 10)));
-
-        var name = "<?>";
+        
         var distanceFmt = GalaxyTools.ToGalacticDistanceWithUnit(distance);
-        var timeToDistance = distance / playerCts.CurrentSpeed;
+        var timeToDistance = distance / traveller.CurrentSpeed;
         var timeFmt = GalaxyTools.ToTimeUnit(timeToDistance);
-        if (em.HasComponent<Name>(Target))
-            name = em.GetComponentData<Name>(Target).Value.Value;
         this.Q<Label>().text = settings.TextStyle switch
         {
             MarkerSettings.MarkerStyle.NoText => "",
-            MarkerSettings.MarkerStyle.Default => @$"{name}
-{distanceFmt}{(playerCts.CurrentSpeed > 0 ? $" // ETA {timeFmt}" : "")}",
-            MarkerSettings.MarkerStyle.Debug => @$"{name}
-P: {playerLtg.StarSector:X}|{playerLtg.PlanetSector:X}|{playerLtg.LocalPosition}
-T: {targetLtg.StarSector:X}|{targetLtg.PlanetSector:X}|{targetLtg.LocalPosition}
-D: {diffLtg.StarSector:X}|{diffLtg.PlanetSector:X}|{diffLtg.LocalPosition}
+            MarkerSettings.MarkerStyle.Default => @$"{Name}
+{distanceFmt}{(traveller.CurrentSpeed > 0 ? $" // ETA {timeFmt}" : "")}",
+            MarkerSettings.MarkerStyle.Debug => @$"{Name}
+Relative: {deltaLtg}
 {distanceFmt}",
             _ => ""
         };
@@ -96,11 +81,15 @@ D: {diffLtg.StarSector:X}|{diffLtg.PlanetSector:X}|{diffLtg.LocalPosition}
 }
 
 [UpdateInGroup(typeof(PresentationSystemGroup))]
+[UpdateAfter(typeof(UpdatePresentationSystemGroup))]
 public partial class POIMarkerSystem : SystemBase
 {
     private VisualElement uiRoot;
 
-    public struct TrackedPOI : IComponentData { }
+    public class TrackedPOI : ICleanupComponentData
+    {
+        public POIMarker Marker;
+    }
 
     protected override void OnCreate()
     {
@@ -118,27 +107,48 @@ public partial class POIMarkerSystem : SystemBase
     protected override void OnUpdate()
     {
         var ecb = new EntityCommandBuffer(Allocator.Temp);
-        foreach (var (_, e) in SystemAPI.Query<LocalToGalaxy>()
-                                        .WithAny<GridStructure, BigObjectInPoiRange>()
+        foreach (var (ltg, e) in SystemAPI.Query<LocalToGalaxy>()
+                                        .WithAll<InPoiRange>()
                                         .WithNone<TrackedPOI>()
                                         .WithEntityAccess())
         {
-                ecb.AddComponent<TrackedPOI>(e);
-                var hasGrid = SystemAPI.HasComponent<GridStructure>(e);
-                var isShip = hasGrid && SystemAPI.HasComponent<Flyable>(e);
+            var hasGrid = SystemAPI.HasComponent<GridStructure>(e);
+            var isShip = hasGrid && SystemAPI.HasComponent<Flyable>(e);
 
-                var type = POIMarker.POIType.Other;
-                if (hasGrid)
-                    type = isShip ? POIMarker.POIType.Ship : POIMarker.POIType.Station;
-                else
-                    type = POIMarker.POIType.Star;
+            var type = POIMarker.POIType.Other;
+            if (hasGrid)
+                type = isShip ? POIMarker.POIType.Ship : POIMarker.POIType.Station;
+            else
+                type = POIMarker.POIType.Star;
 
-                uiRoot.Add(new POIMarker{Target = e, Type = type});
+            var name = "<?>";
+            if (SystemAPI.HasComponent<Name>(e))
+                name = SystemAPI.GetComponent<Name>(e).Value.Value;
+            else if (SystemAPI.HasComponent<Star>(e))
+                name = GalaxyTools.GetStarSectorData(ltg).Name;
+
+            var poiMarker = new POIMarker { Type = type, Name = name };
+            uiRoot.Add(poiMarker);
+            ecb.AddComponent(e, new TrackedPOI { Marker = poiMarker });
+        }
+        foreach(var (trackedPoi, e) in SystemAPI.Query<TrackedPOI>().WithNone<InPoiRange>().WithEntityAccess())
+        {
+            trackedPoi.Marker.RemoveFromHierarchy();
+            ecb.RemoveComponent<TrackedPOI>(e);
         }
         ecb.Playback(EntityManager);
         
         var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
+        var camera = SystemAPI.GetSingletonEntity<CameraAnchor>();
+        var cameraTransform = SystemAPI.GetComponent<LocalTransform>(camera);
+        var playerLtg = SystemAPI.GetComponent<LocalToGalaxy>(localPlayer);
+        playerLtg += cameraTransform.Position;
+        var playerCts = SystemAPI.GetComponent<CanTravelSectors>(localPlayer);
         var markerStyle = SystemAPI.GetSingleton<POIMarker.MarkerSettings>();
-        uiRoot.Query<POIMarker>().ForEach(x => x.Update(EntityManager, localPlayer, markerStyle));
+        foreach(var (trackedPoi, ltg, ltw) in SystemAPI.Query<TrackedPOI, LocalToGalaxy, LocalToWorld>())
+        {
+            var deltaLtg = ltg - playerLtg;
+           trackedPoi.Marker.Update(deltaLtg, ltw, playerCts, markerStyle);
+        }
     }
 }
