@@ -1,8 +1,6 @@
-using System;
 using NUnit.Framework;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.SocialPlatforms;
 using static LocalToGalaxy;
 
 namespace Galaxy.Tests

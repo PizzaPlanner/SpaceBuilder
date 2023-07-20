@@ -1,0 +1,30 @@
+{
+    "name": "Main",
+    "rootNamespace": "",
+    "references": [
+        "Unity.Entities",
+        "Unity.Collections",
+        "Unity.Mathematics",
+        "Unity.Physics",
+        "Unity.Transforms",
+        "Unity.Entities.Graphics",
+        "Unity.Burst",
+        "Unity.Mathematics.Extensions",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Galaxy",
+        "Player",
+        "Grid",
+        "Items",
+        "Identifiables",
+        "Blueprints"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

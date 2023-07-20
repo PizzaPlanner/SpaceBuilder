@@ -1,0 +1,30 @@
+{
+    "name": "Main.Authoring",
+    "rootNamespace": "",
+    "references": [
+        "Unity.Entities",
+        "Unity.Collections",
+        "Unity.Mathematics",
+        "Unity.Mathematics.Extensions",
+        "Unity.Entities.Hybrid",
+        "Unity.Physics.Hybrid",
+        "Unity.Transforms.Hybrid",
+        "Unity.Entities.Graphics",
+        "Identifiables.Authoring",
+        "Blueprints",
+        "Galaxy.Authoring",
+        "Main",
+        "Galaxy"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_EDITOR"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

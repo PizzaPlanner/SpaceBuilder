@@ -7,7 +7,6 @@
         "Unity.Transforms",
         "Unity.Burst",
         "Unity.Collections",
-        "Unity.Entities.Hybrid",
         "Unity.Entities.Graphics",
         "Unity.Mathematics.Extensions",
         "Unity.Physics",

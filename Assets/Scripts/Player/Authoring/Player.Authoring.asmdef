@@ -1,0 +1,24 @@
+{
+    "name": "Player.Authoring",
+    "rootNamespace": "",
+    "references": [
+        "Unity.Entities",
+        "Unity.Collections",
+        "Unity.Entities.Hybrid",
+        "Unity.Physics.Hybrid",
+        "Unity.Transforms.Hybrid",
+        "Unity.Mathematics",
+        "Player"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_EDITOR"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

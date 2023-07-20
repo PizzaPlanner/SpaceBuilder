@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Properties;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;

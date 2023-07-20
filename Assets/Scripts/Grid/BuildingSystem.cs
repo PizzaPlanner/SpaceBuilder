@@ -6,9 +6,7 @@ using Unity.Physics.Extensions;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
-using UnityEngine.Rendering;
 using BoxCollider = Unity.Physics.BoxCollider;
-using MeshCollider = Unity.Physics.MeshCollider;
 
 public struct GridChangedEvent : IComponentData
 {

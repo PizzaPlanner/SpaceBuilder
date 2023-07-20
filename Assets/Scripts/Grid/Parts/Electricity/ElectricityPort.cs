@@ -1,7 +1,3 @@
-using Unity.Entities;
-using Unity.Transforms;
-using UnityEngine;
-
 public struct ElectricityPort : IExchangeNetworkPort<ElectricityNetwork>
 {
     public float Value;

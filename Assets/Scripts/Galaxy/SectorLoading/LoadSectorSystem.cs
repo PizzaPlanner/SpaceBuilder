@@ -6,14 +6,13 @@ using Unity.Jobs;
 public partial struct LoadSectorSystem : ISystem
 {
     EntityQuery sectorChangeQuery;
-    EntityQuery starPrefabQuery;
+    EntityQuery starPrefabQuery, planetPrefabQuery;
 
     public struct SectorLoadSettings : IComponentData
     {
         public int MaxLoadedLightSectorDistance;
         public int MaxLoadedStarSectorDistance;
         public int MaxLoadedPlanetSectorDistance;
-        public int MaxSectorsLoadedPerFrame;
     }
 
     public void OnCreate(ref SystemState state)
@@ -21,6 +20,8 @@ public partial struct LoadSectorSystem : ISystem
         sectorChangeQuery = state.GetEntityQuery(typeof(SectorChange));
         starPrefabQuery = SystemAPI.QueryBuilder().WithOptions(EntityQueryOptions.IncludePrefab)
                                    .WithAll<Star, Prefab>().Build();
+        planetPrefabQuery = SystemAPI.QueryBuilder().WithOptions(EntityQueryOptions.IncludePrefab)
+                                   .WithAll<Planet, Prefab>().Build();
 
         state.EntityManager.CreateEntity(typeof(PendingSectors));
         var sectors = new PendingSectors();
@@ -31,10 +32,9 @@ public partial struct LoadSectorSystem : ISystem
         state.EntityManager.CreateEntity(typeof(SectorLoadSettings));
         SystemAPI.SetSingleton(new SectorLoadSettings
         {
-            MaxLoadedLightSectorDistance = 5,
-            MaxLoadedStarSectorDistance = 2,
-            MaxLoadedPlanetSectorDistance = 3,
-            MaxSectorsLoadedPerFrame = 50
+            MaxLoadedLightSectorDistance = 4,
+            MaxLoadedStarSectorDistance = 1,
+            MaxLoadedPlanetSectorDistance = 3
         });
 
         state.RequireForUpdate<PendingSectors>();
@@ -57,6 +57,7 @@ public partial struct LoadSectorSystem : ISystem
         var sectorLoadSettings = SystemAPI.GetSingleton<SectorLoadSettings>();
         var sectorsToLoad = SystemAPI.GetSingletonRW<PendingSectors>();
         var starPrefab = starPrefabQuery.GetSingletonEntity();
+        var planetPrefab = planetPrefabQuery.GetSingletonEntity();
         
         ecb.DestroyEntity(sectorChangeQuery, EntityQueryCaptureMode.AtRecord);
 
@@ -75,6 +76,13 @@ public partial struct LoadSectorSystem : ISystem
         {
             pendingSectors = sectorsToLoad.ValueRW,
             prefab = starPrefab,
+            ecb = ecb,
+        }.Schedule(state.Dependency);
+        
+        state.Dependency = new PlanetSectorLoadJob
+        {
+            pendingSectors = sectorsToLoad.ValueRW,
+            prefab = planetPrefab,
             ecb = ecb,
         }.Schedule(state.Dependency);
     }

@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Mathematics;
 
@@ -37,9 +35,7 @@ public struct SectorLoadState : IDisposable
 
     public bool Contains(LocalToGalaxy ltg)
     {
-        foreach(var ltg2 in _loadedLookup.GetValuesForKey(ltg.LightSector))
-            return true;
-        return false;
+        return _loadedLookup.ContainsKey(ltg.LightSector);
     }
 
     public void Enqueue(LocalToGalaxy ltg)

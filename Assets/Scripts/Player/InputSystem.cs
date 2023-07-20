@@ -1,12 +1,8 @@
-using System;
-using System.Diagnostics;
-using System.IO;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Cursor = UnityEngine.Cursor;
-using Debug = UnityEngine.Debug;
 
 public struct BuilderMode_Build : ICleanupComponentData { }
 

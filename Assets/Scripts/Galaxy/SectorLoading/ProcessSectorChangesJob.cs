@@ -38,6 +38,8 @@ public partial struct ProcessSectorChangesJob : IJobEntity
         }
         if(math.any(sc.New.StarSector != sc.Previous.StarSector))
         {
+            var starSectors = GalaxyTools.GetLightSectorData(sc.New).CalculateStarSectors;
+
             var maxDistance = sectorLoadSettings.MaxLoadedStarSectorDistance;
             for (int x = -maxDistance; x < maxDistance; x++)
             for (int y = -maxDistance; y < maxDistance; y++)
@@ -45,9 +47,14 @@ public partial struct ProcessSectorChangesJob : IJobEntity
             {
                 if(math.abs(x + y + z) > maxDistance)
                     continue;
-                
-                var newLtg = sc.New + new LocalToGalaxy { StarSector = new int3(x, y, z) };
-                pendingSectors.StarSectors.Enqueue(newLtg);
+
+                var starSec = new int3(x, y, z);
+                foreach (var sector in starSectors)
+                {
+                    var newLtg = sc.New + new LocalToGalaxy { StarSector = starSec };
+                    if (math.all(newLtg.StarSector == sector))
+                        pendingSectors.StarSectors.Enqueue(newLtg);
+                }
             } 
         }
         pendingSectors.entitiesPerSector.Add(sc.New, e);

@@ -302,26 +302,53 @@
 }
 
 .poi-marker {
-    background-image: url('project://database/Assets/UI/target_marker.png?fileID=2800000&guid=aef2665a177dcb043b9b9593211bf248&type=3#target_marker');
-    justify-content: flex-end;
+    justify-content: center;
+    align-items: flex-start;
 }
 
-.poi-marker > * {
+.poi-marker Label {
     font-size: 10px;
-    -unity-font-style: bold;
+    -unity-font-style: normal;
     -unity-text-align: lower-left;
-    position: absolute;
-    left: 100%;
-    bottom: 0;
-    padding-left: 0;
-    padding-right: 0;
-    padding-top: 0;
-    padding-bottom: 0;
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 2px;
+    padding-bottom: 2px;
     margin-left: 4px;
     margin-right: 0;
     margin-top: 0;
     margin-bottom: 0;
     justify-content: flex-end;
+    border-left-color: rgb(0, 0, 0);
+    border-right-color: rgb(0, 0, 0);
+    border-top-color: rgb(0, 0, 0);
+    border-bottom-color: rgb(0, 0, 0);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    background-color: rgba(0, 0, 0, 0.33);
+    align-items: flex-start;
+}
+
+.poi-marker #Icon {
+    width: 32px;
+    height: 32px;
+    background-image: url('project://database/Assets/UI/target_marker.png?fileID=2800000&guid=aef2665a177dcb043b9b9593211bf248&type=3#target_marker');
+}
+
+.poi-marker #Icon.Star {
+    background-image: url('project://database/Packages/com.unity.entities/Editor%20Default%20Resources/icons/dark/Query/Query-32@2x.png?fileID=2800000&guid=1ddfca0d1c31bae47979cd4e9237396e&type=3#Query-32@2x');
+}
+
+.poi-marker #Icon.Planet {
+    background-image: url('project://database/Packages/com.unity.entities/Editor%20Default%20Resources/icons/dark/World/World@2x.png?fileID=2800000&guid=ba455e8f02955324c8b269a36bc19cdf&type=3#World@2x');
+}
+
+.poi-marker > VisualElement {
+    left: -16px;
+    top: -16px;
+    flex-direction: row;
 }
 
 .hotkey-label {

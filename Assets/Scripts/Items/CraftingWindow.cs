@@ -1,6 +1,5 @@
 using System;
 using Unity.Entities;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 public class CraftingWindow : VisualElement

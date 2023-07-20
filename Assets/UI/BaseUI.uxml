@@ -158,9 +158,9 @@
     </ui:VisualElement>
     <ui:VisualElement name="DebugUI" picking-mode="Ignore" style="align-items: flex-start; display: flex;">
         <ui:VisualElement name="InfoTexts" style="background-color: rgba(55, 55, 55, 0.22);">
+            <ui:Label tabindex="-1" text="±Speed" display-tooltip-when-elided="true" name="MoreSpeed" enable-rich-text="false" style="border-left-color: rgb(26, 26, 26); border-right-color: rgb(26, 26, 26); border-top-color: rgb(26, 26, 26); border-bottom-color: rgb(26, 26, 26); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; background-color: rgba(48, 48, 48, 0.74); margin-left: 1px; margin-right: 1px; margin-top: 1px; margin-bottom: 1px; padding-left: 2px; padding-right: 2px; padding-top: 2px; padding-bottom: 2px; -unity-text-align: upper-center;" />
             <ui:Foldout text="--Player--" value="true">
                 <ui:Label name="player" />
-                <ui:Label tabindex="-1" text="+- Speed" display-tooltip-when-elided="true" name="MoreSpeed" style="border-left-color: rgb(26, 26, 26); border-right-color: rgb(26, 26, 26); border-top-color: rgb(26, 26, 26); border-bottom-color: rgb(26, 26, 26); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; background-color: rgba(48, 48, 48, 0.74); margin-left: 1px; margin-right: 1px; margin-top: 1px; margin-bottom: 1px; padding-left: 2px; padding-right: 2px; padding-top: 2px; padding-bottom: 2px; width: 75px; -unity-text-align: upper-center;" />
             </ui:Foldout>
             <ui:Foldout text="--Sectors--" value="false">
                 <ui:Label display-tooltip-when-elided="true" name="sectors" />

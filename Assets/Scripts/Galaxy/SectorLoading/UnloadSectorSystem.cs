@@ -1,8 +1,6 @@
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine;
 
 public partial struct UnloadSectorsJob : IJob
 {

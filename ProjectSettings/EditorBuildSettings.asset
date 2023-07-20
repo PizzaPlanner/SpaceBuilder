@@ -9,6 +9,12 @@ EditorBuildSettings:
     path: Assets/Scenes/Infrastructure.unity
     guid: 3fe91a29152ba4347bc5f7fa00552f2b
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 99c9720ab356a0642a771bea13969a05
+    path: Assets/Scenes/SampleScene/Spawn.unity
+    guid: 28eb40219f79ce44faae52d233f6990c
+  - enabled: 1
+    path: Assets/Scenes/SampleScene/AsteroidPrefabsEditor.unity
+    guid: e6933e8dced62e34fb222a91c55b579e
+  - enabled: 1
+    path: Assets/Scenes/Infrastructure/Identifieables.unity
+    guid: 2ec16661c595d3f41855a9a3b6009f75
   m_configObjects: {}

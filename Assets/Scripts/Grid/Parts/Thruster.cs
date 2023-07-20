@@ -20,25 +20,26 @@ public partial class ThrusterSystem : SystemBase
 {
     protected override void OnUpdate()
     {
-        var buffer = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
+        var buffer = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                              .CreateCommandBuffer(World.Unmanaged);
         Entities.ForEach((in Thruster thrust, in GridItem grid) =>
         {
-            if (!HasComponent<Flyable>(grid.Grid) ||
-                !HasComponent<PhysicsVelocity>(grid.Grid) ||
-                !HasComponent<PhysicsMass>(grid.Grid))
+            if (!SystemAPI.HasComponent<Flyable>(grid.Grid) ||
+                !SystemAPI.HasComponent<PhysicsVelocity>(grid.Grid) ||
+                !SystemAPI.HasComponent<PhysicsMass>(grid.Grid))
                 return;
 
-            var velocity = GetComponent<PhysicsVelocity>(grid.Grid);
-            var mass = GetComponent<PhysicsMass>(grid.Grid);
+            var velocity = SystemAPI.GetComponent<PhysicsVelocity>(grid.Grid);
+            var mass = SystemAPI.GetComponent<PhysicsMass>(grid.Grid);
             velocity.ApplyLinearImpulse(mass, thrust.ForwardThrust);
-            SetComponent(grid.Grid, velocity);
+            SystemAPI.SetComponent(grid.Grid, velocity);
         }).Schedule();
 
         Entities.ForEach((ref Thruster thrust, in LocalToWorld ltw) =>
         {
-            var port = GetComponent<ElectricityPort>(thrust.Port);
+            var port = SystemAPI.GetComponent<ElectricityPort>(thrust.Port);
             port.Value = -thrust.RequiredPower;
-            SetComponent(thrust.Port, port);
+            SystemAPI.SetComponent(thrust.Port, port);
 
             thrust.ForwardThrust = port.NetworkOperational && port.On ? -ltw.Forward * thrust.Strength * thrust.MaxStrength : float3.zero;
         }).Schedule();
