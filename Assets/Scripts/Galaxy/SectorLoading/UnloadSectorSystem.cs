@@ -54,7 +54,7 @@ public partial struct CheckUnloadSectorsJob : IJob
             var diff = ltg - playerLtg;
             var delta = math.length(diff.Distance);
             var ltgIsInStarRange =
-                delta <= sectorLoadSettings.MaxLoadedLightSectorDistance * LocalToGalaxy.DISTANCE_PER_LIGHTSECTOR;
+                delta <= sectorLoadSettings.MaxLoadedStarSectorDistance * LocalToGalaxy.DISTANCE_PER_STARSECTOR;
             if(!ltgIsInStarRange)
                 pendingSectors.StarSectors.Dequeue(ltg);
         }
@@ -64,7 +64,7 @@ public partial struct CheckUnloadSectorsJob : IJob
             var diff = ltg - playerLtg;
             var delta = math.length(diff.Distance);
             var ltgIsInStarRange =
-                delta <= sectorLoadSettings.MaxLoadedStarSectorDistance * LocalToGalaxy.DISTANCE_PER_STARSECTOR;
+                delta <= sectorLoadSettings.MaxLoadedPlanetSectorDistance * LocalToGalaxy.DISTANCE_PER_PLANETSECTOR;
             if(!ltgIsInStarRange)
                 pendingSectors.PlanetSectors.Dequeue(ltg);
         }

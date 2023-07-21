@@ -10,8 +10,8 @@ public class CelestialBodyAuthoring : MonoBehaviour
             var entity = GetEntity(TransformUsageFlags.Renderable);
             AddComponent<CelestialBody>(entity);
             AddComponent<GenerateIntoSector>(entity);
-            AddComponent<InPoiRange>(entity);
-            SetComponentEnabled<InPoiRange>(entity, false);
+            AddComponent<ShouldShowAsPOI>(entity);
+            SetComponentEnabled<ShouldShowAsPOI>(entity, false);
         }
     }
 }

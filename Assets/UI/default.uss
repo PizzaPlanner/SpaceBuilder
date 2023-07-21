@@ -327,27 +327,32 @@
     border-right-width: 1px;
     border-top-width: 1px;
     border-bottom-width: 1px;
-    background-color: rgba(0, 0, 0, 0.33);
+    background-color: rgba(0, 0, 0, 0.67);
     align-items: flex-start;
+    display: none;
+}
+
+.poi-marker.highlighted Label {
+    display: flex;
 }
 
 .poi-marker #Icon {
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
     background-image: url('project://database/Assets/UI/target_marker.png?fileID=2800000&guid=aef2665a177dcb043b9b9593211bf248&type=3#target_marker');
 }
 
 .poi-marker #Icon.Star {
-    background-image: url('project://database/Packages/com.unity.entities/Editor%20Default%20Resources/icons/dark/Query/Query-32@2x.png?fileID=2800000&guid=1ddfca0d1c31bae47979cd4e9237396e&type=3#Query-32@2x');
+    background-image: url('project://database/Assets/UI/target_marker_star.png?fileID=2800000&guid=903195b968a03134eaaa8b62d0efdc6f&type=3#target_marker_star');
 }
 
 .poi-marker #Icon.Planet {
-    background-image: url('project://database/Packages/com.unity.entities/Editor%20Default%20Resources/icons/dark/World/World@2x.png?fileID=2800000&guid=ba455e8f02955324c8b269a36bc19cdf&type=3#World@2x');
+    background-image: url('project://database/Assets/UI/target_marker_planet.png?fileID=2800000&guid=df2d46c2ef2e279489234579778b5db3&type=3#target_marker_planet');
 }
 
 .poi-marker > VisualElement {
-    left: -16px;
-    top: -16px;
+    left: -12px;
+    top: -12px;
     flex-direction: row;
 }
 

@@ -33,7 +33,7 @@ public partial struct LoadSectorSystem : ISystem
         SystemAPI.SetSingleton(new SectorLoadSettings
         {
             MaxLoadedLightSectorDistance = 4,
-            MaxLoadedStarSectorDistance = 1,
+            MaxLoadedStarSectorDistance = 2,
             MaxLoadedPlanetSectorDistance = 3
         });
 

@@ -1,8 +1,12 @@
 // See https://github.com/b3agz/how-to-make-7-days-to-die-in-unity/blob/master/02-dual-contouring/Marching.cs
 
 using System.Collections.Generic;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
+using Unity.Rendering;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 [System.Serializable]
 public struct MarchingCubesSphericalGenerator
@@ -13,49 +17,62 @@ public struct MarchingCubesSphericalGenerator
     int diameter;
     [SerializeField]
     float3 seed;
-    float[,,] terrainMap;
-
-    List<float3> vertices;
-    List<int> triangles;
 
     public MarchingCubesSphericalGenerator(int maxDiameter, bool smooth)
     {
         this.seed = 0;
         this.diameter = 0;
         this.smoothTerrain = smooth;
-
-        terrainMap = new float[maxDiameter, maxDiameter, maxDiameter];
-        vertices = new List<float3>();
-        triangles = new List<int>();
     }
 
-    public void Generate(int diameter, float3 seed)
+    public Mesh.MeshDataArray Generate(int diameter, float3 seed)
     {
-        this.diameter = diameter;
-        this.seed = seed;
-        PopulateTerrainMap();
+        unsafe
+        {
+            this.diameter = diameter;
+            this.seed = seed;
+        
+            var vertices = new NativeList<float3>(Allocator.Temp);
+            var triangles = new NativeList<int>(Allocator.Temp);
+            // Loop through each "cube" in our terrain.
+            for (int x = 0; x < diameter - 1; x++)
+            for (int y = 0; y < diameter - 1; y++)
+            for (int z = 0; z < diameter - 1; z++)
+                // Pass the value into our MarchCube function.
+                March(new int3(x, y, z), vertices, triangles);
+            
+            Debug.Log($"Generated mesh with {vertices.Length} verts, {triangles.Length} tris");
 
-        vertices.Clear();
-        triangles.Clear();
-        // Loop through each "cube" in our terrain.
-        for (int x = 0; x < diameter - 1; x++)
-        for (int y = 0; y < diameter - 1; y++)
-        for (int z = 0; z < diameter - 1; z++)
-            // Pass the value into our MarchCube function.
-            March(new int3(x, y, z));
+            var meshDataArray = Mesh.AllocateWritableMeshData(1);
+
+            var meshData = meshDataArray[0];
+            meshData.SetVertexBufferParams(vertices.Length,
+                new VertexAttributeDescriptor(VertexAttribute.Position),
+                new VertexAttributeDescriptor(VertexAttribute.Normal, stream: 1));
+            var vertices2 = meshData.GetVertexData<float3>();
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                vertices2[i] = vertices[i];
+            }
+            // UnsafeUtility.MemCpy(vertices2.GetUnsafePtr(), vertices.GetUnsafePtr(), vertices.Length);
+            
+            meshData.SetIndexBufferParams(triangles.Length, IndexFormat.UInt32);
+            var triangles2 = meshData.GetIndexData<int>();
+            for (int i = 0; i < triangles.Length; i++)
+            {
+                triangles2[i] = triangles[i];
+            }
+            // UnsafeUtility.MemCpy(triangles2.GetUnsafePtr(), triangles.GetUnsafePtr(), triangles.Length);
+            
+
+            meshData.subMeshCount = 1;
+            meshData.SetSubMesh(0, new SubMeshDescriptor(0, triangles.Length));
+
+            return meshDataArray;
+        }
     }
 
-    void PopulateTerrainMap ()
-    {
-        // The data points for terrain are stored at the corners of our "cubes", so the terrainMap needs to be 1 larger
-        // than the width/height of our mesh.
-        for(int x = 0; x < diameter; x++)
-        for(int y = 0; y < diameter; y++)
-        for (int z = 0; z < diameter; z++)
-            terrainMap[x, y, z] = GetRadialHeightAt(new float3(x,y,z) / diameter, seed);
-    }
-
-    void March(int3 position)
+    void March(int3 position, NativeList<float3> vertices, NativeList<int> triangles)
     {
         // Sample terrain values at each corner of the cube.
         float[] cube = new float[8];
@@ -70,7 +87,7 @@ public struct MarchingCubesSphericalGenerator
         int configIndex = GetCubeConfiguration(cube);
 
         // If the configuration of this cube is 0 or 255 (completely inside the terrain or completely outside of it) we don't need to do anything.
-        if (configIndex == 0 || configIndex == 255)
+        if (configIndex is 0 or 255)
             return;
 
         // Loop through the triangles. There are never more than 5 triangles to a cube and only three vertices to a triangle.
@@ -119,7 +136,7 @@ public struct MarchingCubesSphericalGenerator
 
             // Add to our vertices and triangles list and incremement the edgeIndex.
             vertices.Add(vertPosition);
-            triangles.Add(vertices.Count - 1);
+            triangles.Add(vertices.Length - 1);
         }
     }
 
@@ -155,54 +172,7 @@ public struct MarchingCubesSphericalGenerator
     //     CreateMeshData(true);
     // }
 
-    float SampleTerrain (int3 point)  => terrainMap[point.x, point.y, point.z];
-
-    int VertAt (float3 vert) {
-        // Loop through all the vertices currently in the vertices list.
-        for (int i = 0; i < vertices.Count; i++) {
-            // If we find a vert that matches ours, then simply return this index.
-            if (math.all(vertices[i] == vert))
-                return i;
-        }
-
-        // If we didn't find a match, add this vert to the list and return last index.
-        vertices.Add(vert);
-        return vertices.Count - 1;
-    }
-
-    public Mesh Bake(bool optimize) {
-        Mesh mesh = new Mesh();
-        var verts = new List<Vector3>();
-        var tris = triangles.ToArray();
-        if (optimize)
-        {
-            Dictionary<int, int> remap = new Dictionary<int, int>();
-            for (int i = 0; i < vertices.Count; i++)
-            {
-                var indexDistinct = verts.IndexOf(vertices[i]);
-                if (indexDistinct == -1)
-                {
-                    verts.Add(vertices[i]);
-                    remap[i] = verts.Count - 1;
-                }
-                else
-                    remap[i] = indexDistinct;
-            }
-
-            for(int t = 0; t < tris.Length; t++)
-                tris[t] = remap[tris[t]];
-        }
-        else
-        {
-            foreach (var t in vertices)
-                verts.Add(t);
-        }
-
-        mesh.vertices = verts.ToArray();
-        mesh.triangles = tris;
-        mesh.RecalculateNormals();
-        return mesh;
-    }
+    float SampleTerrain (int3 point)  => GetRadialHeightAt((float3)point / diameter, seed);
 
     public static float GetRadialHeightAt(float3 xyz, float3 seed)
     {

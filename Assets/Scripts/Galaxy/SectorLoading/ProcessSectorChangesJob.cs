@@ -15,7 +15,7 @@ public partial struct ProcessSectorChangesJob : IJobEntity
             for (int y = -maxDistance; y <= maxDistance; y++)
             for (int z = -maxDistance; z <= maxDistance; z++)
             {
-                if(math.abs(x + y + z) > maxDistance)
+                if(math.lengthsq(new int3(x, y, z)) > maxDistance * maxDistance)
                     continue;
                 
                 var newLtg = sc.New + new LocalToGalaxy { PlanetSector = new int3(x, y, z) };
@@ -29,7 +29,7 @@ public partial struct ProcessSectorChangesJob : IJobEntity
             for (int y = -maxDistance; y < maxDistance; y++)
             for (int z = -maxDistance; z < maxDistance; z++)
             {
-                if(math.abs(x + y + z) > maxDistance)
+                if(math.lengthsq(new int3(x, y, z)) > maxDistance * maxDistance)
                     continue;
                 
                 var newLtg = sc.New + new LocalToGalaxy { LightSector = new int3(x, y, z) };
@@ -45,7 +45,7 @@ public partial struct ProcessSectorChangesJob : IJobEntity
             for (int y = -maxDistance; y < maxDistance; y++)
             for (int z = -maxDistance; z < maxDistance; z++)
             {
-                if(math.abs(x + y + z) > maxDistance)
+                if(math.lengthsq(new int3(x, y, z)) > maxDistance * maxDistance)
                     continue;
 
                 var starSec = new int3(x, y, z);

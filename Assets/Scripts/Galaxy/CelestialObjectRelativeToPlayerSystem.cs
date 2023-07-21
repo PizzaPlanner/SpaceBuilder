@@ -31,23 +31,22 @@ public partial class CelestialObjectRelativeToPlayerSystem : SystemBase
     [WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)]
     partial struct UpdateLtwJob : IJobEntity
     {
-        const double IN_POI_RANGE = LocalToGalaxy.DISTANCE_PER_LIGHTSECTOR * 0.3f;
+        const double IN_POI_RANGE_STAR = LocalToGalaxy.DISTANCE_PER_LIGHTSECTOR * 0.6f;
 
         public float distanceScaleBoost;
         public float farClipPlane;
         public float3 camPosition;
         public LocalToGalaxy refLtg;
-        public void Execute(ref LocalToWorld ltw, in LocalToGalaxy ltg, in CelestialBody body, EnabledRefRW<InPoiRange> inPoiRange)
+        public void Execute(ref LocalToWorld ltw, in LocalToGalaxy ltg, in CelestialBody body, EnabledRefRW<ShouldShowAsPOI> inPoiRange)
         {
             var delta = (ltg - refLtg).Distance - camPosition;
             var distance = math.length(delta);
             var distanceFactor = farClipPlane / distance;
             var fancyFactor = math.lerp(1, distanceScaleBoost, distance / LocalToGalaxy.MAX_MEASURABLE_DISTANCE);
             var newScale = (float)(body.Size * distanceFactor * fancyFactor);
-            // var tNew = (float3)(math.normalize(delta) * (farClipPlane - 2 * newScale - 0.1f)) + camPosition;
             var tNew = (float3)(math.normalize(delta) * farClipPlane + camPosition);
             ltw.Value = float4x4.TRS(tNew, ltw.Rotation, newScale);
-            inPoiRange.ValueRW = distance < IN_POI_RANGE;
+            inPoiRange.ValueRW = distance < IN_POI_RANGE_STAR;
         }
     }
 

@@ -44,10 +44,10 @@ namespace Galaxy
 
         protected override void OnCreate()
         {
-            _lights = new Light[8];
+            _lights = new Light[16];
             for (int i = 0; i < _lights.Length; i++)
             {
-                var e = new GameObject();
+                var e = new GameObject(){name = "StarLight"};
                 var light = e.AddComponent<Light>();
                 _lights[i] = light;
                 light.type = LightType.Directional;
