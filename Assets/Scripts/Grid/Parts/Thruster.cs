@@ -6,7 +6,7 @@ using Unity.Transforms;
 
 public struct Thruster : IComponentData
 {
-    public Entity Port;
+    public bool On;
     public float RequiredPower;
     public float Strength;
     public float MaxStrength;
@@ -20,28 +20,22 @@ public partial class ThrusterSystem : SystemBase
 {
     protected override void OnUpdate()
     {
-        var buffer = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                              .CreateCommandBuffer(World.Unmanaged);
-        Entities.ForEach((in Thruster thrust, in GridItem grid) =>
+        foreach(var (thrust, parent) in SystemAPI.Query<Thruster, Parent>())
         {
-            if (!SystemAPI.HasComponent<Flyable>(grid.Grid) ||
-                !SystemAPI.HasComponent<PhysicsVelocity>(grid.Grid) ||
-                !SystemAPI.HasComponent<PhysicsMass>(grid.Grid))
+            if (!SystemAPI.HasComponent<PhysicsVelocity>(parent.Value) ||
+                !SystemAPI.HasComponent<PhysicsMass>(parent.Value))
                 return;
 
-            var velocity = SystemAPI.GetComponent<PhysicsVelocity>(grid.Grid);
-            var mass = SystemAPI.GetComponent<PhysicsMass>(grid.Grid);
+            var velocity = SystemAPI.GetComponent<PhysicsVelocity>(parent.Value);
+            var mass = SystemAPI.GetComponent<PhysicsMass>(parent.Value);
             velocity.ApplyLinearImpulse(mass, thrust.ForwardThrust);
-            SystemAPI.SetComponent(grid.Grid, velocity);
-        }).Schedule();
+            SystemAPI.SetComponent(parent.Value, velocity);
+        };
 
-        Entities.ForEach((ref Thruster thrust, in LocalToWorld ltw) =>
+        foreach(var (thrust, ltw) in SystemAPI.Query<RefRW<Thruster>, LocalToWorld>())
         {
-            var port = SystemAPI.GetComponent<ElectricityPort>(thrust.Port);
-            port.Value = -thrust.RequiredPower;
-            SystemAPI.SetComponent(thrust.Port, port);
-
-            thrust.ForwardThrust = port.NetworkOperational && port.On ? -ltw.Forward * thrust.Strength * thrust.MaxStrength : float3.zero;
-        }).Schedule();
+            thrust.ValueRW.ForwardThrust = thrust.ValueRW.On ? 
+                -ltw.Forward * thrust.ValueRW.Strength * thrust.ValueRW.MaxStrength : float3.zero;
+        }
     }
 }

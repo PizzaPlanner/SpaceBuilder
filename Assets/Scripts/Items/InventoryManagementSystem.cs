@@ -47,7 +47,8 @@ public partial class InventoryManagementSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var ecb = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
+        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                           .CreateCommandBuffer(World.Unmanaged);
         var prefabMap = IdentifiableMappingSystem.EntitiesById;
 
         var inventoryBuffer = GetBufferLookup<Inventory>(false);
@@ -56,6 +57,7 @@ public partial class InventoryManagementSystem : SystemBase
         var identifiables = GetComponentLookup<Identifieable>(true);
         
         Entities
+            .WithReadOnly(prefabMap)
             .WithReadOnly(identifiables)
             .WithDisposeOnCompletion(addedTransactionsThisFrame)
             .WithNone<Completed>()

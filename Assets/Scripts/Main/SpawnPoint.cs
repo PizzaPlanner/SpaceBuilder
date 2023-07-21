@@ -1,3 +1,4 @@
+using Galaxy.SectorLoading;
 using Unity.Entities;
 using Unity.Transforms;
 
@@ -30,21 +31,8 @@ public partial class PlayerSpawnSystem : SystemBase
         var ltg = SystemAPI.GetComponent<LocalToGalaxy>(spawnEntity);
 
         var player = ecb.Instantiate(sp.Prefab);
-        ecb.AddBuffer<CloseGrids>(player);
         ecb.SetComponent(player, transform);
-        ecb.AddComponent(player, ltg);
-        ecb.AddComponent(player, new CanTravelSectors());
-
-        var ctrl = ecb.CreateEntity();
-        ecb.AddComponent<InputSystem.ControlPlayer>(ctrl);
-
-        var update = ecb.CreateEntity();
-        ecb.AddComponent(update, new SectorChange
-        {
-            Entity = player,
-            Previous = new LocalToGalaxy(),
-            New = ltg,
-            ChangeType = SectorChangeType.Spawn
-        });
+        ecb.SetComponent(player, ltg);
+        ecb.AddComponent<ReferenceFrameOrigin>(player);
     }
 }

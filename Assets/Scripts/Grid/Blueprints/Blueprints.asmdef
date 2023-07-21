@@ -9,6 +9,8 @@
         "Unity.Collections",
         "Unity.Entities.Graphics",
         "Unity.Mathematics.Extensions",
+        "Unity.Addressables",
+        "Unity.ResourceManager",
         "Unity.Physics",
         "Galaxy",
         "Grid",

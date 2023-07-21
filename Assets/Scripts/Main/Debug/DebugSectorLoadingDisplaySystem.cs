@@ -1,16 +1,17 @@
 using Galaxy;
+using Galaxy.SectorLoading;
 using System;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 [UpdateInGroup(typeof(PresentationSystemGroup))]
 public partial class DebugSectorLoadingDisplaySystem : SystemBase
 {
     private VisualElement infoTexts;
-    VisualElement addSpeed;
-    
+
     protected override void OnCreate()
     {
         RequireForUpdate<DebugModeSystem.Active>();
@@ -18,22 +19,7 @@ public partial class DebugSectorLoadingDisplaySystem : SystemBase
 
     protected override void OnStartRunning()
     {
-        infoTexts ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("InfoTexts");
-        var player = SystemAPI.GetSingletonEntity<LocalPlayer>();
-        if (addSpeed == null)
-        {
-            addSpeed = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("MoreSpeed");
-            addSpeed.RegisterCallback<MouseDownEvent>(x =>
-            {
-                var cts = EntityManager.GetComponentData<Player>(player);
-                if (x.button == 0)
-                    cts.MovementSpeedRun *= 10;
-                else
-                    cts.MovementSpeedRun /= 10;
-                (addSpeed as Label)!.text = $"±Speed ({GalaxyTools.ToGalacticDistanceWithUnit(cts.MovementSpeedRun)})";
-                EntityManager.SetComponentData(player, cts);
-            });
-        }
+        infoTexts ??= Object.FindObjectOfType<UIDocument>().rootVisualElement.Q("InfoTexts");
         infoTexts.style.display = DisplayStyle.Flex;
         infoTexts.Q<EnumField>().UnregisterValueChangedCallback(OnMarkerStyleChange);
     }
@@ -69,7 +55,7 @@ public partial class DebugSectorLoadingDisplaySystem : SystemBase
         var stars = GetEntityQuery(typeof(Star)).CalculateEntityCount();
         var planets = GetEntityQuery(typeof(Planet)).CalculateEntityCount();
         var asteroids = GetEntityQuery(typeof(AsteroidData)).CalculateEntityCount();
-        var pois = GetEntityQuery(typeof(GridStructure)).CalculateEntityCount();
+        var pois = GetEntityQuery(typeof(POIMarkerSystem.MarkedPOI)).CalculateEntityCount();
 
         var player = SystemAPI.GetSingletonEntity<LocalPlayer>();
         var speed = SystemAPI.GetComponent<CanTravelSectors>(player);

@@ -10,7 +10,7 @@ public partial class MapUISystem : SystemBase
     private int maxSubSectorSegments;
     protected override void OnCreate()
     {
-        RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<ReferenceFrame>();
         maxSectorSegments = sizeof(int);
         for (int i = 0; i < sizeof(long) && ((long)LocalToGalaxy.MAX_PLANETSECTOR & (0x1FF << (i*9))) > 0; i++)
         {
@@ -48,7 +48,7 @@ public partial class MapUISystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var ltg = GetComponent<LocalToGalaxy>(GetSingletonEntity<LocalPlayer>());
+        var ltg = SystemAPI.GetSingleton<ReferenceFrame>().PreviousLtg;
         var secX = coordinates.Q("X").Q("Sector");
         for (int i = 0; i < secX.childCount; i++)
         {

@@ -1,3 +1,4 @@
+using Galaxy.SectorLoading;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -6,9 +7,14 @@ public partial struct ProcessSectorChangesJob : IJobEntity
 {
     public PendingSectors pendingSectors;
     public LoadSectorSystem.SectorLoadSettings sectorLoadSettings;
-    void Execute(Entity e, in SectorChange sc)
+    void Execute(Entity e, ref CanTravelSectors cts, in LocalToGalaxy ltg)
     {
-        if (sc.ChangeType != SectorChangeType.FTL)
+        var previous = cts.PreviousSector;
+        cts.PreviousSector = ltg;
+        if (previous == ltg)
+            return;
+        
+        if (cts.CurrentTravelType != SectorChangeType.FTL)
         {
             var maxDistance = sectorLoadSettings.MaxLoadedPlanetSectorDistance;
             for (int x = -maxDistance; x <= maxDistance; x++)
@@ -18,11 +24,11 @@ public partial struct ProcessSectorChangesJob : IJobEntity
                 if(math.lengthsq(new int3(x, y, z)) > maxDistance * maxDistance)
                     continue;
                 
-                var newLtg = sc.New + new LocalToGalaxy { PlanetSector = new int3(x, y, z) };
+                var newLtg = ltg + new LocalToGalaxy { PlanetSector = new int3(x, y, z) };
                 pendingSectors.PlanetSectors.Enqueue(newLtg);
             }
         }
-        if (math.any(sc.New.LightSector != sc.Previous.LightSector))
+        if (math.any(ltg.LightSector != previous.LightSector))
         {
             var maxDistance = sectorLoadSettings.MaxLoadedLightSectorDistance;
             for (int x = -maxDistance; x < maxDistance; x++)
@@ -32,13 +38,13 @@ public partial struct ProcessSectorChangesJob : IJobEntity
                 if(math.lengthsq(new int3(x, y, z)) > maxDistance * maxDistance)
                     continue;
                 
-                var newLtg = sc.New + new LocalToGalaxy { LightSector = new int3(x, y, z) };
+                var newLtg = ltg + new LocalToGalaxy { LightSector = new int3(x, y, z) };
                 pendingSectors.LightSectors.Enqueue(newLtg);
             } 
         }
-        if(math.any(sc.New.StarSector != sc.Previous.StarSector))
+        if(math.any(ltg.StarSector != previous.StarSector))
         {
-            var starSectors = GalaxyTools.GetLightSectorData(sc.New).CalculateStarSectors;
+            var starSectors = GalaxyTools.GetLightSectorData(ltg).CalculateStarSectors;
 
             var maxDistance = sectorLoadSettings.MaxLoadedStarSectorDistance;
             for (int x = -maxDistance; x < maxDistance; x++)
@@ -51,13 +57,13 @@ public partial struct ProcessSectorChangesJob : IJobEntity
                 var starSec = new int3(x, y, z);
                 foreach (var sector in starSectors)
                 {
-                    var newLtg = sc.New + new LocalToGalaxy { StarSector = starSec };
+                    var newLtg = ltg + new LocalToGalaxy { StarSector = starSec };
                     if (math.all(newLtg.StarSector == sector))
                         pendingSectors.StarSectors.Enqueue(newLtg);
                 }
             } 
         }
-        pendingSectors.entitiesPerSector.Add(sc.New, e);
-        pendingSectors.entitiesPerSector.Remove(sc.Previous, e);
+        pendingSectors.entitiesPerSector.Add(ltg, e);
+        pendingSectors.entitiesPerSector.Remove(previous, e);
     }
 }

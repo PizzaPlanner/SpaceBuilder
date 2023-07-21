@@ -7,6 +7,8 @@ public class SteeringControllerAuthoring : MonoBehaviour
     {
         public override void Bake(SteeringControllerAuthoring authoring)
         {
+            var e = GetEntity(TransformUsageFlags.Dynamic);
+            AddComponent<SteeringController>(e);
         }
     }
 }

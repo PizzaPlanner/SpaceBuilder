@@ -12,7 +12,9 @@
         "Unity.Mathematics.Extensions",
         "Unity.Physics",
         "Identifiables.Authoring",
-        "Grid"
+        "Grid",
+        "Galaxy.Authoring",
+        "Galaxy"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

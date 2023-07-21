@@ -22,7 +22,7 @@ public interface IBlueprintParser
 
 public static class BlueprintUtils
 {
-    public const string BlueprintFileExtension = ".txt";
+    public const string BlueprintFileExtension = ".yaml";
 
     private static Dictionary<string, IBlueprintParser> versionToLoader;
 
@@ -53,7 +53,7 @@ public static class BlueprintUtils
         var versionId = blueprint.Split('\n')[0].Trim();
         if (!versionToLoader.ContainsKey(versionId))
         {
-            Debug.LogError($"No Parser found for version identifier '{versionId}'");
+            Debug.LogError($"Failed to load {blueprint}: No Parser found for version identifier '{versionId}'");
             data = default;
             return false;
         }

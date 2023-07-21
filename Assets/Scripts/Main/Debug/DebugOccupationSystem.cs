@@ -62,38 +62,34 @@ public partial class DebugOccupationSystem : SystemBase
     
     protected override void OnStartRunning()
     {
-        if (HasSingleton<Settings>())
+        if (SystemAPI.HasSingleton<Settings>())
             return;
 
         EntityManager.CreateEntity(typeof(Settings));    
-        var ui = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("InfoTexts").Q("Grids");
-        ui.Q<UnityEngine.UIElements.Toggle>("target").RegisterValueChangedCallback(x =>
-        {
-            var settings = GetSingleton<Settings>();
-            settings.showTarget = x.newValue;
-            SetSingleton(settings);
-        });
-        
-        ui.Q<UnityEngine.UIElements.Toggle>("aabbs").RegisterValueChangedCallback(x =>
-        {
-            var settings = GetSingleton<Settings>();
-            settings.showAABBs = x.newValue;
-            SetSingleton(settings);
-        });
-        
-        ui.Q<UnityEngine.UIElements.Toggle>("rooms").RegisterValueChangedCallback(x =>
-        {
-            var settings = GetSingleton<Settings>();
-            settings.showRooms = x.newValue;
-            SetSingleton(settings);
-        });
-        
-        ui.Q<UnityEngine.UIElements.Toggle>("occupations").RegisterValueChangedCallback(x =>
-        {
-            var settings = GetSingleton<Settings>();
-            settings.showOccupations = x.newValue;
-            SetSingleton(settings);
-        });
+        // var ui = Object.FindObjectOfType<UIDocument>().rootVisualElement.Q("InfoTexts").Q("Grids");
+        // ui.Q<Toggle>("target").RegisterValueChangedCallback(x =>
+        // {
+        //     var settings = SystemAPI.GetSingletonRW<Settings>();
+        //     settings.ValueRW.showTarget = x.newValue;
+        // });
+        //
+        // ui.Q<Toggle>("aabbs").RegisterValueChangedCallback(x =>
+        // {
+        //     var settings = SystemAPI.GetSingletonRW<Settings>();
+        //     settings.ValueRW.showAABBs = x.newValue;
+        // });
+        //
+        // ui.Q<Toggle>("rooms").RegisterValueChangedCallback(x =>
+        // {
+        //     var settings = SystemAPI.GetSingletonRW<Settings>();
+        //     settings.ValueRW.showRooms = x.newValue;
+        // });
+        //
+        // ui.Q<Toggle>("occupations").RegisterValueChangedCallback(x =>
+        // {
+        //     var settings = SystemAPI.GetSingletonRW<Settings>();
+        //     settings.ValueRW.showOccupations = x.newValue;
+        // });
     }
 
     protected override void OnUpdate()
@@ -113,105 +109,92 @@ public partial class DebugOccupationSystem : SystemBase
             ShowTargetBoundingBoxes();
     }
 
-    private void ShowOccupations()
+    void ShowOccupations()
     {
-        NativeList<float4x4> matrices = new NativeList<float4x4>(Allocator.Temp);
-        Entities.ForEach((in CellMap cells, in GridStructure grid, in LocalToWorld ltw) =>
-        {
-            foreach(var item in cells.Objects)
-                matrices.Add(float4x4.TRS(GridStructure.PositionFromCell(ltw, item.Min), ltw.Rotation, item.Max - item.Min));
-        }).Run();
-        
-        Draw(matrices, occupationMat);
-        
-        matrices.Clear();
-        Entities.ForEach((in CellMap cells, in GridStructure grid, in LocalToWorld ltw) =>
-        {
-            foreach(var item in cells.Walls)
-                matrices.Add(float4x4.TRS(GridStructure.PositionFromCell(ltw, item.Min), ltw.Rotation, item.Max - item.Min));
-        }).Run();
-        
-        Draw(matrices, ghostMat);
-        
-        matrices.Clear();
-        Entities.ForEach((in Ghost ghost, in GridItem item) =>
-        {
-            if (item.Grid == Entity.Null)
-                return;
-        
-            var parentLtw = GetComponent<LocalToWorld>(item.Grid);
-            for(int x = item.Area.Min.x; x <= item.Area.Max.x; x++)
-            for(int y = item.Area.Min.y; y <= item.Area.Max.y; y++)
-            for(int z = item.Area.Min.z; z <= item.Area.Max.z; z++)
-                matrices.Add(float4x4.TRS(GridStructure.PositionFromCell(parentLtw, item.Area.Max), parentLtw.Rotation, item.Area.Max - item.Area.Min));
-        }).Run();
-
-        Draw(matrices, ghostMat);
+        // NativeList<float4x4> matrices = new NativeList<float4x4>(Allocator.Temp);
+        // Entities.ForEach((in CellMap cells, in GridStructure grid, in LocalToWorld ltw) =>
+        // {
+        //     foreach(var item in cells.Objects)
+        //         matrices.Add(float4x4.TRS(GridStructure.PositionFromCell(ltw, item.Min), ltw.Rotation, item.Max - item.Min));
+        // }).Run();
+        //
+        // Draw(matrices, occupationMat);
+        //
+        // matrices.Clear();
+        // Entities.ForEach((in CellMap cells, in GridStructure grid, in LocalToWorld ltw) =>
+        // {
+        //     foreach(var item in cells.Walls)
+        //         matrices.Add(float4x4.TRS(GridStructure.PositionFromCell(ltw, item.Min), ltw.Rotation, item.Max - item.Min));
+        // }).Run();
+        //
+        // Draw(matrices, ghostMat);
+        //
+        // matrices.Clear();
+        // Entities.ForEach((in Ghost ghost, in GridItem item) =>
+        // {
+        //     if (item.Grid == Entity.Null)
+        //         return;
+        //
+        //     var parentLtw = GetComponent<LocalToWorld>(item.Grid);
+        //     for(int x = item.Area.Min.x; x <= item.Area.Max.x; x++)
+        //     for(int y = item.Area.Min.y; y <= item.Area.Max.y; y++)
+        //     for(int z = item.Area.Min.z; z <= item.Area.Max.z; z++)
+        //         matrices.Add(float4x4.TRS(GridStructure.PositionFromCell(parentLtw, item.Area.Max), parentLtw.Rotation, item.Area.Max - item.Area.Min));
+        // }).Run();
+        //
+        // Draw(matrices, ghostMat);
     }
     
-    private void ShowRooms()
+    void ShowRooms()
     {
         NativeList<float4x4> matricesUnexposed = new NativeList<float4x4>(Allocator.Temp);
         NativeList<float4x4> matricesExposed = new NativeList<float4x4>(Allocator.Temp);
-        Entities.ForEach((DynamicBuffer<Rooms> rooms, in LocalToWorld ltw) =>
+        foreach(var (rooms, ltw) in SystemAPI.Query<DynamicBuffer<Rooms>, LocalToWorld>())
         {
             foreach(var item in rooms)
                 matricesUnexposed.Add(float4x4.TRS(
                     GridStructure.PositionFromCell(ltw, item.Room.BoundingBox.Min), 
                     ltw.Rotation, 
                     item.Room.BoundingBox.Max - item.Room.BoundingBox.Min));
-
-        }).Run();
+        }
         
         Draw(matricesExposed, occupationMat);
         Draw(matricesUnexposed, ghostMat);
     }
 
-    private void ShowTargetBoundingBoxes()
+    void ShowTargetBoundingBoxes()
     {
-        Entities.ForEach((in Ghost ghost, in GhostPlacementBuilder builder, in GridItem item) =>
-        {
-            if (builder.TargetGrid == Entity.Null)
-                return;
-            
-            var gridLtw = GetComponent<LocalToWorld>(builder.TargetGrid);
-            var shownItem = builder.Original.Scalable ? builder.DragArea : item.Area;
-            BoundingBox.Draw(shownItem, gridLtw, 0, ghost.Buildable ? Color.green : Color.red, Color.blue);
-        }).WithoutBurst().Run();
-        
-        Entities
-            .WithAll<LocalPlayer>()
-            .ForEach((in Target target) =>
-            {
-                if (target.GridHit.Grid == Entity.Null) return;
+        var target = SystemAPI.GetComponent<Target>(SystemAPI.GetSingletonEntity<LocalPlayer>());
+        if (target.GridHit.Grid == Entity.Null) return;
                 
-                var gridItem = GetComponent<GridItem>(target.Value);
-                var gridLtw = GetComponent<LocalToWorld>(target.GridHit.Grid);
-                BoundingBox.Draw(gridItem.Area, gridLtw, target.GridHit.Normal, Color.white, Color.blue);
-                BoundingBox.Draw(new BoundingBox(){Origin = target.GridHit.Cell}, gridLtw, target.GridHit.Normal, Color.white, Color.blue);
-            }).WithoutBurst().Run();
+        var gridItem = SystemAPI.GetComponent<GridItem>(target.Value);
+        var gridLtw = SystemAPI.GetComponent<LocalToWorld>(target.GridHit.Grid);
+        BoundingBox.Draw(gridItem.Area, gridLtw, target.GridHit.Normal, Color.white, Color.blue);
+        BoundingBox.Draw(new BoundingBox(){Origin = target.GridHit.Cell}, gridLtw, target.GridHit.Normal, Color.white, Color.blue);
     }
     
-    private void ShowAABBs()
+    void ShowAABBs()
     {
         NativeList<float4x4> matrices = new NativeList<float4x4>(Allocator.Temp);
         GridStructure inGrid = default;
         float4x4 inGridItem = default;
-        var playerPos = GetComponent<LocalToWorld>(GetSingletonEntity<LocalPlayer>()).Position;
+        var playerPos = SystemAPI.GetComponent<LocalToWorld>(SystemAPI.GetSingletonEntity<LocalPlayer>()).Position;
         
-        Entities.ForEach((in GridStructure grid) =>
+        foreach(var grid in SystemAPI.Query<GridStructure>())
         {
             if (grid.AABB.Contains(playerPos))
                 inGrid = grid;
             else
-                matrices.Add(float4x4.TRS(grid.AABB.Center - grid.AABB.Extents, quaternion.identity, grid.AABB.Size / GridStructure.CELL_SIZE));
-        }).Run();
+                matrices.Add(float4x4.TRS(grid.AABB.Center - grid.AABB.Extents, 
+                    quaternion.identity, 
+                    grid.AABB.Size / GridStructure.CELL_SIZE));
+        }
         Draw(matrices, ghostMat);
         
         matrices.Clear();
-        Entities.ForEach((in GridItem gridItem) =>
+        foreach(var (gridItem, parent) in SystemAPI.Query<GridItem, Parent>())
         {
-            var parentLtw = SystemAPI.GetComponent<LocalToWorld>(gridItem.Grid);
+            var parentLtw = SystemAPI.GetComponent<LocalToWorld>(parent.Value);
             var bbox = gridItem.Area;
             var mtx = float4x4.TRS(GridStructure.PositionFromCell(parentLtw, bbox.Min), parentLtw.Rotation,
                 bbox.Size);
@@ -220,7 +203,7 @@ public partial class DebugOccupationSystem : SystemBase
             else
                 matrices.Add(mtx);
                 
-        }).Run();
+        }
         Draw(matrices, ghostMat);
         
         matrices.Clear();
@@ -231,7 +214,7 @@ public partial class DebugOccupationSystem : SystemBase
         }
     }
 
-    private void Draw(NativeList<float4x4> matrices, Material mat)
+    void Draw(NativeList<float4x4> matrices, Material mat)
     {
         if (matrices.Length == 0)
             return;

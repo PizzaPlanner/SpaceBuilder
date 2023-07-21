@@ -14,7 +14,7 @@ namespace Galaxy
         {
             public override void Bake(LightEmitterAuthoring authoring)
             {
-                var entity = GetEntity(TransformUsageFlags.Dynamic);
+                var entity = GetEntity(TransformUsageFlags.WorldSpace);
                 AddComponent(entity,
                     new LightEmitter
                     {

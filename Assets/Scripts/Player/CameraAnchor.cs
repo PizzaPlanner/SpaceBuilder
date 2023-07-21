@@ -9,6 +9,9 @@ public struct CameraAnchor : IComponentData
     public float ScrollFactor;
     public float3 MaxOffset;
     public float XRotation;
+
+    public float3 CameraPosition;
+    public float3 CameraForward;
 }
 
 
@@ -21,7 +24,7 @@ public partial class CameraControllerSystem : SystemBase
     protected override void OnCreate()
     {
         RequireForUpdate<CameraAnchor>();
-        RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<ReferenceFrameOrigin>();
         filter = CollisionFilter.Default;
         filter.CollidesWith = ~(1u << 3);
         filter.BelongsTo = ~0u;
@@ -30,10 +33,10 @@ public partial class CameraControllerSystem : SystemBase
     protected override void OnUpdate()
     {
         var anchorLtw = SystemAPI.GetComponent<LocalToWorld>(SystemAPI.GetSingletonEntity<CameraAnchor>());
-        var anchor = SystemAPI.GetSingleton<CameraAnchor>();
+        var anchor = SystemAPI.GetSingletonRW<CameraAnchor>();
 
-        var camDistance = anchor.ScrollFactor;
-        var rotatedOffset = math.mul(anchorLtw.Rotation, anchor.MaxOffset);
+        var camDistance = anchor.ValueRO.ScrollFactor;
+        var rotatedOffset = math.mul(anchorLtw.Rotation, anchor.ValueRO.MaxOffset);
         RaycastInput raycastInput = new RaycastInput
         {
             Start = anchorLtw.Position,
@@ -46,9 +49,12 @@ public partial class CameraControllerSystem : SystemBase
             camDistance *= raycastHit.Fraction - 0.1f;
         }
 
+        var newPosition = anchorLtw.Position + rotatedOffset * camDistance;
         var camTransform = Camera.main.transform;
-        camTransform.position = anchorLtw.Position + rotatedOffset * camDistance;
+        camTransform.position = newPosition;
         camTransform.rotation = anchorLtw.Rotation;
-        camTransform.RotateAround(anchorLtw.Position, anchorLtw.Right, anchor.XRotation );
+        camTransform.RotateAround(anchorLtw.Position, anchorLtw.Right, anchor.ValueRO.XRotation );
+        anchor.ValueRW.CameraForward = camTransform.forward;
+        anchor.ValueRW.CameraPosition = newPosition;
     }
 }

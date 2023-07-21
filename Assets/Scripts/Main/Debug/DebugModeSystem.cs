@@ -16,7 +16,7 @@ public partial class DebugModeSystem : SystemBase
 
     protected override void OnStartRunning()
     {
-        DebugOverlay ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("DebugUI");
+        DebugOverlay ??= Object.FindObjectOfType<UIDocument>().rootVisualElement.Q("DebugUI");
         DebugOverlay.style.display = DisplayStyle.None;
     }
 

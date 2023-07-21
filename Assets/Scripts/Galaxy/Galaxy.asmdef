@@ -8,8 +8,7 @@
         "Unity.Burst",
         "Unity.Collections",
         "Unity.Entities.Graphics",
-        "Unity.Mathematics.Extensions",
-        "Player"
+        "Unity.Mathematics.Extensions"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

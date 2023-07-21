@@ -1,3 +1,4 @@
+using Galaxy.SectorLoading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -173,13 +174,6 @@ public struct MoveSectorCommand : AdminConsole.IConsoleCommand
 
         var ltg2 = new LocalToGalaxy{StarSector = new int3(x, y, z), PlanetSector = new int3(ssx, ssy, ssz)};
         EntityManager.SetComponentData(executor, ltg2);
-        var e = EntityManager.CreateEntity(typeof(SectorChange));
-        EntityManager.SetComponentData(e, new SectorChange
-        {
-            Entity = executor,
-            New = ltg2,
-            Previous = EntityManager.GetComponentData<LocalToGalaxy>(executor)
-        });
     }
 
     public string[] GetHints(int parameter)
@@ -247,13 +241,12 @@ public struct SpawnCommand : AdminConsole.IConsoleCommand
         var executorTransform = EntityManager.GetComponentData<LocalTransform>(executor);
         
         var path = parameters[0];
-        var ecb = EntityManager.World.GetExistingSystemManaged<EndSimulationEntityCommandBufferSystem>().CreateCommandBuffer();
-        POIGenerator.QueuePOISpawn(ecb, path, EntityManager.GetComponentData<LocalToGalaxy>(executor), executorTransform);
+        BlueprintGeneratorSystem.QueueBlueprintSpawn(path, EntityManager.GetComponentData<LocalToGalaxy>(executor), executorTransform.Rotation);
     }
 
     public string[] GetHints(int parameter)
     {
-        return parameter == 0 ? POIGenerator.GetAllSpawnables : Array.Empty<string>();
+        return parameter == 0 ? BlueprintGeneratorSystem.GetAllSpawnables : Array.Empty<string>();
     }
 }
 
@@ -331,7 +324,7 @@ public partial class AdminConsoleSystem : SystemBase
         var nextword = "";
         for (int i = 0; i < possibleWords.Length; i++)
         {
-            if (lastword == possibleWords[(i - 1).mod(possibleWords.Length)])
+            if (lastword == possibleWords[(i - 1) % possibleWords.Length])
             {
                 nextword = possibleWords[i];
                 break;

@@ -22,6 +22,7 @@ public class LocalToGalaxyAuthoring : MonoBehaviour
                 LocalPosition   = authoring.LocalPosition,
             });
             AddComponent<TooFarAway>(e);
+            SetComponentEnabled<TooFarAway>(e, false);
         }
     }
 }

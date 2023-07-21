@@ -1,11 +1,11 @@
 using Galaxy;
+using Galaxy.SectorLoading;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Jobs;
 
 public partial struct LoadSectorSystem : ISystem
 {
-    EntityQuery sectorChangeQuery;
     EntityQuery starPrefabQuery, planetPrefabQuery;
 
     public struct SectorLoadSettings : IComponentData
@@ -17,7 +17,6 @@ public partial struct LoadSectorSystem : ISystem
 
     public void OnCreate(ref SystemState state)
     {
-        sectorChangeQuery = state.GetEntityQuery(typeof(SectorChange));
         starPrefabQuery = SystemAPI.QueryBuilder().WithOptions(EntityQueryOptions.IncludePrefab)
                                    .WithAll<Star, Prefab>().Build();
         planetPrefabQuery = SystemAPI.QueryBuilder().WithOptions(EntityQueryOptions.IncludePrefab)
@@ -38,7 +37,6 @@ public partial struct LoadSectorSystem : ISystem
         });
 
         state.RequireForUpdate<PendingSectors>();
-        state.RequireForUpdate<LocalPlayer>();
         state.RequireForUpdate<SectorLoadSettings>();
         state.RequireForUpdate(starPrefabQuery);
     }
@@ -58,8 +56,6 @@ public partial struct LoadSectorSystem : ISystem
         var sectorsToLoad = SystemAPI.GetSingletonRW<PendingSectors>();
         var starPrefab = starPrefabQuery.GetSingletonEntity();
         var planetPrefab = planetPrefabQuery.GetSingletonEntity();
-        
-        ecb.DestroyEntity(sectorChangeQuery, EntityQueryCaptureMode.AtRecord);
 
         state.Dependency = new AddPendingEntitiesToSectorsJob
         {

@@ -22,7 +22,6 @@ public struct BlueprintParserV3 : IBlueprintParser
         public RightAngleRotation Orientation;
         public int3 Color;
         public int3 Scale;
-        public uint Status;
         public List<ItemData> Inventory;
     }
 
@@ -82,15 +81,12 @@ public struct BlueprintParserV3 : IBlueprintParser
                 }
                 else if (CurrentToken.Peek().Property is List<PartData> parts)
                 {
-                    if(lines[i].Substring(0, indent).Contains("-"))
-                        parts.Add(new PartData{Status = uint.MaxValue, Scale = 1});
+                    if (lines[i].Substring(0, indent).Contains("-"))
+                        parts.Add(new PartData { Scale = 1 });
 
                     var current = parts.Last();
                     switch (key)
                     {
-                        case "Status":
-                            current.Status = uint.Parse(value);
-                            break;
                         case "Color":
                         {
                             var color = value.Trim(' ', '[', ']').Split(',');
@@ -162,8 +158,7 @@ public struct BlueprintParserV3 : IBlueprintParser
         var children = em.GetBuffer<Child>(grid);
         foreach (var child in children)
         {
-            if (!em.HasComponent<GridItem>(child.Value) || em.HasComponent<Ghost>(child.Value) ||
-                em.HasComponent<GridSubItem>(child.Value))
+            if (!em.HasComponent<GridItem>(child.Value))
                 continue;
             var gridItem = em.GetComponentData<GridItem>(child.Value);
             var identifieable = em.GetComponentData<Identifieable>(child.Value);
@@ -199,9 +194,6 @@ public struct BlueprintParserV3 : IBlueprintParser
             {
                 Orientation = new RightAngleRotation(rotation),
                 Position = gridItem.Area.Origin,
-                Status = em.HasComponent<UnderConstruction>(child.Value)
-                    ? em.GetComponentData<UnderConstruction>(child.Value).Progress
-                    : uint.MaxValue,
                 Inventory = inventory?.ToList(),
                 Color = new int3(color.x, color.y, color.z),
                 Scale = scale
@@ -213,7 +205,6 @@ Parts:
 {string.Join("\n", data.Parts.Keys.Select(x => $@"  {x}:
 {string.Join("\n", data.Parts[x].Select(y => $@"
   - LocalToGrid: [{y.Position.x},{y.Position.y},{y.Position.z},{y.Orientation}]
-    {(y.Status != uint.MaxValue ? $"Status: {y.Status}" : "")}
     {(math.any(y.Color != int3.zero) ? $"Color: [{y.Color.x},{y.Color.y},{y.Color.z}]" : "")}
     {(math.any(y.Scale != 1) ? $"Scale: [{y.Scale.x},{y.Scale.y},{y.Scale.z}]" : "")}
 {(y.Inventory == null || y.Inventory.Count == 0 ? "" : $@"    Inventory:
@@ -237,13 +228,14 @@ Parts:
         foreach (var id in ds.Parts.Keys)
         {
             parts.AddRange(ds.Parts[id].Select(item => new BuildingPartInfo
-                {
-                    Id = id,
-                    Orientation = item.Orientation,
-                    Area = new BoundingBox{Origin = item.Position, Extents = item.Scale - 1},
-                    BuildStatus = item.Status,
-                    Color = math.all(item.Color == int3.zero) ? default :  new Color(item.Color.x / 255f, item.Color.y / 255f, item.Color.z / 255f)
-                }));
+            {
+                Id = id,
+                Orientation = item.Orientation,
+                Area = new BoundingBox { Origin = item.Position, Extents = item.Scale - 1 },
+                Color = math.all(item.Color == int3.zero)
+                    ? default
+                    : new Color(item.Color.x / 255f, item.Color.y / 255f, item.Color.z / 255f)
+            }));
         }
         // TODO: Load Inventory
         return new BlueprintData {Name = ds.Name, Parts = parts, Tags = ds.Tags};

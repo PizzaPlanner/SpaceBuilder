@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 4053686558319105370}
   - component: {fileID: 2592254901229726001}
   - component: {fileID: 2258229925221959314}
-  - component: {fileID: 7909989496554657953}
   m_Layer: 0
   m_Name: Quad
   m_TagString: Untagged
@@ -84,28 +83,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &7909989496554657953
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4890185519752142465}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &6337415698044987241
 GameObject:
   m_ObjectHideFlags: 0
@@ -191,51 +168,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &7593351194978796485
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 6663045922128993476}
-  - component: {fileID: 6852261783721254404}
-  m_Layer: 0
-  m_Name: Port
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &6663045922128993476
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7593351194978796485}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 722089883934573525}
-  m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6852261783721254404
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7593351194978796485}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bc7e8cdbf2974f5ea72fea3c665b744b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  IsPort: 1
 --- !u!1 &9135400872372944594
 GameObject:
   m_ObjectHideFlags: 0
@@ -5273,10 +5205,6 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 8748795872927277892}
-    - targetCorrespondingSourceObject: {fileID: 4420211641780734995, guid: e943c85a6f7a7854f92eef9792967afe,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 6663045922128993476}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3364769202363141643, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
@@ -5285,7 +5213,7 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3364769202363141643, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6476479993274067279}
+      addedObject: {fileID: 6449425388968014079}
   m_SourcePrefab: {fileID: 100100000, guid: e943c85a6f7a7854f92eef9792967afe, type: 3}
 --- !u!4 &722089883934573525 stripped
 Transform:
@@ -5311,7 +5239,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73ba3470710346d78bd7bd551c81bacc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Port: {fileID: 7593351194978796485}
   RequiredPower: 10
   Strength: 10
   MaxStrength: 30
@@ -5320,18 +5247,24 @@ MonoBehaviour:
     y: 0
     z: 1
   DefaultDirection: 16
---- !u!114 &6476479993274067279
-MonoBehaviour:
+--- !u!65 &6449425388968014079
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1864719214560297421}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f8c7d2205bef45659d69535ee61258ca, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Doors: []
-  Ports:
-  - {fileID: 6852261783721254404}
+  serializedVersion: 3
+  m_Size: {x: 0.72, y: 0.72, z: 1}
+  m_Center: {x: 0.5, y: 0.5, z: 0.5}

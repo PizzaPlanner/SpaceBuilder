@@ -78,7 +78,7 @@ public partial class UnloadSectorSystem : SystemBase
 
     protected override void OnCreate()
     {
-        RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<ReferenceFrameOrigin>();
         lastPlayerLtg = new LocalToGalaxy {StarSector = int.MaxValue, PlanetSector = int.MaxValue};
     }
 
@@ -95,7 +95,7 @@ public partial class UnloadSectorSystem : SystemBase
             ecb = ecb
         }.Schedule(Dependency);
         
-        var playerLtg = SystemAPI.GetComponent<LocalToGalaxy>(SystemAPI.GetSingletonEntity<LocalPlayer>());
+        var playerLtg = SystemAPI.GetComponent<LocalToGalaxy>(SystemAPI.GetSingletonEntity<ReferenceFrameOrigin>());
         var shouldRecalculateSectors = playerLtg != lastPlayerLtg;
         lastPlayerLtg = playerLtg;
 

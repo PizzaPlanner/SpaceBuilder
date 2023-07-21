@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.Transforms;
 using UnityEngine;
 
 public class CelestialBodyAuthoring : MonoBehaviour
@@ -7,7 +8,7 @@ public class CelestialBodyAuthoring : MonoBehaviour
     {
         public override void Bake(CelestialBodyAuthoring authoring)
         {
-            var entity = GetEntity(TransformUsageFlags.Renderable);
+            var entity = GetEntity(TransformUsageFlags.WorldSpace);
             AddComponent<CelestialBody>(entity);
             AddComponent<GenerateIntoSector>(entity);
             AddComponent<ShouldShowAsPOI>(entity);

@@ -120,7 +120,7 @@ public partial class InventoryUISystem : SystemBase
             GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Query<InventoryElement>()
                       .ForEach(c => c.Update(inventories, ids, names, stacks));
             EntityManager.DestroyEntity(GetEntityQuery(typeof(InventoryChanged)));
-            EntityManager.RemoveComponent<SelectedItem>(GetEntityQuery(typeof(SelectedItem)));
+            EntityManager.RemoveComponent<Selected>(GetEntityQuery(typeof(Selected)));
             CraftWindow.UpdateRecipes(EntityManager,
                 GetComponentLookup<Identifieable>(true),
                 GetComponentLookup<Stackable>(true));
@@ -140,7 +140,7 @@ public partial class InventoryUISystem : SystemBase
         if (scroll == 0)
             return;
 
-        EntityManager.RemoveComponent<SelectedItem>(GetEntityQuery(typeof(SelectedItem)));
+        EntityManager.RemoveComponent<Selected>(GetEntityQuery(typeof(Selected)));
         var buttons = Hotbar.Query<InventoryButton>().ToList();
         if (buttons.Count == 0)
             return;
@@ -149,7 +149,7 @@ public partial class InventoryUISystem : SystemBase
         for(int i = 0; i < buttons.Count; i++)
             if (buttons[i].Selected)
             {
-                nextButton = (i + (int)math.sign(scroll)).mod(buttons.Count);
+                nextButton = (i + (int)math.sign(scroll) + buttons.Count) % buttons.Count;
                 buttons[i].Selected = false;
                 break;
             }
@@ -158,6 +158,6 @@ public partial class InventoryUISystem : SystemBase
 
         var item = GetBuffer<Inventory>(GetSingletonEntity<LocalPlayer>())[buttons[nextButton].Slot].Item;
         if(item != Entity.Null)
-            EntityManager.AddComponent<SelectedItem>(item);
+            EntityManager.AddComponent<Selected>(item);
     }
 }

@@ -1,4 +1,5 @@
 using Galaxy;
+using Galaxy.SectorLoading;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -117,12 +118,7 @@ public partial class POIMarkerSystem : SystemBase
                                         .WithNone<MarkedPOI>()
                                         .WithEntityAccess())
         {
-            var hasGrid = SystemAPI.HasComponent<GridStructure>(e);
-            var isShip = hasGrid && SystemAPI.HasComponent<Flyable>(e);
-
             var type = POIMarker.POIType.Other;
-            if (hasGrid)
-                type = isShip ? POIMarker.POIType.Ship : POIMarker.POIType.Station;
 
             var name = "<?>";
             if (SystemAPI.HasComponent<Star>(e))

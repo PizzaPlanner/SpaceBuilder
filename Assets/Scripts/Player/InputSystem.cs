@@ -57,8 +57,8 @@ public partial class InputSystem : SystemBase
     {
         RequireForUpdate<LocalPlayer>();
         RequireForUpdate<InputData>();
-        var input = EntityManager.CreateEntity(typeof(InputData));
-        EntityManager.AddComponent<ControlScheme.OnFeet>(input);
+        EntityManager.CreateEntity(typeof(InputData), typeof(ControlScheme.OnFeet));
+        EntityManager.CreateEntity(typeof(ControlPlayer));
     }
 
     protected override void OnStartRunning()
@@ -86,17 +86,17 @@ public partial class InputSystem : SystemBase
         if (Input.GetMouseButtonDown(1))
         {
             input.CurrentAction = ActionState.None;
-            if(HasSingleton<ControlScheme.SteerShip>())
+            if(SystemAPI.HasSingleton<ControlScheme.SteerShip>())
                 SetSchemeFeet();
         }
 
-        var target = GetComponent<Target>(GetSingletonEntity<LocalPlayer>());
-        if (HasSingleton<ControlPlayer>() && target.CanInteract && target.Value != Entity.Null && input.CurrentAction == ActionState.None)
+        var target = SystemAPI.GetComponent<Target>(SystemAPI.GetSingletonEntity<LocalPlayer>());
+        if (SystemAPI.HasSingleton<ControlPlayer>() && target.CanInteract && target.Value != Entity.Null && input.CurrentAction == ActionState.None)
         {
             uiRoot.style.display = DisplayStyle.Flex;
             uiRoot.Q<Label>("MainActionName").text = "Interact";
         }
-        else if (HasSingleton<ControlPlayer>() && target.CanConstruct && target.Value != Entity.Null && input.CurrentAction == ActionState.Construct)
+        else if (SystemAPI.HasSingleton<ControlPlayer>() && target.CanConstruct && target.Value != Entity.Null && input.CurrentAction == ActionState.Construct)
         {
             uiRoot.style.display = DisplayStyle.Flex;
             uiRoot.Q<Label>("MainActionName").text = "Construct";
@@ -107,7 +107,7 @@ public partial class InputSystem : SystemBase
         input.Scroll = -Input.GetAxis("Mouse ScrollWheel");
         input.ScrollMode = ScrollMode.None;
 
-        if (HasSingleton<ControlPlayer>())
+        if (SystemAPI.HasSingleton<ControlPlayer>())
         {
             if (Input.GetKeyDown(KeyCode.B))
             {
@@ -151,9 +151,9 @@ public partial class InputSystem : SystemBase
 
         if (Input.GetKeyDown(KeyCode.Tab))
         {
-            if (HasSingleton<ControlPlayer>())
+            if (SystemAPI.HasSingleton<ControlPlayer>())
                 SetCursor(CursorState.Default);
-            else if(HasSingleton<ControlUI>())
+            else if(SystemAPI.HasSingleton<ControlUI>())
                 SetCursor(CursorState.Disabled);
         }
 
@@ -162,19 +162,19 @@ public partial class InputSystem : SystemBase
             if (Input.GetKey(KeyCode.F2))
             {
                 input.ScrollMode = ScrollMode.Camera;
-                var anchor = GetSingleton<CameraAnchor>();
+                var anchor = SystemAPI.GetSingleton<CameraAnchor>();
                 anchor.ScrollFactor += input.Scroll;
                 anchor.ScrollFactor = math.clamp(anchor.ScrollFactor, 0, 2);
-                SetSingleton(anchor);
+                SystemAPI.SetSingleton(anchor);
             }
-            else if (HasSingleton<BuilderMode_Build>() || HasSingleton<BuilderMode_Blueprint>())
+            else if (SystemAPI.HasSingleton<BuilderMode_Build>() || SystemAPI.HasSingleton<BuilderMode_Blueprint>())
             {
                 if (!Input.GetMouseButton(0) && (Input.GetKey(KeyCode.Alpha1) || Input.GetKey(KeyCode.Alpha2) || Input.GetKey(KeyCode.Alpha3)))
                     input.ScrollMode = ScrollMode.Rotate;
                 else
                     input.ScrollMode = ScrollMode.Context;
             }
-            else if (HasSingleton<BuilderMode_Destroy>())
+            else if (SystemAPI.HasSingleton<BuilderMode_Destroy>())
                 input.ScrollMode = ScrollMode.Context;
             else
                 input.ScrollMode = ScrollMode.Inventory;
@@ -182,7 +182,7 @@ public partial class InputSystem : SystemBase
 
         if (Input.GetKeyDown(KeyCode.F1))
         {
-            var targetGrid = GetComponent<Target>(GetSingletonEntity<LocalPlayer>()).GridHit.Grid;
+            var targetGrid = SystemAPI.GetComponent<Target>(SystemAPI.GetSingletonEntity<LocalPlayer>()).GridHit.Grid;
             if (targetGrid == Entity.Null)
                 return;
             
@@ -194,7 +194,7 @@ public partial class InputSystem : SystemBase
 #endif
         }
 
-        SetSingleton(input);
+        SystemAPI.SetSingleton(input);
     }
 
 
@@ -203,12 +203,12 @@ public partial class InputSystem : SystemBase
     public struct ControlPlayer : IComponentData { }
     public void SetCursor(CursorState state)
     {
-        if(HasSingleton<ControlUI>())
-            EntityManager.DestroyEntity(GetSingletonEntity<ControlUI>());
-        if (HasSingleton<ControlPlayer>())
-            EntityManager.DestroyEntity(GetSingletonEntity<ControlPlayer>());
-        if (HasSingleton<ControlHotMenu>())
-            EntityManager.DestroyEntity(GetSingletonEntity<ControlHotMenu>());
+        if(SystemAPI.HasSingleton<ControlUI>())
+            EntityManager.DestroyEntity(SystemAPI.GetSingletonEntity<ControlUI>());
+        if (SystemAPI.HasSingleton<ControlPlayer>())
+            EntityManager.DestroyEntity(SystemAPI.GetSingletonEntity<ControlPlayer>());
+        if (SystemAPI.HasSingleton<ControlHotMenu>())
+            EntityManager.DestroyEntity(SystemAPI.GetSingletonEntity<ControlHotMenu>());
 
         switch (state)
         {
@@ -233,7 +233,7 @@ public partial class InputSystem : SystemBase
 
     public void SetSchemeSteer(Entity target)
     {
-        var input = GetSingletonEntity<InputData>();
+        var input = SystemAPI.GetSingletonEntity<InputData>();
         EntityManager.RemoveComponent<ControlScheme.OnFeet>(input);
         EntityManager.AddComponentData(input, new ControlScheme.SteerShip{Steerer = target});
         SetCursor(CursorState.Default);
@@ -241,7 +241,7 @@ public partial class InputSystem : SystemBase
 
     public void SetSchemeFeet()
     {
-        var input = GetSingletonEntity<InputData>();
+        var input = SystemAPI.GetSingletonEntity<InputData>();
         EntityManager.RemoveComponent<ControlScheme.SteerShip>(input);
         EntityManager.AddComponent<ControlScheme.OnFeet>(input);
         SetCursor(CursorState.Disabled);

@@ -144,32 +144,27 @@
         <InventoryElement name="RemoteBag" class="inventory" style="display: none;" />
     </ui:VisualElement>
     <ui:VisualElement name="Center" picking-mode="Ignore" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; align-items: flex-end; justify-content: center;">
-        <ui:VisualElement name="BuildMenu" style="flex-wrap: wrap; height: 50%; -unity-slice-left: 20; -unity-slice-top: 20; -unity-slice-right: 20; -unity-slice-bottom: 20; background-image: url(&apos;project://database/Assets/UI/bg_slim.png?fileID=2800000&amp;guid=cc32439c45babc04593dca5896662d0a&amp;type=3#bg_slim&apos;); display: none;">
-            <BuilderButton class="builder-button__Active" />
-            <BuilderButton />
-            <BuilderButton />
-            <BuilderButton />
-            <BuilderButton />
-            <BuilderButton />
-            <BuilderButton />
-            <BuilderButton class="inventory" />
-            <BuilderButton />
-        </ui:VisualElement>
+        <ui:VisualElement name="BuildMenu" style="flex-wrap: wrap; height: 50%; -unity-slice-left: 20; -unity-slice-top: 20; -unity-slice-right: 20; -unity-slice-bottom: 20; background-image: url(&apos;project://database/Assets/UI/bg_slim.png?fileID=2800000&amp;guid=cc32439c45babc04593dca5896662d0a&amp;type=3#bg_slim&apos;); display: flex;" />
     </ui:VisualElement>
-    <ui:VisualElement name="DebugUI" picking-mode="Ignore" style="align-items: flex-start; display: flex;">
-        <ui:VisualElement name="InfoTexts" style="background-color: rgba(55, 55, 55, 0.22);">
-            <ui:Label tabindex="-1" text="±Speed" display-tooltip-when-elided="true" name="MoreSpeed" enable-rich-text="false" style="border-left-color: rgb(26, 26, 26); border-right-color: rgb(26, 26, 26); border-top-color: rgb(26, 26, 26); border-bottom-color: rgb(26, 26, 26); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; background-color: rgba(48, 48, 48, 0.74); margin-left: 1px; margin-right: 1px; margin-top: 1px; margin-bottom: 1px; padding-left: 2px; padding-right: 2px; padding-top: 2px; padding-bottom: 2px; -unity-text-align: upper-center;" />
-            <ui:Foldout text="--Player--" value="true">
+    <ui:VisualElement name="DebugUI" picking-mode="Ignore" tabindex="-1" style="align-items: flex-start; display: flex; justify-content: space-between; flex-direction: row;">
+        <ui:VisualElement name="Settings" style="background-color: rgba(55, 55, 55, 0.22); padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;">
+            <ui:Label text="±Speed" display-tooltip-when-elided="true" name="MoreSpeed" enable-rich-text="false" class="debug-button" />
+            <ui:Label text="Colliders" display-tooltip-when-elided="true" name="Colliders" enable-rich-text="false" class="debug-button" />
+            <ui:EnumField type="PlayerTargetSystem+PlayerTargetMode, Grid" name="TargetFilter" tabindex="-1" class="debug-button" />
+        </ui:VisualElement>
+        <BlueprintLibraryWindow name="BlueprintLibraryWindow" />
+        <ui:VisualElement name="InfoTexts" tabindex="-1" style="background-color: rgba(55, 55, 55, 0.22); position: absolute; top: 150px;">
+            <ui:Foldout text="--Player--" value="false" tabindex="-1">
                 <ui:Label name="player" />
             </ui:Foldout>
-            <ui:Foldout text="--Sectors--" value="false">
+            <ui:Foldout text="--Sectors--" value="false" tabindex="-1">
                 <ui:Label display-tooltip-when-elided="true" name="sectors" />
             </ui:Foldout>
-            <ui:Foldout text="--Things--" value="false">
+            <ui:Foldout text="--Things--" value="false" tabindex="-1">
                 <ui:Label name="things" />
                 <ui:EnumField label="POI Markers" type="POIMarker+MarkerSettings+MarkerStyle, Main" value="Default" style="display: none;" />
             </ui:Foldout>
-            <ui:Foldout text="--Grids--" name="Grids" value="false">
+            <ui:Foldout text="--Grids--" name="Grids" value="false" tabindex="-1">
                 <ui:Toggle label="Show Target" name="target" />
                 <ui:Toggle label="Show AABBs" name="aabbs" />
                 <ui:Toggle label="Show Rooms" name="rooms" />

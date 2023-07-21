@@ -7,7 +7,8 @@ public class ConvertToPrefabAuthoring : MonoBehaviour
     {
         public override void Bake(ConvertToPrefabAuthoring authoring)
         {
-            AddComponent<Prefab>();
+            var e = GetEntity(TransformUsageFlags.None);
+            AddComponent<Prefab>(e);
         }
     }
 }

@@ -352,7 +352,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Doors:
   - {fileID: 4475475383131749950}
-  Ports: []
 --- !u!1001 &4475049141318146660
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -423,6 +422,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4029603274030626, guid: 4ecb809d8ea3ac242a040c2ae20430d1, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 64403570203233648, guid: 4ecb809d8ea3ac242a040c2ae20430d1,
+        type: 3}
+      propertyPath: m_Convex
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 64403570203233648, guid: 4ecb809d8ea3ac242a040c2ae20430d1,

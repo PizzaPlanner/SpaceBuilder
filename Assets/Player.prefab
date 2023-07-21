@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 7073231326437080622}
   - component: {fileID: 7185112755665874512}
   - component: {fileID: 848570442945144330}
+  - component: {fileID: -3977655026386257779}
+  - component: {fileID: -8601778165978981658}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -88,6 +90,46 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MovementSpeedDefault: 5
   MovementSpeedRun: 25
+--- !u!114 &-3977655026386257779
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7780807752270266386}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 837e146cd4a5498b95c507bdc2524a4c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LightSector:
+    x: 0
+    y: 0
+    z: 0
+  StarSector:
+    x: 0
+    y: 0
+    z: 0
+  PlanetSector:
+    x: 0
+    y: 0
+    z: 0
+  LocalPosition:
+    x: 0
+    y: 0
+    z: 0
+--- !u!114 &-8601778165978981658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7780807752270266386}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6922ec66365b41dba1a05a37300dcb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7780807753546966488
 GameObject:
   m_ObjectHideFlags: 0
