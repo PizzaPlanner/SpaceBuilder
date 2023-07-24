@@ -7,4 +7,5 @@ public struct BuildingPartInfo : IBufferElementData
     public BoundingBox Area;
     public RightAngleRotation Orientation;
     public Color Color;
+    public bool IsGhost;
 }

@@ -43,16 +43,15 @@ public partial class MovePlayerSystem : SystemBase
             camAnchor.XRotation = 0;
         SystemAPI.SetSingleton(camAnchor);
 
-        var p = SystemAPI.GetComponent<Player>(localPlayer);
-        p.Running = Input.GetKey(KeyCode.LeftShift);
-        SystemAPI.SetComponent(localPlayer, p);
+        var p = SystemAPI.GetComponentRW<Player>(localPlayer);
+        p.ValueRW.Running = Input.GetKey(KeyCode.LeftShift);
 
         var deltaTime = World.Time.DeltaTime;
-
+        
         var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                            .CreateCommandBuffer(World.Unmanaged);
         Entities
-            .WithNone<Parent>()
+            .WithAll<ReferenceFrameOrigin>()
             .ForEach((Entity e, ref LocalTransform transform, ref CanTravelSectors cts, ref LocalToGalaxy ltg, ref Player player) =>
             {
                 transform.Rotation = math.mul(transform.Rotation, quaternion.EulerXYZ(rotation));
@@ -68,11 +67,12 @@ public partial class MovePlayerSystem : SystemBase
             }).Schedule();
 
         Entities
-            .ForEach((ref Docked docked, in Player player) =>
+            .WithNone<ReferenceFrameOrigin>()
+            .ForEach((ref LocalTransform transform, in Player player) =>
             {
-                var movementInversedByParent = math.mul(math.inverse(docked.TargetRotation), movement); 
-                docked.Rotation = math.mul(docked.Rotation, quaternion.EulerXYZ(new float3(0, rotation.y, 0)));
-                docked.Position += movementInversedByParent * (player.Running ? player.MovementSpeedRun : player.MovementSpeedDefault) * deltaTime;
+                var totalMovement = (movement * (player.Running ? player.MovementSpeedRun : player.MovementSpeedDefault) * deltaTime);
+                transform.Position += totalMovement;
+                transform.Rotation = math.mul(transform.Rotation, quaternion.EulerXYZ(rotation));
             }).Schedule();
     }
 }

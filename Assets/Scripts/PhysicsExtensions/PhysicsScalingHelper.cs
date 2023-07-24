@@ -4,6 +4,8 @@ using Unity.Mathematics;
 
 namespace Unity.Physics
 {
+    // TODO: Make sure created blobassets are released properly!
+    // See line 35+ in https://github.com/Unity-Technologies/EntityComponentSystemSamples/blob/master/PhysicsSamples/Assets/9.%20Modify/Box%20Collider%20Size/BoxColliderSizeSystem.cs
     public static class PhysicsScalingHelper
     {
         // WARNING: MUST be 'ref ConvexCollider'. See Comment on ConvexCollider struct on why. 

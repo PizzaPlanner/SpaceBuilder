@@ -101,6 +101,11 @@ PrefabInstance:
       propertyPath: Value
       value: 3000
       objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_Material.m_BelongsToCategories.m_Value.Category08
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: -3586686030049976611, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: Cost.Array.size

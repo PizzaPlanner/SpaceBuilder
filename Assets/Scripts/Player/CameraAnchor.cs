@@ -12,6 +12,8 @@ public struct CameraAnchor : IComponentData
 
     public float3 CameraPosition;
     public float3 CameraForward;
+
+    public uint CollidesWith;
 }
 
 
@@ -24,9 +26,8 @@ public partial class CameraControllerSystem : SystemBase
     protected override void OnCreate()
     {
         RequireForUpdate<CameraAnchor>();
-        RequireForUpdate<ReferenceFrameOrigin>();
+        RequireForUpdate<ReferenceFrame>();
         filter = CollisionFilter.Default;
-        filter.CollidesWith = ~(1u << 3);
         filter.BelongsTo = ~0u;
     }
 
@@ -37,6 +38,7 @@ public partial class CameraControllerSystem : SystemBase
 
         var camDistance = anchor.ValueRO.ScrollFactor;
         var rotatedOffset = math.mul(anchorLtw.Rotation, anchor.ValueRO.MaxOffset);
+        filter.CollidesWith = anchor.ValueRO.CollidesWith;
         RaycastInput raycastInput = new RaycastInput
         {
             Start = anchorLtw.Position,

@@ -57,15 +57,12 @@ public partial class DebugOccupationSystem : SystemBase
         occupationMat = Resources.Load<GhostPlacementSettings>("GhostPlacementSettings").DebugOccupationMaterial;
         ghostMat = Resources.Load<GhostPlacementSettings>("GhostPlacementSettings").DebugGhostMaterial;
         
-        RequireForUpdate<DebugModeSystem.Active>();
+        RequireForUpdate<Settings>();
+        EntityManager.CreateEntity(typeof(Settings));    
     }
     
     protected override void OnStartRunning()
     {
-        if (SystemAPI.HasSingleton<Settings>())
-            return;
-
-        EntityManager.CreateEntity(typeof(Settings));    
         // var ui = Object.FindObjectOfType<UIDocument>().rootVisualElement.Q("InfoTexts").Q("Grids");
         // ui.Q<Toggle>("target").RegisterValueChangedCallback(x =>
         // {
@@ -111,15 +108,16 @@ public partial class DebugOccupationSystem : SystemBase
 
     void ShowOccupations()
     {
+        // var roomsLookup = SystemAPI.GetSingleton<RoomsLookup>();
         // NativeList<float4x4> matrices = new NativeList<float4x4>(Allocator.Temp);
-        // Entities.ForEach((in CellMap cells, in GridStructure grid, in LocalToWorld ltw) =>
+        // foreach(var (ltw, e) in SystemAPI.Query<LocalToWorld>().WithAll<GridStructure>().WithEntityAccess())
         // {
-        //     foreach(var item in cells.Objects)
-        //         matrices.Add(float4x4.TRS(GridStructure.PositionFromCell(ltw, item.Min), ltw.Rotation, item.Max - item.Min));
-        // }).Run();
+        //     foreach(var wall in roomsLookup.Walls.GetValuesForKey(e))
+        //         matrices.Add(float4x4.TRS(GridStructure.PositionFromCell(ltw, wall), ltw.Rotation, 1));
+        // }
         //
         // Draw(matrices, occupationMat);
-        //
+        
         // matrices.Clear();
         // Entities.ForEach((in CellMap cells, in GridStructure grid, in LocalToWorld ltw) =>
         // {
@@ -147,15 +145,16 @@ public partial class DebugOccupationSystem : SystemBase
     
     void ShowRooms()
     {
+        var roomsLookup = SystemAPI.GetSingleton<RoomsLookup>();
         NativeList<float4x4> matricesUnexposed = new NativeList<float4x4>(Allocator.Temp);
         NativeList<float4x4> matricesExposed = new NativeList<float4x4>(Allocator.Temp);
-        foreach(var (rooms, ltw) in SystemAPI.Query<DynamicBuffer<Rooms>, LocalToWorld>())
+        foreach(var (ltw, e) in SystemAPI.Query<LocalToWorld>().WithAll<GridStructure>().WithEntityAccess())
         {
-            foreach(var item in rooms)
+            foreach(var (_, room) in roomsLookup.GridRooms.GetValuesForKey(e))
                 matricesUnexposed.Add(float4x4.TRS(
-                    GridStructure.PositionFromCell(ltw, item.Room.BoundingBox.Min), 
+                    GridStructure.CellToWorld(ltw, room.BoundingBox.Min), 
                     ltw.Rotation, 
-                    item.Room.BoundingBox.Max - item.Room.BoundingBox.Min));
+                    room.BoundingBox.Max - room.BoundingBox.Min));
         }
         
         Draw(matricesExposed, occupationMat);
@@ -182,12 +181,12 @@ public partial class DebugOccupationSystem : SystemBase
         
         foreach(var grid in SystemAPI.Query<GridStructure>())
         {
-            if (grid.AABB.Contains(playerPos))
+            if (grid.WorldAABB.Contains(playerPos))
                 inGrid = grid;
             else
-                matrices.Add(float4x4.TRS(grid.AABB.Center - grid.AABB.Extents, 
+                matrices.Add(float4x4.TRS(grid.WorldAABB.Center - grid.WorldAABB.Extents, 
                     quaternion.identity, 
-                    grid.AABB.Size / GridStructure.CELL_SIZE));
+                    grid.WorldAABB.Size / GridStructure.CELL_SIZE));
         }
         Draw(matrices, ghostMat);
         
@@ -196,7 +195,7 @@ public partial class DebugOccupationSystem : SystemBase
         {
             var parentLtw = SystemAPI.GetComponent<LocalToWorld>(parent.Value);
             var bbox = gridItem.Area;
-            var mtx = float4x4.TRS(GridStructure.PositionFromCell(parentLtw, bbox.Min), parentLtw.Rotation,
+            var mtx = float4x4.TRS(GridStructure.CellToWorld(parentLtw, bbox.Min), parentLtw.Rotation,
                 bbox.Size);
             if (math.any(inGrid.BoundsMax != 0) && bbox.Contains(GridStructure.CellFromPosition(parentLtw, playerPos)))
                 inGridItem = mtx;

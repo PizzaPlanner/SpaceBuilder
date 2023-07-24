@@ -67,16 +67,19 @@ public struct RightAngleRotation
 
         var fsign = (rar.Value & 0b0000_1000) != 0 ? -1 : 1;
         var usign = (rar.Value & 0b1000_0000) != 0 ? -1 : 1;
-        return quaternion.LookRotation(
-            new float3(
-                math.sign((rar.Value & 0b0000_0001) * fsign),
-                math.sign((rar.Value & 0b0000_0010) * fsign),
-                math.sign((rar.Value & 0b0000_0100) * fsign)),
-            new float3(
-                math.sign((rar.Value & 0b0001_0000) * usign),
-                math.sign((rar.Value & 0b0010_0000) * usign),
-                math.sign((rar.Value & 0b0100_0000) * usign)));
+        var forward = new float3(
+            math.sign((rar.Value & 0b0000_0001) * fsign),
+            math.sign((rar.Value & 0b0000_0010) * fsign),
+            math.sign((rar.Value & 0b0000_0100) * fsign));
+        var up = new float3(
+            math.sign((rar.Value & 0b0001_0000) * usign),
+            math.sign((rar.Value & 0b0010_0000) * usign),
+            math.sign((rar.Value & 0b0100_0000) * usign));
+        return math.abs(math.dot(forward, up)) < 0.1f ? quaternion.LookRotation(forward, up) : quaternion.identity;
     }
+
+    public static bool operator ==(RightAngleRotation lhs, RightAngleRotation rhs) => lhs.Value == rhs.Value;
+    public static bool operator !=(RightAngleRotation lhs, RightAngleRotation rhs) => lhs.Value != rhs.Value;
 
     public override string ToString()
     {

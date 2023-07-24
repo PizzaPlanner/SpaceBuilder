@@ -33,6 +33,6 @@ public partial class PlayerSpawnSystem : SystemBase
         var player = ecb.Instantiate(sp.Prefab);
         ecb.SetComponent(player, transform);
         ecb.SetComponent(player, ltg);
-        ecb.AddComponent<ReferenceFrameOrigin>(player);
+        ecb.AddComponent<PromoteToReferenceFrame>(player);
     }
 }

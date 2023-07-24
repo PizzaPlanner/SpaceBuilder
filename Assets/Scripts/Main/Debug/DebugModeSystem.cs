@@ -12,28 +12,21 @@ public partial class DebugModeSystem : SystemBase
     {
         RequireForUpdate<LocalPlayer>();
         RequireForUpdate<IdentifiableMappingSystem.Loaded>();
+        RequireForUpdate<InputSystem.ControlUI>();
     }
 
     protected override void OnStartRunning()
     {
         DebugOverlay ??= Object.FindObjectOfType<UIDocument>().rootVisualElement.Q("DebugUI");
+        DebugOverlay.style.display = DisplayStyle.Flex;
+        EntityManager.CreateEntity(typeof(Active));
+    }
+
+    protected override void OnStopRunning()
+    {
+        EntityManager.DestroyEntity(SystemAPI.GetSingletonEntity<Active>());
         DebugOverlay.style.display = DisplayStyle.None;
     }
 
-    protected override void OnUpdate()
-    {
-        if (!Input.GetKeyDown(KeyCode.F5))
-            return;
-        
-        if (SystemAPI.TryGetSingletonEntity<Active>(out var e))
-        {
-            EntityManager.DestroyEntity(e);
-            DebugOverlay.style.display = DisplayStyle.None;
-        }
-        else
-        {
-            EntityManager.CreateEntity(typeof(Active));
-            DebugOverlay.style.display = DisplayStyle.Flex;
-        }
-    }
+    protected override void OnUpdate() { }
 }

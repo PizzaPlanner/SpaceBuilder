@@ -39,22 +39,24 @@ public partial class RecalculateSteeringControllerSystem : SystemBase
                 }
         }
     }
-    
+
+    EntityQuery _thrusterQuery;
     protected override void OnCreate()
     {
+        _thrusterQuery = GetEntityQuery(typeof(Thruster), typeof(Parent), typeof(LocalTransform));
         RequireForUpdate<GridUpdate>();
+        RequireForUpdate(_thrusterQuery);
     }
 
     protected override void OnUpdate()
     {
-        var query = GetEntityQuery(typeof(Thruster), typeof(Parent), typeof(LocalTransform));
 
         new SteeringJob
         {
-            entities = query.ToEntityArray(Allocator.TempJob),
-            thrusters = query.ToComponentDataArray<Thruster>(Allocator.TempJob),
-            parents = query.ToComponentDataArray<Parent>(Allocator.TempJob),
-            rotations = query.ToComponentDataArray<LocalTransform>(Allocator.TempJob)
+            entities = _thrusterQuery.ToEntityArray(Allocator.TempJob),
+            thrusters = _thrusterQuery.ToComponentDataArray<Thruster>(Allocator.TempJob),
+            parents = _thrusterQuery.ToComponentDataArray<Parent>(Allocator.TempJob),
+            rotations = _thrusterQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob)
         }.Schedule();
     }
 }

@@ -1,6 +1,7 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics.Aspects;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -26,68 +27,23 @@ public partial class GridRecalculationSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        foreach(var (update, grid, roomsRO) in 
-                SystemAPI.Query<GridUpdate, RefRW<GridStructure>, DynamicBuffer<Rooms>>())
+        foreach (var (update, grid) in
+                 SystemAPI.Query<GridUpdate, RefRW<GridStructure>>())
         {
             Debug.Log("Recalculating Grid!");
             // Update bounds
             grid.ValueRW.BoundsMin = math.min(update.Area.Min, grid.ValueRW.BoundsMin);
-            grid.ValueRW.BoundsMin = math.max(update.Area.Max, grid.ValueRW.BoundsMax);
+            grid.ValueRW.BoundsMax = math.max(update.Area.Max, grid.ValueRW.BoundsMax);
 
-            // Update Rooms
-            var rooms = roomsRO;
-            var bbox = update.Area;
-            var exposedRooms = new NativeList<short>(Allocator.TempJob);
-            var cellToRoomMap = new NativeParallelHashMap<int3, short>(bbox.Size, Allocator.TempJob);
-            var cellsNeedUpdate = new NativeQueue<int3>(Allocator.TempJob);
-            for (int x = bbox.Min.x; x <= bbox.Max.x; x++)
-            for (int y = bbox.Min.y; y <= bbox.Max.y; y++)
-            for (int z = bbox.Min.z; z <= bbox.Max.z; z++)
+            // TODO: Should this not happen automatically? Maybe scheduling order problem?
+            foreach (var (children, links, e) in
+                     SystemAPI.Query<DynamicBuffer<Child>, DynamicBuffer<LinkedEntityGroup>>()
+                              .WithChangeFilter<Child>().WithAll<GridStructure>().WithEntityAccess())
             {
-                var point = new int3(x, y, z);
-                cellsNeedUpdate.Enqueue(point);
-                cellToRoomMap[point] = short.MaxValue;
-                foreach(var room in rooms)
-                    if (room.Room.Contains(point))
-                        cellToRoomMap[point] = room.Room.Id;
-            }
-            
-            var currentRoom = (short)0;
-            while(cellsNeedUpdate.TryDequeue(out var cell))
-                RoomSystem.FindRoom(ref currentRoom, cell, bbox, cellToRoomMap, cellsNeedUpdate);
-            
-            foreach (var item in cellToRoomMap)
-                if (math.any(item.Key == bbox.Min | item.Key == bbox.Max) && !exposedRooms.Contains(item.Value))
-                    exposedRooms.Add(item.Value);
-            
-            foreach (var item in cellToRoomMap)
-            {
-                if (exposedRooms.Contains(item.Value))
-                    continue;
-                bool roomListed = false;
-                for (int i = 0; i < rooms.Length; i++)
-                {
-                    if (rooms[i].Room.Id != item.Value)
-                        continue;
-                        
-                    roomListed = true;
-                    var r = rooms[i].Room;
-                    // r.Cells.Add(item.Key);
-                    r.BoundingBox.Min = math.min(r.BoundingBox.Min, item.Key);
-                    r.BoundingBox.Max = math.max(r.BoundingBox.Max, item.Key);
-                    rooms[i] = new Rooms{Room = r};
-                }
-                
-                if (!roomListed)
-                {
-                    Debug.Log($"MAKING NEW ROOM #{item.Value}");   
-                    rooms.Add(new Rooms{ Room = new Room
-                    {
-                        Id = item.Value, 
-                        // Cells = new NativeList<int3>(Allocator.Persistent){ item.Key },
-                        BoundingBox = new IntAABB { Min = item.Key, Max = item.Key }
-                    }});
-                }
+                links.Clear();
+                links.Add(e);
+                foreach (var child in children)
+                    links.Add(child.Value);
             }
         }
     }

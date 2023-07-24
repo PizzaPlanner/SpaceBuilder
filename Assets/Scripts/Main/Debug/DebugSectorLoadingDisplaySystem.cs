@@ -58,9 +58,10 @@ public partial class DebugSectorLoadingDisplaySystem : SystemBase
         var pois = GetEntityQuery(typeof(POIMarkerSystem.MarkedPOI)).CalculateEntityCount();
 
         var player = SystemAPI.GetSingletonEntity<LocalPlayer>();
+        var refFrame = SystemAPI.GetSingleton<ReferenceFrame>();
         var speed = SystemAPI.GetComponent<CanTravelSectors>(player);
         var player2 = SystemAPI.GetComponent<Player>(player);
-        var ltg = SystemAPI.GetComponent<LocalToGalaxy>(player);
+        var ltg = refFrame.CurrentLtg;
 
         var sectorData = GalaxyTools.GetLightSectorData(ltg);
         var starSector = GalaxyTools.GetStarSectorData(ltg);

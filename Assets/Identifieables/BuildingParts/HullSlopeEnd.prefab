@@ -18,6 +18,11 @@ PrefabInstance:
       propertyPath: Value
       value: 65
       objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_ForceUnique
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: -3586686030049976611, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: Cost.Array.size
@@ -126,11 +131,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1914526045730009540, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
-      propertyPath: IsWall
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1914526045730009540, guid: e943c85a6f7a7854f92eef9792967afe,
-        type: 3}
       propertyPath: Occupied
       value: 64
       objectReference: {fileID: 0}
@@ -216,10 +216,6 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 3365921106191064206}
-    - targetCorrespondingSourceObject: {fileID: 3364769202363141643, guid: e943c85a6f7a7854f92eef9792967afe,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1802508552521645750}
   m_SourcePrefab: {fileID: 100100000, guid: e943c85a6f7a7854f92eef9792967afe, type: 3}
 --- !u!1 &1550846177729607977 stripped
 GameObject:
@@ -277,25 +273,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &1802508552521645750
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1550846177729607977}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -5495902117074765545, guid: 5c3f8c1c379c26644826bc1461187747, type: 3}

@@ -1,4 +1,3 @@
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
@@ -11,16 +10,13 @@ public struct GridChangedEvent : IComponentData
     public int3 Position;
 }
 
-[ExecuteAlways]
-[UpdateInGroup(typeof(TransformSystemGroup), OrderFirst = true)]
-public partial class BeforeReparentingEntitiyCommandBufferSystem : EntityCommandBufferSystem { }
-
 public partial struct BuildingSystem : ISystem
 {
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         state.RequireForUpdate<IdentifiableMappingSystem.Loaded>();
+        state.RequireForUpdate<RoomsLookup>();
     }
 
     public void OnUpdate(ref SystemState state)
@@ -33,6 +29,7 @@ public partial struct BuildingSystem : ISystem
             gridItems = state.GetComponentLookup<GridItem>(true),
             colliders = state.GetComponentLookup<PhysicsCollider>(true),
             prefabMap = IdentifiableMappingSystem.EntitiesById,
+            Rooms = SystemAPI.GetSingletonRW<RoomsLookup>().ValueRW
         }.Schedule();
     }
 }

@@ -1,4 +1,5 @@
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -11,39 +12,101 @@ public struct ReferenceFrame : IComponentData
     public LocalToWorld PreviousLtw;
     public LocalToWorld CurrentLtw;
     public Entity Origin;
+
+    internal float DurationSinceLastChange;
 }
 
 
 public struct ReferenceFrameOrigin : IComponentData { }
 
-[UpdateInGroup(typeof(InitializationSystemGroup))]
-public partial class EarlyReferenceFrameSystem : SystemBase
+public struct PromoteToReferenceFrame : IComponentData
 {
-    protected override void OnCreate()
-    {
-        RequireForUpdate<ReferenceFrame>();
+    public bool MakePreviousFrameChildOfNewFrame;
+}
 
-        EntityManager.CreateEntity(typeof(ReferenceFrame));
+[UpdateInGroup(typeof(InitializationSystemGroup))]
+[UpdateAfter(typeof(EarlyReferenceFrameSystem))]
+partial struct UpdateReferenceFrameTransformComponents : ISystem
+{
+    EntityQuery _refOriginParentQuery, _ltgParentQuery;
+
+    public void OnCreate(ref SystemState state)
+    {
+        _refOriginParentQuery = state.GetEntityQuery(typeof(ReferenceFrameOrigin), typeof(Parent));
+        _ltgParentQuery = state.GetEntityQuery(typeof(LocalToGalaxy), typeof(Parent));
+    }
+
+    public void OnUpdate(ref SystemState state)
+    {
+        state.EntityManager.RemoveComponent<Parent>(_refOriginParentQuery);
+        state.EntityManager.RemoveComponent<LocalToGalaxy>(_ltgParentQuery);
+    }
+}
+
+[UpdateInGroup(typeof(InitializationSystemGroup))]
+public partial struct EarlyReferenceFrameSystem : ISystem
+{
+    public void OnCreate(ref SystemState state)
+    {
+        state.RequireForUpdate<ReferenceFrame>();
+        state.EntityManager.CreateEntity(typeof(ReferenceFrame));
         
         var defaultLtw = new LocalToWorld { Value = float4x4.TRS(0, quaternion.identity, 1) };
         SystemAPI.SetSingleton(new ReferenceFrame
         {
             CurrentLtw = defaultLtw, 
-            PreviousLtw = defaultLtw
+            PreviousLtw = defaultLtw,
+            DurationSinceLastChange = float.PositiveInfinity
         });
     }
 
-    protected override void OnUpdate()
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
     {
+        var hasNewFrame = SystemAPI.TryGetSingletonEntity<PromoteToReferenceFrame>(out var newFrame);
+        var makeOldFrameAsChild = false;
+        if (hasNewFrame)
+        {
+            makeOldFrameAsChild = SystemAPI.GetComponent<PromoteToReferenceFrame>(newFrame).MakePreviousFrameChildOfNewFrame;
+            state.EntityManager.RemoveComponent<PromoteToReferenceFrame>(newFrame);
+        }
         var refFrame = SystemAPI.GetSingletonRW<ReferenceFrame>();
         refFrame.ValueRW.PreviousLtg = refFrame.ValueRW.CurrentLtg;
         refFrame.ValueRW.PreviousLtw = refFrame.ValueRW.CurrentLtw;
+        refFrame.ValueRW.DurationSinceLastChange += SystemAPI.Time.DeltaTime;
+
+        if (!hasNewFrame)
+            return;
+
+        if (refFrame.ValueRW.DurationSinceLastChange < 1)
+            return;
+
+        var ecb = new EntityCommandBuffer(Allocator.Temp);
+        refFrame.ValueRW.DurationSinceLastChange = 0;
+        
+        var prevFrame = refFrame.ValueRW.Origin;
+        var newFrameLtg = refFrame.ValueRW.PreviousLtg;
+        if(!SystemAPI.HasComponent<LocalToGalaxy>(newFrame))
+            ecb.AddComponent(newFrame, newFrameLtg);
+        ecb.AddComponent<ReferenceFrameOrigin>(newFrame);
+        refFrame.ValueRW.Origin = newFrame;
+
+        Debug.Log($"Origin Change: {prevFrame} -> {newFrame}");
+        if (prevFrame != Entity.Null)
+        {
+            ecb.RemoveComponent<ReferenceFrameOrigin>(prevFrame);
+            if (makeOldFrameAsChild)
+                ecb.AddComponent(prevFrame, new Parent { Value = newFrame });
+        }
+        
+        ecb.Playback(state.EntityManager);
     }
 }
 
 
 [UpdateInGroup(typeof(TransformSystemGroup))]
 [UpdateBefore(typeof(TRSToLocalToGalaxySystem))]
+[UpdateAfter(typeof(LocalToWorldSystem))]
 public partial struct LateReferenceFrameSystem : ISystem
 {
     public void OnCreate(ref SystemState state)
@@ -55,31 +118,10 @@ public partial struct LateReferenceFrameSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                           .CreateCommandBuffer(state.WorldUnmanaged);
-
         var refFrame = SystemAPI.GetSingletonRW<ReferenceFrame>();
-        var prevOrigin = refFrame.ValueRW.Origin;
-        foreach (var (transform, e) in SystemAPI.Query<RefRW<LocalTransform>>()
-                                        .WithChangeFilter<ReferenceFrameOrigin>()
-                                        .WithAll<LocalToGalaxy, ReferenceFrameOrigin>().WithEntityAccess())
-        {
-            if (e != prevOrigin)
-            {
-                refFrame.ValueRW.Origin = e;
-                transform.ValueRW = LocalTransform.Identity;
-            }
-        }
-
         var gridLtg = SystemAPI.GetComponent<LocalToGalaxy>(refFrame.ValueRW.Origin);
         var gridLtw = SystemAPI.GetComponent<LocalToWorld>(refFrame.ValueRW.Origin);
         refFrame.ValueRW.CurrentLtg = gridLtg;
         refFrame.ValueRW.CurrentLtw = new LocalToWorld { Value = float4x4.Translate(gridLtw.Position) };
-        
-        if (refFrame.ValueRW.Origin != prevOrigin)
-        {
-            if (prevOrigin != Entity.Null)
-                ecb.RemoveComponent<ReferenceFrameOrigin>(prevOrigin);
-        }
     }
 }

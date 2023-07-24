@@ -1,17 +1,24 @@
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics.Authoring;
 using UnityEngine;
 
 public class CameraAnchorAuthoring : MonoBehaviour
 {
     public float ScrollFactor;
     public float3 MaxOffset;
+    public PhysicsCategoryTags CollidesWith;
     
     class Baker : Baker<CameraAnchorAuthoring>
     {
         public override void Bake(CameraAnchorAuthoring authoring)
         {
-            AddComponent(new CameraAnchor{MaxOffset = authoring.MaxOffset, ScrollFactor = authoring.ScrollFactor});
+            AddComponent(new CameraAnchor
+            {
+                MaxOffset = authoring.MaxOffset, 
+                ScrollFactor = authoring.ScrollFactor,
+                CollidesWith = authoring.CollidesWith.Value
+            });
         }
     }
 

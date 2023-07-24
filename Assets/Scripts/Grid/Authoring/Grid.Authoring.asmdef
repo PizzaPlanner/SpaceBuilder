@@ -14,7 +14,8 @@
         "Identifiables.Authoring",
         "Grid",
         "Galaxy.Authoring",
-        "Galaxy"
+        "Galaxy",
+        "Unity.Physics.Custom"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

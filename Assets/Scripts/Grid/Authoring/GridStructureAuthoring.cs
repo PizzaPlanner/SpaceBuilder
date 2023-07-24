@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.Transforms;
 using UnityEngine;
 
 [RequireComponent(typeof(LocalToGalaxyAuthoring))]
@@ -12,8 +13,9 @@ public class GridStructureAuthoring : MonoBehaviour
             AddComponent<GridStructure>(e);
             AddComponent<GridUpdate>(e);
             SetComponentEnabled<GridUpdate>(e, false);
-            AddBuffer<Rooms>(e);
             AddBuffer<BuildingPartInfo>(e);
+            AddBuffer<LinkedEntityGroup>(e).Add(e);
+            AddBuffer<Child>(e);
             AddComponent<ShouldShowAsPOI>(e);
             SetComponentEnabled<ShouldShowAsPOI>(e, false);
         }

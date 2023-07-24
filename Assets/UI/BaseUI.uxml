@@ -146,7 +146,7 @@
     <ui:VisualElement name="Center" picking-mode="Ignore" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; align-items: flex-end; justify-content: center;">
         <ui:VisualElement name="BuildMenu" style="flex-wrap: wrap; height: 50%; -unity-slice-left: 20; -unity-slice-top: 20; -unity-slice-right: 20; -unity-slice-bottom: 20; background-image: url(&apos;project://database/Assets/UI/bg_slim.png?fileID=2800000&amp;guid=cc32439c45babc04593dca5896662d0a&amp;type=3#bg_slim&apos;); display: flex;" />
     </ui:VisualElement>
-    <ui:VisualElement name="DebugUI" picking-mode="Ignore" tabindex="-1" style="align-items: flex-start; display: flex; justify-content: space-between; flex-direction: row;">
+    <ui:VisualElement name="DebugUI" picking-mode="Ignore" tabindex="-1" style="align-items: flex-start; display: none; justify-content: space-between; flex-direction: row;">
         <ui:VisualElement name="Settings" style="background-color: rgba(55, 55, 55, 0.22); padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;">
             <ui:Label text="±Speed" display-tooltip-when-elided="true" name="MoreSpeed" enable-rich-text="false" class="debug-button" />
             <ui:Label text="Colliders" display-tooltip-when-elided="true" name="Colliders" enable-rich-text="false" class="debug-button" />

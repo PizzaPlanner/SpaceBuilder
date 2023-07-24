@@ -158,7 +158,7 @@ public struct BlueprintParserV3 : IBlueprintParser
         var children = em.GetBuffer<Child>(grid);
         foreach (var child in children)
         {
-            if (!em.HasComponent<GridItem>(child.Value))
+            if (!em.HasComponent<GridItem>(child.Value) || em.HasComponent<Ghost>(child.Value))
                 continue;
             var gridItem = em.GetComponentData<GridItem>(child.Value);
             var identifieable = em.GetComponentData<Identifieable>(child.Value);

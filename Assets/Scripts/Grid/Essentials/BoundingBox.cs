@@ -9,8 +9,11 @@ public struct BoundingBox
     public int3 Extents;
 
     public readonly int3 Size => Max - Min + 1;
-    
-    public readonly PostTransformMatrix ToScale(quaternion objectRotation) => new PostTransformMatrix{Value = float4x4.Scale(math.abs(Size.Rotated(math.inverse(objectRotation))))};
+
+    public readonly PostTransformMatrix ToScale(quaternion objectRotation) => new()
+    {
+        Value = float4x4.TRS(GridStructure.CELL_SIZE * 0.5f, objectRotation, Size)
+    }; // float4x4.Scale(math.abs(Size.Rotated(math.inverse(objectRotation))))};
 
     public readonly BoundingBox AdjustedToObjectRotation(quaternion objectRotation)
     {
@@ -66,6 +69,6 @@ public struct BoundingBox
     static void Draw(int3 p1, int3 p2, int3 normal, int3 min, int3 max, LocalToWorld gridLtw, Color cd, Color cn)
     {
         var focus = ((normal == 1) & (p1 == max) & (p2 == max)) | ((normal == -1) & (p1 == min) & (p2 == min));
-        Debug.DrawLine(GridStructure.PositionFromCell(gridLtw, p1), GridStructure.PositionFromCell(gridLtw, p2), math.any(focus) ? cn : cd);
+        Debug.DrawLine(GridStructure.CellToWorld(gridLtw, p1), GridStructure.CellToWorld(gridLtw, p2), math.any(focus) ? cn : cd);
     }
 }

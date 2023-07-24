@@ -18,6 +18,81 @@ PrefabInstance:
       propertyPath: Value
       value: 65
       objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_ShapeType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_ForceUnique
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_SphereRadius
+      value: 0.125
+      objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_Capsule.Height
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_Capsule.Radius
+      value: 0.125
+      objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_Cylinder.Height
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_Cylinder.Radius
+      value: 0.125
+      objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_PrimitiveSize.x
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_PrimitiveSize.y
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_PrimitiveSize.z
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_PrimitiveCenter.x
+      value: 0.125
+      objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_PrimitiveCenter.y
+      value: 0.125
+      objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_PrimitiveCenter.z
+      value: 0.125
+      objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_PrimitiveOrientation.Value.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_Material.m_BelongsToCategories.m_Value.Category08
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: -3586686030049976611, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: Cost.Array.size
@@ -211,10 +286,6 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 143951333540534253}
-    - targetCorrespondingSourceObject: {fileID: 3364769202363141643, guid: e943c85a6f7a7854f92eef9792967afe,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 6250230379322219352}
   m_SourcePrefab: {fileID: 100100000, guid: e943c85a6f7a7854f92eef9792967afe, type: 3}
 --- !u!1 &6970470882012335226 stripped
 GameObject:
@@ -272,24 +343,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &6250230379322219352
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6970470882012335226}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.25, y: 0.25, z: 0.25}
-  m_Center: {x: 0.125, y: 0.125, z: 0.125}

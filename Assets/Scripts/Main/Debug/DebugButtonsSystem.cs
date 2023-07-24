@@ -73,7 +73,7 @@ public partial class DebugButtonsSystem : SystemBase
         if (wantUpdateTM)
         {
             wantUpdateTM = false;
-            SystemAPI.SetSingleton(new PlayerTargetSystem.PlayerTargetModeSettings { Mode = newTargetMode });
+            SystemAPI.SetSingleton(new PlayerTargetModeSettings { Mode = newTargetMode });
         }
     }
 }

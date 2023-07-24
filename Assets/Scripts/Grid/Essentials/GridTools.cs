@@ -85,7 +85,7 @@ public static class GridTools
 
     public static bool GetLookedAtPointOnPlanesFromObject(LocalToWorld cameraLtw, LocalToWorld gridLtw, int3 targetObjectPosition, float maxRange, out int3 position)
     {
-        var planeOrigin = GridStructure.PositionFromCell(gridLtw, targetObjectPosition);
+        var planeOrigin = GridStructure.CellToWorld(gridLtw, targetObjectPosition);
         var rPos = float3.zero;
 
         var f = math.abs(math.dot(cameraLtw.Forward, gridLtw.Forward));

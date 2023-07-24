@@ -6,6 +6,10 @@ using Unity.Physics;
 using Unity.Transforms;
 using UnityEngine;
 
+public struct PlayerTargetModeSettings : IComponentData
+{
+    public PlayerTargetSystem.PlayerTargetMode Mode;
+}
 
 public partial struct PlayerTargetSystem : ISystem
 {
@@ -13,16 +17,12 @@ public partial struct PlayerTargetSystem : ISystem
     private const float TARGET_MAX_RANGE_CONSTRUCTABLE = 15;
     private const float TARGET_MAX_RANGE_INTERACTABLE = 7;
     private NativeHashMap<byte, CollisionFilter> collisionFilterMap;
-    
-    public struct PlayerTargetModeSettings : IComponentData
-    {
-        public PlayerTargetMode Mode;
-    }
 
     public enum PlayerTargetMode : byte
     {
         Interactions,
-        Build
+        Build,
+        ScaleGhost,
     }
     
     public void OnCreate(ref SystemState state)
@@ -33,7 +33,7 @@ public partial struct PlayerTargetSystem : ISystem
         state.RequireForUpdate<PlayerTargetModeSettings>();
 
         state.EntityManager.CreateEntity(typeof(PlayerTargetModeSettings));
-        SystemAPI.SetSingleton(new PlayerTargetModeSettings{Mode = PlayerTargetMode.Build});
+        SystemAPI.SetSingleton(new PlayerTargetModeSettings { Mode = PlayerTargetMode.Interactions });
 
         collisionFilterMap = new NativeHashMap<byte, CollisionFilter>(0, Allocator.Persistent);
         var fInteractions = CollisionFilter.Default;
@@ -42,9 +42,13 @@ public partial struct PlayerTargetSystem : ISystem
         collisionFilterMap.Add((byte)PlayerTargetMode.Interactions, fInteractions);
         
         var fBuild = CollisionFilter.Default;
-        fBuild.CollidesWith = ~0u;
+        fBuild.CollidesWith = (1 << 5);
         fBuild.BelongsTo = ~0u;
         collisionFilterMap.Add((byte)PlayerTargetMode.Build, fBuild);
+        
+        var fScaleGhost = fBuild;
+        fScaleGhost.CollidesWith += (1 << 6);
+        collisionFilterMap.Add((byte)PlayerTargetMode.ScaleGhost, fScaleGhost);
     }
 
     public void OnDestroy(ref SystemState state)
@@ -60,10 +64,10 @@ public partial struct PlayerTargetSystem : ISystem
         var camForward = camera.CameraForward;
         var targetMode = SystemAPI.GetSingleton<PlayerTargetModeSettings>().Mode;
         if (!collisionFilterMap.TryGetValue((byte)targetMode, out var filter))
+        {
+            Debug.LogError($"No collision filter defined for target mode {targetMode}");
             return;
-
-        var hitLocation = float3.zero;
-        var nextTarget = Entity.Null;
+        }
 
         var physicsWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>();
         var collisionWorld = physicsWorld.CollisionWorld;
@@ -76,60 +80,48 @@ public partial struct PlayerTargetSystem : ISystem
         };
         collisionWorld.CastRay(input, out var hit);
 
-        if (hit.Entity != Entity.Null)
-        {
-            nextTarget = hit.Entity;
-            hitLocation = hit.Position;
-            Debug.DrawLine(camPosition, hit.Position);
-        }
-
         var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
         var targetRW = SystemAPI.GetComponentRW<Target>(localPlayer);
         var target = targetRW.ValueRW;
         
         target.PreviousValue = target.Value;
         target.PreviousHit = target.Hit;
-        target.Value = SystemAPI.HasComponent<Targetable>(nextTarget) ? nextTarget : Entity.Null;
+        target.Value = hit.Entity;
         if (target.Value != Entity.Null)
-            target.Hit = hitLocation;
-        SystemAPI.SetComponent(localPlayer, target);
+            target.Hit = hit.Position;
         
         target.CanInteract = target.Value != Entity.Null &&
                                 SystemAPI.HasComponent<Interactable>(target.Value) &&
-                                math.distancesq(hitLocation, camPosition) <= TARGET_MAX_RANGE_INTERACTABLE * TARGET_MAX_RANGE_INTERACTABLE;
+                                math.distancesq(hit.Position, camPosition) <= TARGET_MAX_RANGE_INTERACTABLE * TARGET_MAX_RANGE_INTERACTABLE;
             
         target.GridHit.Normal = 0;
         target.GridHit.Cell = int.MaxValue;
         target.GridHit.Grid = Entity.Null;
 
-        if (target.Value != Entity.Null && SystemAPI.HasComponent<GridItem>(target.Value))
+        var grid = target.Value;
+        var parentLookup = SystemAPI.GetComponentLookup<Parent>(true);
+        while (grid != Entity.Null && parentLookup.TryGetComponent(grid, out var parent))
+            grid = parent.Value;
+        
+        if(SystemAPI.HasComponent<GridStructure>(grid))
         {
             // Calculate which grid cell was hit and on which side
-            var gridItem = SystemAPI.GetComponent<GridItem>(target.Value);
-            var grid = SystemAPI.GetComponent<Parent>(target.Value).Value;
             var gridLtw = SystemAPI.GetComponent<LocalToWorld>(grid);
 
-            var centerWorld = math.mul(gridLtw.Rotation, gridItem.Area.Center * GridStructure.CELL_SIZE) +
-                              gridLtw.Position;
-            var diffLocal = math.mul(math.inverse(gridLtw.Rotation), target.Hit - centerWorld);
-            var absDiffLocal = math.abs(diffLocal) / gridItem.Area.Size;
+            var cellHit = GridStructure.CellFromPosition(gridLtw, target.Hit + camForward * 0.001f);
+            var cellHitCenter = GridStructure.CellCenterToWorld(gridLtw, cellHit);
+            var hitDirection = target.Hit - cellHitCenter;
+            Debug.DrawLine(target.Hit, cellHitCenter, Color.red);
+            var absDiffLocal = math.abs(hitDirection);
             bool3 biggest = new bool3(
-                absDiffLocal.x >= absDiffLocal.y && absDiffLocal.x >= absDiffLocal.z,
-                absDiffLocal.y >= absDiffLocal.x && absDiffLocal.y >= absDiffLocal.z,
-                absDiffLocal.z >= absDiffLocal.y && absDiffLocal.z >= absDiffLocal.x
-            );
-            var normalLocal = (int3)math.select(0, math.sign(diffLocal), biggest);
-            var planeOriginLocal = math.select(0, gridItem.Area.Max + 1, normalLocal == 1) +
-                                   math.select(0, gridItem.Area.Min, normalLocal == -1) +
-                                   math.select(0, gridItem.Area.Center, normalLocal == 0);
-
-            if (GridTools.ViewIntersectsPlaneFromGridCell(new float3x2(camPosition, camForward), gridLtw,
-                    planeOriginLocal, normalLocal, out var planeHit))
-            {
-                target.GridHit.Cell = GridStructure.CellFromPosition(gridLtw, planeHit + camForward * 0.01f);
-                target.GridHit.Normal = normalLocal;
-                target.GridHit.Grid = grid;
-            }
+                absDiffLocal.x > absDiffLocal.y && absDiffLocal.x >= absDiffLocal.z,
+                absDiffLocal.y >= absDiffLocal.x && absDiffLocal.y > absDiffLocal.z,
+                absDiffLocal.z >= absDiffLocal.y && absDiffLocal.z > absDiffLocal.x);
+            var normalLocal = (int3)math.select(0, math.sign(hitDirection), biggest);
+            
+            target.GridHit.Cell = cellHit;
+            target.GridHit.Normal = normalLocal;
+            target.GridHit.Grid = grid;
         }
 
         targetRW.ValueRW = target;

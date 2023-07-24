@@ -17,7 +17,7 @@ public partial struct RecalculateGridAABBSystem : ISystem
                 Extents = extents,
                 Center = realBoundsMin + extents
             };
-            grid.ValueRW.AABB = AABB.Transform(ltw.Value, aabb);
+            grid.ValueRW.WorldAABB = AABB.Transform(ltw.Value, aabb);
         }
     }
 }
