@@ -87,7 +87,8 @@ public partial class GhostPlacementSystem : SystemBase
         var pendingParts = SystemAPI.GetBuffer<BuildingPartInfo>(builder.ValueRW.Target.Grid);
         if(!SystemAPI.TryGetSingletonEntity<Ghost>(out var ghost))
         {
-            pendingParts.Add(newPart);
+            if(newPart.Area.IsValid)
+                pendingParts.Add(newPart);
         }
         else
         {
@@ -95,12 +96,12 @@ public partial class GhostPlacementSystem : SystemBase
             ecb.SetComponent(ghost, LocalTransform.FromPositionRotation(
                 GridStructure.CellToLocal(builder.ValueRW.DragStartCell),
                 builder.ValueRW.CurrentRotation));
-        }
-        if (Input.GetMouseButtonUp(0))
-        {
-            newPart.IsGhost = false;
-            pendingParts.Add(newPart);
-            ecb.DestroyEntity(ghost);
+            if (Input.GetMouseButtonUp(0))
+            {
+                newPart.IsGhost = false;
+                pendingParts.Add(newPart);
+                ecb.DestroyEntity(ghost);
+            }
         }
         
         var input = SystemAPI.GetSingleton<InputSystem.InputData>();

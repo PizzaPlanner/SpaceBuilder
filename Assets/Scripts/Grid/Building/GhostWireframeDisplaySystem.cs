@@ -23,6 +23,7 @@ public partial class GhostWireframeDisplaySystem : SystemBase
         RequireForUpdate(_wireframePrefabQuery);
         RequireForUpdate(_boxPrefabQuery);
         RequireForUpdate<GhostPlacementBuilder>();
+        RequireForUpdate<RoomsLookup>();
     }
 
     protected override void OnStopRunning()
@@ -33,14 +34,18 @@ public partial class GhostWireframeDisplaySystem : SystemBase
 
     protected override void OnUpdate()
     {
+        var roomsLookup = SystemAPI.GetSingleton<RoomsLookup>();
         var builder = SystemAPI.GetSingleton<GhostPlacementBuilder>();
         var hasWireframe = SystemAPI.TryGetSingletonEntity<GhostWireframe>(out var wireframe);
         var hasDisplayBox = SystemAPI.TryGetSingletonEntity<GhostDisplayBox>(out var displayBox);
         var hasGhost = SystemAPI.TryGetSingletonEntity<Ghost>(out var ghost);
         var wantScaleGhost = SystemAPI.GetSingleton<PlayerTargetModeSettings>().Mode == PlayerTargetSystem.PlayerTargetMode.ScaleGhost;
-        if(!hasGhost)
+        if (!hasGhost)
+        {
             EntityManager.DestroyEntity(GetEntityQuery(typeof(GhostDisplayBox)));
-        if (builder.Target.Grid == Entity.Null)
+            hasDisplayBox = false;
+        }
+        if (builder.Target.Grid == Entity.Null || roomsLookup.OccupiedCells.Contains((builder.Target.Grid, builder.DragStartCell)))
         {
             EntityManager.DestroyEntity(GetEntityQuery(typeof(GhostWireframe)));
             return;
@@ -77,20 +82,12 @@ public partial class GhostWireframeDisplaySystem : SystemBase
 
         if (!wantScaleGhost)
         {
-            var up = (float3)builder.Target.Normal;
-            var forward = up.x == 0 ? new float3(1, 0, 0) : new float3(0, 1, 0);
-            if (Input.GetKey(KeyCode.Alpha2))
-            {
-                up = forward;
-                forward = builder.Target.Normal;
-            }
-            
             var position = GridStructure.CellCenterToLocal(builder.DragStartCell);
-            position -= up * GridStructure.CELL_SIZE * 0.5f;
+            position -= (float3)builder.Target.Normal * GridStructure.CELL_SIZE * 0.5f;
             EntityManager.SetComponentData(wireframe, new LocalTransform
             {
                 Position = position,
-                Rotation = quaternion.LookRotation(forward, up),
+                Rotation = builder.CurrentRotation,
                 Scale = 1
             });
         }

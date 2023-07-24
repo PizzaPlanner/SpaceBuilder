@@ -1,12 +1,10 @@
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Entities.Graphics;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Physics.Extensions;
 using Unity.Rendering;
 using Unity.Transforms;
-using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
 
 
@@ -48,14 +46,14 @@ public partial struct BuildJob : IJobEntity
                 
             // Check if space is already occupied
             var canBuild = newGridItem.Area.IsValid;
-            for (int x = newGridItem.Area.Min.x; x <= newGridItem.Area.Max.x; x++)
-            for (int y = newGridItem.Area.Min.y; y <= newGridItem.Area.Max.y; y++)
-            for (int z = newGridItem.Area.Min.z; z <= newGridItem.Area.Max.z; z++)
-                canBuild &= !Rooms.CellRoomMap.ContainsKey((grid, new int3(x, y, z)));
+            for (int x = newGridItem.Area.Min.x; x <= newGridItem.Area.Max.x && canBuild; x++)
+            for (int y = newGridItem.Area.Min.y; y <= newGridItem.Area.Max.y && canBuild; y++)
+            for (int z = newGridItem.Area.Min.z; z <= newGridItem.Area.Max.z && canBuild; z++)
+                canBuild &= !Rooms.OccupiedCells.Contains((grid, new int3(x, y, z)));
             
             if (!canBuild && !part.IsGhost)
             {
-                Debug.LogWarning($"Discarded pending part in invalid or occupied area {newGridItem.Area}");
+                Debug.LogWarning($"Discarded pending part in invalid or occupied area {newGridItem.Area.Min}/{newGridItem.Area.Max}");
                 continue;
             }
 
@@ -108,7 +106,8 @@ public partial struct BuildJob : IJobEntity
 
             if (part.IsGhost)
             {
-                ecb.AddComponent(entity,  
+                ecb.AddComponent(entity, new Ghost { Buildable = canBuild });
+                ecb.AddComponent(entity,
                     new FixGhostVisualsAndPhysicsSystem.FixGhostandChildren { GhostBuildable = canBuild });
             }
             else
@@ -125,6 +124,7 @@ public partial struct BuildJob : IJobEntity
                     if(newGridItem.IsWall)
                         Rooms.Walls.Add(grid, new int3(x,y,z));
                 }
+                Debug.Log($"Part {part.Id} added");
             }
         }
         parts.Clear();
