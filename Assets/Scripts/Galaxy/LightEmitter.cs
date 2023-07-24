@@ -41,6 +41,7 @@ namespace Galaxy
     public partial class LightEmitterSystem : SystemBase
     {
         Light[] _lights;
+        EntityQuery _emitterQuery;
 
         protected override void OnCreate()
         {
@@ -52,33 +53,34 @@ namespace Galaxy
                 _lights[i] = light;
                 light.type = LightType.Directional;
             }
+            _emitterQuery = GetEntityQuery(typeof(LightEmitter), typeof(LocalToWorld), typeof(LocalToGalaxy));
+            RequireForUpdate<ReferenceFrame>();
+            RequireForUpdate<ReferenceFrameOrigin>();
         }
 
         protected override void OnUpdate()
         {
             var refFrame = SystemAPI.GetSingleton<ReferenceFrame>();
 
-            var lightEmitters = SystemAPI.GetComponentLookup<LightEmitter>(true);
-            var localToWorlds = SystemAPI.GetComponentLookup<LocalToWorld>(true);
-            var localToGalaxies = SystemAPI.GetComponentLookup<LocalToGalaxy>(true);
-            var emitterEntities = GetEntityQuery(typeof(LightEmitter), typeof(LocalToWorld), typeof(LocalToGalaxy))
-                .ToEntityArray(Allocator.Temp); 
+            var localToWorlds = _emitterQuery.ToComponentDataArray<LocalToWorld>(Allocator.Temp);
+            var localToGalaxies = _emitterQuery.ToComponentDataArray<LocalToGalaxy>(Allocator.Temp);
+            var lightEmitters = _emitterQuery.ToComponentDataArray<LightEmitter>(Allocator.Temp);
             var currentEmitter = 0;
             for (int i = 0; i < _lights.Length; i++)
             {
-                if (currentEmitter >= emitterEntities.Length)
+                if (currentEmitter >= lightEmitters.Length)
                     _lights[i].gameObject.SetActive(false);
                 else
                 {
-                    var fromEntity = emitterEntities[currentEmitter++];
-                    var emitter = lightEmitters[fromEntity];
-                    var stellarDistance = (localToGalaxies[fromEntity] - refFrame.CurrentLtg).Distance;
-                    var location = localToWorlds[fromEntity].Position;
+                    var emitter = lightEmitters[currentEmitter];
+                    var stellarDistance = (localToGalaxies[currentEmitter] - refFrame.CurrentLtg).Distance;
+                    var location = localToWorlds[currentEmitter].Position;
                     _lights[i].gameObject.SetActive(true);
                     _lights[i].color = new Color(emitter.Color.x, emitter.Color.y, emitter.Color.z, emitter.Color.w);
                     _lights[i].intensity = (float)(emitter.Color.w / math.lengthsq(stellarDistance) * LocalToGalaxy.DISTANCE_PER_STARSECTOR);
                     _lights[i].transform.position = location;
                     _lights[i].transform.LookAt(refFrame.CurrentLtw.Position);
+                    ++currentEmitter;
                 }
             }
             
