@@ -21,7 +21,7 @@ public partial class DebugOccupationSystem : SystemBase
 
     protected override void OnCreate()
     {
-        mesh = Addressables.LoadAssetAsync<Mesh>("Cube").WaitForCompletion();
+        mesh = Addressables.LoadAssetAsync<Mesh>("HullCube").WaitForCompletion();
 
         occupationMat = Resources.Load<GhostPlacementSettings>("GhostPlacementSettings").DebugOccupationMaterial;
         ghostMat = Resources.Load<GhostPlacementSettings>("GhostPlacementSettings").DebugGhostMaterial;
@@ -129,7 +129,7 @@ public partial class DebugOccupationSystem : SystemBase
             if (grid.WorldAABB.Contains(playerPos))
                 inGrid = grid;
             else
-                matrices.Add(float4x4.TRS(grid.WorldAABB.Min, 
+                matrices.Add(float4x4.TRS(grid.WorldAABB.Min + (grid.WorldAABB.Max - grid.WorldAABB.Min) / 2f, 
                     quaternion.identity, 
                     grid.WorldAABB.Size / GridStructure.CELL_SIZE));
         }
@@ -140,7 +140,9 @@ public partial class DebugOccupationSystem : SystemBase
         {
             var parentLtw = SystemAPI.GetComponent<LocalToWorld>(parent.Value);
             var bbox = gridItem.Area;
-            var mtx = float4x4.TRS(GridStructure.CellToWorld(parentLtw, bbox.Min), parentLtw.Rotation,
+            var mtx = float4x4.TRS(
+                GridStructure.AreaCenterToLocal(parentLtw, bbox),
+                parentLtw.Rotation,
                 bbox.Size);
             if (math.any(inGrid.BoundsMax != 0) && bbox.Contains(GridStructure.CellFromPosition(parentLtw, playerPos)))
                 inGridItem = mtx;

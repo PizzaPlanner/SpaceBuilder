@@ -17,8 +17,8 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 78b9de483724e7b48a2946f50320b233
   m_SerializeEntries:
-  - m_GUID: 7f4af82fceeafef4a831860b36640454
-    m_Address: Cube
+  - m_GUID: a7f289ae308efdc4ba61d223ab33c625
+    m_Address: HullCube
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

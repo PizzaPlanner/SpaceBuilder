@@ -1,5 +1,6 @@
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -22,8 +23,13 @@ public partial class BuildingUISystem : SystemBase
         if (builder.ValueRW.PrefabIdToBuild == 0)
             constructionBorder.Q<Label>().text = "<Press T to select a Part>";
         else if (builder.ValueRW.Target.Grid != Entity.Null)
-            constructionBorder.Q<Label>().text =
-                SystemAPI.GetComponent<Name>(IdentifiableMappingSystem.EntitiesById[builder.ValueRW.PrefabIdToBuild]).Value.Value;
+        {
+            var partName = SystemAPI
+                           .GetComponent<Name>(IdentifiableMappingSystem.EntitiesById[builder.ValueRW.PrefabIdToBuild])
+                           .Value.Value;
+            var builderArea = (float3)builder.ValueRW.DragArea.Size * GridStructure.CELL_SIZE;
+            constructionBorder.Q<Label>().text = $"{partName}\n{builderArea.x} x {builderArea.y} x {builderArea.z}";
+        }
         else
             constructionBorder.Q<Label>().text = "<No Target>";
 
@@ -53,8 +59,7 @@ public partial class BuildingUISystem : SystemBase
         var ids = query.ToComponentDataArray<Identifieable>(Allocator.Temp);
         for (int i = 0; i < ids.Length; i++)
         {
-            var button = new BuilderButton {Id = ids[i].ItemId};
-            button.Q<Label>().text = names[i].Value.Value;
+            var button = new BuilderButton { Id = ids[i].ItemId, Name = names[i].Value.Value };
             button.RegisterCallback<MouseEnterEvent>(_ =>
             {
                 SetSelectedPrefab(button.Id);

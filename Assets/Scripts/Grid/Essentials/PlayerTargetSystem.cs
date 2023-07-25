@@ -47,7 +47,7 @@ public partial struct PlayerTargetSystem : ISystem
         collisionFilterMap.Add((byte)PlayerTargetMode.Build, fBuild);
         
         var fScaleGhost = fBuild;
-        fScaleGhost.CollidesWith += (1 << 6);
+        fScaleGhost.CollidesWith = (1 << 6);
         collisionFilterMap.Add((byte)PlayerTargetMode.ScaleGhost, fScaleGhost);
     }
 

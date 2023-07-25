@@ -15,7 +15,7 @@ public class BuildingPartAuthoring : MonoBehaviour
     private void OnDrawGizmos()
     {
         var scale = (float3)SizeInGrid * GridStructure.CELL_SIZE;
-        Gizmos.DrawWireCube(math.up() * 0.5f * scale, 
+        Gizmos.DrawWireCube(float3.zero, 
             scale);
     }
 

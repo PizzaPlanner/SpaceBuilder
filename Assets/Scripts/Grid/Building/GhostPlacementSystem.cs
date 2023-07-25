@@ -46,10 +46,12 @@ public partial class GhostPlacementSystem : SystemBase
             { Mode = PlayerTargetSystem.PlayerTargetMode.Interactions });
     }
 
+    int upOffset;
     protected override void OnUpdate()
     {
         var builder = SystemAPI.GetSingletonRW<GhostPlacementBuilder>();
         var target = SystemAPI.GetComponent<Target>(SystemAPI.GetSingletonEntity<LocalPlayer>());
+        var rooms = SystemAPI.GetSingleton<RoomsLookup>();
 
         var wantBuildGhost = Input.GetMouseButtonUp(0);
         var wantScaleGhost = (Input.GetMouseButton(0) || wantBuildGhost) && builder.ValueRW.PrefabPart.Scalable;
@@ -60,8 +62,12 @@ public partial class GhostPlacementSystem : SystemBase
         {
             builder.ValueRW.Target = target.GridHit;
             builder.ValueRW.DragStartCell = target.GridHit.Cell + target.GridHit.Normal;
+            builder.ValueRW.DragAreaUpOffset = 0;
         }
-        if(target.GridHit.Grid == builder.ValueRW.Target.Grid)
+        else
+            builder.ValueRW.DragAreaUpOffset += (int)math.sign(Input.mouseScrollDelta.y);
+
+        if (target.GridHit.Grid == builder.ValueRW.Target.Grid)
             builder.ValueRW.DragEndCell = target.GridHit.Cell + target.GridHit.Normal;
         
         SystemAPI.SetSingleton(new PlayerTargetModeSettings { Mode =  targetMode });
@@ -74,13 +80,18 @@ public partial class GhostPlacementSystem : SystemBase
         if (builder.ValueRW.Target.Grid == Entity.Null || builder.ValueRW.PrefabIdToBuild == 0)
             return;
 
-        var buildable = true; // TODO
+        // Check if space is already occupied
+        var buildable = builder.ValueRW.DragArea.IsValid;
+        for (int x = builder.ValueRW.DragArea.Min.x; x <= builder.ValueRW.DragArea.Max.x && buildable; x++)
+        for (int y = builder.ValueRW.DragArea.Min.y; y <= builder.ValueRW.DragArea.Max.y && buildable; y++)
+        for (int z = builder.ValueRW.DragArea.Min.z; z <= builder.ValueRW.DragArea.Max.z && buildable; z++)
+            buildable &= !rooms.OccupiedCells.Contains((builder.ValueRW.Target.Grid, new int3(x, y, z)));
 
         var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
         var pendingParts = SystemAPI.GetBuffer<BuildingPartInfo>(builder.ValueRW.Target.Grid);
         if(!SystemAPI.TryGetSingletonEntity<Ghost>(out var ghost))
         {
-            if(builder.ValueRW.ToPartInfo.ToGridItem.Area.IsValid)
+            if(builder.ValueRW.ToPartInfo.ToArea.IsValid)
                 pendingParts.Add(builder.ValueRW.ToPartInfo);
         }
         else
@@ -91,10 +102,10 @@ public partial class GhostPlacementSystem : SystemBase
                 ecb.SetComponent(ghost, builder.ValueRW.ToPartInfo.ToScale);
             if (wantBuildGhost)
             {
+                ecb.DestroyEntity(ghost);
                 var newPart = builder.ValueRW.ToPartInfo;
                 newPart.IsGhost = false;
                 pendingParts.Add(newPart);
-                ecb.DestroyEntity(ghost);
             }
         }
         

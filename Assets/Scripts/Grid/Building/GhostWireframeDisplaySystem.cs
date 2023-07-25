@@ -1,11 +1,17 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 
 public struct GhostWireframe : IComponentData { }
-public struct GhostDisplayBox : IComponentData { }
+
+[MaterialProperty("_GhostStatus", -1)]
+public struct GhostDisplayBox : IComponentData, IQueryTypeParameter
+{
+    public float Value;
+}
 
 [UpdateInGroup(typeof(PresentationSystemGroup))]
 public partial class GhostWireframeDisplaySystem : SystemBase
@@ -31,7 +37,7 @@ public partial class GhostWireframeDisplaySystem : SystemBase
         EntityManager.DestroyEntity(GetEntityQuery(typeof(GhostWireframe)));
         EntityManager.DestroyEntity(GetEntityQuery(typeof(GhostDisplayBox)));
     }
-
+    
     protected override void OnUpdate()
     {
         var roomsLookup = SystemAPI.GetSingleton<RoomsLookup>();
@@ -69,24 +75,23 @@ public partial class GhostWireframeDisplaySystem : SystemBase
         
         if (hasDisplayBox)
         {
+            var buildable = SystemAPI.GetComponent<Ghost>(ghost).Buildable;
             SystemAPI.SetComponent(displayBox, new Parent { Value = builder.Target.Grid });
             SystemAPI.SetComponent(displayBox, builder.ToPartInfo.ToTransform);
             SystemAPI.SetComponent(displayBox, builder.ToPartInfo.ToScaleForGhostBox);
+            SystemAPI.SetComponent(displayBox, new GhostDisplayBox { Value = buildable ? 0 : 1 });
         }
+        
+        var up = math.mul(builder.PlaneRotation, math.up());
+        var forward = math.mul(builder.PlaneRotation, math.forward());
+        var position = GridStructure.CellCenterToLocal(builder.DragStartCell);
+        position += up * 0.05f - up * GridStructure.CELL_SIZE * 0.5f;
 
-        if (!wantScaleGhost)
+        EntityManager.SetComponentData(wireframe, new LocalTransform
         {
-            var up = math.mul(builder.PlaneRotation, math.up());
-            var forward = math.mul(builder.PlaneRotation, math.forward());
-            var position = GridStructure.CellCenterToLocal(builder.DragStartCell);
-            position -= up * GridStructure.CELL_SIZE * 0.5f;
-
-            EntityManager.SetComponentData(wireframe, new LocalTransform
-            {
-                Position = position,
-                Rotation = quaternion.LookRotation(forward, up),
-                Scale = 1
-            });
-        }
+            Position = position,
+            Rotation = quaternion.LookRotation(forward, up),
+            Scale = 1
+        });
     }
 }

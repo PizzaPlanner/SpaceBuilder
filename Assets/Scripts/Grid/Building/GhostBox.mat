@@ -39,8 +39,8 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BorderAlpha: 1
-    - _BorderThickness: 0.15
+    - _BorderAlpha: 0.1
+    - _BorderThickness: 0.1
     - _CenterOffset: 0
     - _CrossAlpha: 1
     - _CrossColorization: 1
@@ -53,10 +53,12 @@ Material:
     - _DefaultSize: 40
     - _DrawOrder: 0
     - _Falloff: 4
+    - _GhostStatus: 0
     - _LineThickness: 0.08
     - _QueueControl: 0
     - _QueueOffset: 50
-    m_Colors: []
+    m_Colors:
+    - _BorderColor: {r: 1, g: 1, b: 1, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &7472912360982295015
 MonoBehaviour:

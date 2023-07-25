@@ -19,4 +19,6 @@ public struct GridStructure : IComponentData
     public static float3 CellToWorld(LocalToWorld ltw, int3 cell) =>  math.mul(ltw.Rotation, CellToLocal(cell)) + ltw.Position;
     public static float3 CellCenterToLocal(int3 cell) =>  (float3)cell * CELL_SIZE + CELL_SIZE * 0.5f;
     public static float3 CellCenterToWorld(LocalToWorld ltw, int3 cell) =>  math.mul(ltw.Rotation, CellCenterToLocal(cell)) + ltw.Position;
+    public static float3 AreaCenterToLocal(BoundingBox area) => area.Center * CELL_SIZE;
+    public static float3 AreaCenterToLocal(LocalToWorld ltw, BoundingBox area) => math.mul(ltw.Rotation, AreaCenterToLocal(area)) + ltw.Position;
 }

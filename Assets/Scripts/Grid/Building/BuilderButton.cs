@@ -14,6 +14,11 @@ public class BuilderButton : VisualElement
         get => ClassListContains("builder-button__Active");
     }
 
+    public string Name
+    {
+        set => this.Q<Label>().text = value;
+    }
+
     public BuilderButton()
     {
         AddToClassList("builder-button");

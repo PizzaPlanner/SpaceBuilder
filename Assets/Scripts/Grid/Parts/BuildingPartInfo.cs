@@ -28,25 +28,30 @@ public struct BuildingPartInfo : IBufferElementData
         get
         {
             var item = _prefab;
-            item.Area = new BoundingBox
-            {
-                Origin = Origin,
-                Extents = _prefab.Scalable ? (int3)Scale - 1 : _prefab.Area.Extents.Rotated(Orientation)
-            };
+            item.Area = ToArea;
             return item;
         }
     }
 
+    public BoundingBox ToArea => _prefab.Scalable
+        ? new BoundingBox
+        {
+            Origin = Origin,
+            Extents = (int3)Scale - 1
+        }
+        : new BoundingBox
+        {
+            Origin = Origin,
+            Extents = _prefab.Area.Extents.Rotated(Orientation)
+        };
+
     public LocalTransform ToTransform => LocalTransform.FromPositionRotation(
-         math.select( 
-             GridStructure.CellCenterToLocal(ToGridItem.Area.Pivot),
-             GridStructure.CellToLocal(ToGridItem.Area.Pivot), 
-             ToGridItem.Area.Size % 2 == 0),
+        GridStructure.AreaCenterToLocal(ToArea),
          Orientation);
 
     public PostRotationScale ToScale =>
         new PostRotationScale { Value = _prefab.Scalable ? Scale : 1 };
     
     public PostRotationScale ToScaleForGhostBox =>
-        new PostRotationScale { Value = _prefab.Scalable ? Scale : _prefab.Area.Extents };
+        new PostRotationScale { Value = ToArea.Size };
 }

@@ -10,26 +10,25 @@ public struct BoundingBox
 
     public readonly uint3 Size => (uint3)(Max - Min + 1);
 
-    public readonly BoundingBox AdjustedToObjectRotation(quaternion objectRotation)
+    public readonly BoundingBox Rotated(quaternion objectRotation)
     {
-        var unitRotation = ((int3)1).Rotated(objectRotation);
-        var bbox = this;
-        bbox.Origin = math.select(Min, Max, unitRotation != 1);
-        bbox.Extents *=
-            math.select(1, -1, bbox.Min != Min | bbox.Max != Max);
-        return bbox;
-        // var centerToOrigin = math.mul(objectRotation, Origin - Center);
-        // var extents = math.mul(objectRotation, Extents);
-        // return new BoundingBox
-        // {
-        //     Origin = (int3)(centerToOrigin + Center),
-        //     Extents = (int3)extents
-        // };
+        // var unitRotation = ((int3)1).Rotated(objectRotation);
+        // var bbox = this;
+        // bbox.Origin = math.select(Min, Max, unitRotation != 1);
+        // bbox.Extents *=
+        //     math.select(1, -1, bbox.Min != Min | bbox.Max != Max);
+        // return bbox;
+        var centerToOrigin = math.mul(objectRotation, Origin - Center);
+        var extents = math.mul(objectRotation, Extents);
+        return new BoundingBox
+        {
+            Origin = (int3)(centerToOrigin + Center),
+            Extents = (int3)extents
+        };
     }
     public readonly int3 Min => math.min(Origin, Origin + Extents);
     public readonly int3 Max => math.max(Origin, Origin + Extents);
     public readonly float3 Center => math.lerp(Min, Max + 1, 0.5f);
-    public readonly int3 Pivot => (int3)(Center);
 
     public readonly bool IsValid => math.all(Max < short.MaxValue) &&
                                     math.all(Min > short.MinValue) && 

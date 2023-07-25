@@ -23,6 +23,7 @@ public struct GhostPlacementBuilder : IComponentData
 
     public int3 DragStartCell;
     public int3 DragEndCell;
+    public int DragAreaUpOffset;
 
     public quaternion CurrentRotation;
 
@@ -37,7 +38,9 @@ public struct GhostPlacementBuilder : IComponentData
         Id = PrefabIdToBuild,
         Orientation = new RightAngleRotation(TotalRotation),
         IsGhost = true,
-        Origin = DragArea.Min,
+        Origin = _prefabPart.Scalable 
+            ? DragArea.Min 
+            : DragStartCell - (int3)PrefabPart.Area.Center + PrefabPart.Area.Rotated(TotalRotation).Origin, // TODO: ok estimate but not correct
         Scale = DragArea.Size
     };
 
@@ -48,7 +51,7 @@ public struct GhostPlacementBuilder : IComponentData
             var bb1 = new BoundingBox
             {
                 Origin = DragStartCell,
-                Extents = DragEndCell - DragStartCell
+                Extents = DragEndCell + Target.Normal * DragAreaUpOffset - DragStartCell
             };
             return bb1;
         }
