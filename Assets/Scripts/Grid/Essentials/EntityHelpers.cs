@@ -50,7 +50,6 @@ public static class EntityHelpers
         return Entity.Null;
     }
 
-    [BurstCompile]
     public static GridItem.Side Rotate(this GridItem.Side side, quaternion rotation)
     {
         var f = math.mul(rotation, math.forward());

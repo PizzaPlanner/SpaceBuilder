@@ -11,7 +11,7 @@ PrefabInstance:
     - target: {fileID: -8043979354818816926, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: Name
-      value: Hull
+      value: Hull (Slope)
       objectReference: {fileID: 0}
     - target: {fileID: -4805197420517858524, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
@@ -232,17 +232,17 @@ PrefabInstance:
     - target: {fileID: 4420211641780734995, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 4420211641780734995, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: 0.000000014901161
       objectReference: {fileID: 0}
     - target: {fileID: 4420211641780734995, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 4420211641780734995, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
@@ -290,7 +290,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5761612204380915481}
-  m_Mesh: {fileID: -5495902117074765545, guid: a9116640f0587344cbd555493f1ddba3, type: 3}
+  m_Mesh: {fileID: 5293831429815803870, guid: aab30a4ef3c5c914784d703b89a31e1e, type: 3}
 --- !u!23 &5377898218857460688
 MeshRenderer:
   m_ObjectHideFlags: 0

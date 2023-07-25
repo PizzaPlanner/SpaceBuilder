@@ -20,7 +20,7 @@ Material:
   m_CustomRenderQueue: 3050
   stringTagMap: {}
   disabledShaderPasses: []
-  m_LockedProperties: 
+  m_LockedProperties: _CenterOffset _CrossLength _CrossThickness _DefaultSize
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -39,7 +39,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _CenterOffset: 0
-    - _CrossLength: 0.3
+    - _CrossLength: 0.2
     - _CrossThickness: 0.06
     - _DecalMeshBiasType: 0
     - _DecalMeshDepthBias: -0.01

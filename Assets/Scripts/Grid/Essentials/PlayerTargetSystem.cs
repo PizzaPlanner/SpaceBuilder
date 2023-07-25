@@ -108,7 +108,7 @@ public partial struct PlayerTargetSystem : ISystem
             // Calculate which grid cell was hit and on which side
             var gridLtw = SystemAPI.GetComponent<LocalToWorld>(grid);
 
-            var cellHit = GridStructure.CellFromPosition(gridLtw, target.Hit + camForward * 0.001f);
+            var cellHit = GridStructure.CellFromPosition(gridLtw, target.Hit + camForward * GridStructure.CELL_SIZE * 0.1f);
             var cellHitCenter = GridStructure.CellCenterToWorld(gridLtw, cellHit);
             var hitDirection = target.Hit - cellHitCenter;
             Debug.DrawLine(target.Hit, cellHitCenter, Color.red);

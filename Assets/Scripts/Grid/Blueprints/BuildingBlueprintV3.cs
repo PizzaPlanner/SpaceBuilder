@@ -21,7 +21,7 @@ public struct BlueprintParserV3 : IBlueprintParser
         public int3 Position;
         public RightAngleRotation Orientation;
         public int3 Color;
-        public int3 Scale;
+        public uint3 Scale;
         public List<ItemData> Inventory;
     }
 
@@ -119,7 +119,7 @@ public struct BlueprintParserV3 : IBlueprintParser
                                 Debug.LogError($"Invalid syntax in Line {i}");
                                 continue;
                             }
-                            current.Scale = new int3(int.Parse(scale[0]), int.Parse(scale[1]), int.Parse(scale[2]));
+                            current.Scale = new uint3(uint.Parse(scale[0]), uint.Parse(scale[1]), uint.Parse(scale[2]));
                             break;
                         }
                         case "Inventory":
@@ -231,7 +231,8 @@ Parts:
             {
                 Id = id,
                 Orientation = item.Orientation,
-                Area = new BoundingBox { Origin = item.Position, Extents = item.Scale - 1 },
+                Origin = item.Position,
+                Scale = item.Scale ,
                 Color = math.all(item.Color == int3.zero)
                     ? default
                     : new Color(item.Color.x / 255f, item.Color.y / 255f, item.Color.z / 255f)

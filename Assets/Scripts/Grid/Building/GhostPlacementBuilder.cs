@@ -1,6 +1,5 @@
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
 
 public struct GhostPlacementBuilder : IComponentData
 {
@@ -25,41 +24,40 @@ public struct GhostPlacementBuilder : IComponentData
     public int3 DragStartCell;
     public int3 DragEndCell;
 
-    RightAngleRotation _currentRotation;
-    public quaternion CurrentRotation
-    {
-        get => _currentRotation;
-        set
-        {
-            var rar = new RightAngleRotation(value);
-            RebuildGhost |= _currentRotation != rar;
-            _currentRotation = rar;
-        }
-    }
+    public quaternion CurrentRotation;
 
-    public BoundingBox Area =>
-        PrefabPart.Scalable ? 
-            DragArea : 
-            new BoundingBox { Origin = DragStartCell, Extents = PrefabPart.Area.Extents }.AdjustedToObjectRotation(CurrentRotation);
-    
-    BoundingBox DragArea
+    public quaternion PlaneRotation => Target.Grid == Entity.Null
+        ? quaternion.identity
+        : quaternion.LookRotation(Target.Normal.yzx, Target.Normal);
+
+    public quaternion TotalRotation => math.mul(PlaneRotation, CurrentRotation);
+
+    public BuildingPartInfo ToPartInfo => new BuildingPartInfo
+    {
+        Id = PrefabIdToBuild,
+        Orientation = new RightAngleRotation(TotalRotation),
+        IsGhost = true,
+        Origin = DragArea.Min,
+        Scale = DragArea.Size
+    };
+
+    public BoundingBox DragArea
     {
         get
         {
             var bb1 = new BoundingBox
             {
-                Origin = DragStartCell, 
+                Origin = DragStartCell,
                 Extents = DragEndCell - DragStartCell
             };
-            var bb2 = new BoundingBox { Origin = bb1.Min, Extents = bb1.Size - 1 };
-            return bb2;
+            return bb1;
         }
     }
 
-    public void SetPrefab(ulong prefabId, GridItem part)
+    public void SetPrefab(ulong prefabId)
     {
         _prefabId = prefabId;
-        _prefabPart = part;
+        _prefabPart = GridItemMappingSystem.GetPrefabFromId(prefabId);
         RebuildGhost = true;
     }
 }

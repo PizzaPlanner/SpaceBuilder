@@ -76,6 +76,6 @@ public partial class BuildingUISystem : SystemBase
         foreach(var button in buildMenu.Query<BuilderButton>().Build())
             button.Selected = button.Id == prefabId;
         var builder = SystemAPI.GetSingletonRW<GhostPlacementBuilder>();
-        builder.ValueRW.SetPrefab(prefabId, SystemAPI.GetComponent<GridItem>(IdentifiableMappingSystem.EntitiesById[prefabId]));
+        builder.ValueRW.SetPrefab(prefabId);
     }
 }

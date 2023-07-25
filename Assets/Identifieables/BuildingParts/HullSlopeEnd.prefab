@@ -11,7 +11,7 @@ PrefabInstance:
     - target: {fileID: -8043979354818816926, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: Name
-      value: Hull
+      value: Hull (Corner)
       objectReference: {fileID: 0}
     - target: {fileID: -4805197420517858524, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
@@ -230,7 +230,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1550846177729607977}
-  m_Mesh: {fileID: -5495902117074765545, guid: 5c3f8c1c379c26644826bc1461187747, type: 3}
+  m_Mesh: {fileID: -7330291610623835268, guid: 950bf5c37bd152d48b95dd5f0aa347cd, type: 3}
 --- !u!23 &3365921106191064206
 MeshRenderer:
   m_ObjectHideFlags: 0

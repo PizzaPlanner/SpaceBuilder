@@ -14,7 +14,6 @@ public partial struct BuildJob : IJobEntity
     public EntityCommandBuffer ecb;
     public RoomsLookup Rooms; 
     [ReadOnly] public NativeParallelHashMap<ulong, Entity> prefabMap;
-    [ReadOnly] public ComponentLookup<GridItem> gridItems;
     [ReadOnly] public ComponentLookup<PhysicsCollider> colliders;
 
     public void Execute(Entity grid, DynamicBuffer<BuildingPartInfo> parts, GridUpdateAspect update)
@@ -36,67 +35,53 @@ public partial struct BuildJob : IJobEntity
                 Debug.LogWarning($"Discarded pending part with invalid prefab ID {part.Id}");
                 continue;
             }
-
-            var originalGridItem = gridItems[prefab];
-            var newGridItem = originalGridItem;
-            newGridItem.Area.Origin = part.Area.Origin;
-            newGridItem.Area.Extents = originalGridItem.Scalable ? 
-                part.Area.Extents : 
-                originalGridItem.Area.Extents.Rotated(part.Orientation);
+            
+            var newGridItem = part.ToGridItem;
+            var area = newGridItem.Area;
                 
             // Check if space is already occupied
-            var canBuild = newGridItem.Area.IsValid;
-            for (int x = newGridItem.Area.Min.x; x <= newGridItem.Area.Max.x && canBuild; x++)
-            for (int y = newGridItem.Area.Min.y; y <= newGridItem.Area.Max.y && canBuild; y++)
-            for (int z = newGridItem.Area.Min.z; z <= newGridItem.Area.Max.z && canBuild; z++)
+            var canBuild = area.IsValid;
+            for (int x = area.Min.x; x <= area.Max.x && canBuild; x++)
+            for (int y = area.Min.y; y <= area.Max.y && canBuild; y++)
+            for (int z = area.Min.z; z <= area.Max.z && canBuild; z++)
                 canBuild &= !Rooms.OccupiedCells.Contains((grid, new int3(x, y, z)));
             
             if (!canBuild && !part.IsGhost)
             {
-                Debug.LogWarning($"Discarded pending part in invalid or occupied area {newGridItem.Area.Min}/{newGridItem.Area.Max}");
+                Debug.LogWarning($"Discarded pending part in invalid or occupied area {area.Min}/{area.Max}");
                 continue;
             }
 
             // Create Part
             var entity = ecb.Instantiate(prefab);
-
-            var transform = LocalTransform.FromPositionRotation(
-                GridStructure.CellToLocal(newGridItem.Area.Origin),
-                part.Orientation);
-            if (originalGridItem.Scalable && math.any(newGridItem.Area.Extents != 0))
+            
+            if (newGridItem.Scalable)
             {
-                if (math.any(newGridItem.Area.Size != 1) && colliders.HasComponent(prefab))
+                ecb.SetComponent(entity, part.ToScale);
+                if (math.any(area.Size != 1) && colliders.HasComponent(prefab))
                 {
-                    transform.Position -= GridStructure.CellCenterToLocal(0);
                     var collider = colliders[prefab].Value;
-                    var scaleUnrotated = newGridItem.Area.Size;
+                    // area is in grid-space, but the collider operates in local-space
+                    var localScale = math.abs(((int3)area.Size).Rotated(math.inverse(part.Orientation)));
                     switch (collider.Value.Type)
                     {
                         case ColliderType.Convex:
                             ecb.SetComponent(entity,
-                                new PhysicsCollider { Value = collider.As<ConvexCollider>().Scaled(scaleUnrotated) });
+                                new PhysicsCollider { Value = collider.As<ConvexCollider>().Scaled(localScale) });
                             break;
                         case ColliderType.Box:
                             ecb.SetComponent(entity,
-                                new PhysicsCollider { Value = collider.As<BoxCollider>().Scaled(scaleUnrotated) });
+                                new PhysicsCollider { Value = collider.As<BoxCollider>().Scaled(localScale) });
                             break;
                         default:
                             Debug.LogError($"No collider scaling method provided for type {collider.Value.Type}");
                             break;
                     }
                 }
-
-                var postTransform = new PostTransformMatrix
-                {
-                    Value = float4x4.TRS(GridStructure.CellCenterToLocal(0), 
-                        quaternion.identity, 
-                        newGridItem.Area.Size)
-                };
-                ecb.SetComponent(entity, postTransform);
             }
 
             ecb.AddComponent(entity, new Parent { Value = grid });
-            ecb.SetComponent(entity, transform);
+            ecb.SetComponent(entity, part.ToTransform);
             ecb.SetComponent(entity, newGridItem);
             
             if (part.Color != default)
@@ -113,18 +98,17 @@ public partial struct BuildJob : IJobEntity
             else
             {
                 updates++;
-                affectedArea.Min = math.min(newGridItem.Area.Min, affectedArea.Min);
-                affectedArea.Max = math.max(newGridItem.Area.Max, affectedArea.Max);
+                affectedArea.Min = math.min(area.Min, affectedArea.Min);
+                affectedArea.Max = math.max(area.Max, affectedArea.Max);
                 
-                for (int x = newGridItem.Area.Min.x; x <= newGridItem.Area.Max.x; x++)
-                for (int y = newGridItem.Area.Min.y; y <= newGridItem.Area.Max.y; y++)
-                for (int z = newGridItem.Area.Min.z; z <= newGridItem.Area.Max.z; z++)
+                for (int x = area.Min.x; x <= area.Max.x; x++)
+                for (int y = area.Min.y; y <= area.Max.y; y++)
+                for (int z = area.Min.z; z <= area.Max.z; z++)
                 {
                     Rooms.OccupiedCells.Add((grid, new int3(x, y, z)));
                     if(newGridItem.IsWall)
                         Rooms.Walls.Add(grid, new int3(x,y,z));
                 }
-                Debug.Log($"Part {part.Id} added");
             }
         }
         parts.Clear();

@@ -5,7 +5,6 @@ using Unity.Physics.Authoring;
 using Unity.Transforms;
 using UnityEngine;
 
-#if UNITY_EDITOR
 [RequireComponent(typeof(IdentifieableAuthoring))]
 [RequireComponent(typeof(PhysicsShapeAuthoring))]
 public class BuildingPartAuthoring : MonoBehaviour
@@ -15,7 +14,9 @@ public class BuildingPartAuthoring : MonoBehaviour
     [SerializeField] private bool IsWall;
     private void OnDrawGizmos()
     {
-        Gizmos.DrawWireCube((float3)SizeInGrid * 0.5f * GridStructure.CELL_SIZE, (float3)SizeInGrid * GridStructure.CELL_SIZE);
+        var scale = (float3)SizeInGrid * GridStructure.CELL_SIZE;
+        Gizmos.DrawWireCube(math.up() * 0.5f * scale, 
+            scale);
     }
 
     [NonSerialized] PhysicsShapeAuthoring _collider;
@@ -48,11 +49,7 @@ public class BuildingPartAuthoring : MonoBehaviour
                 IsWall = authoring.IsWall
             });
             if(authoring.Scalable)
-                AddComponent(entity, new PostTransformMatrix
-                {
-                    Value = float4x4.Translate(GridStructure.CellCenterToLocal(0)) 
-                });
+                AddComponent(entity, PostRotationScale.Identity);
         }
     }
 }
-#endif

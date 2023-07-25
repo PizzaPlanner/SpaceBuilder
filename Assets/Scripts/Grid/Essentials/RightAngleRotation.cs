@@ -1,6 +1,7 @@
 using Unity.Mathematics;
 using UnityEngine;
 
+#pragma warning disable CS0660, CS0661
 [System.Serializable]
 public struct RightAngleRotation
 {
@@ -77,7 +78,6 @@ public struct RightAngleRotation
             math.sign((rar.Value & 0b0100_0000) * usign));
         return math.abs(math.dot(forward, up)) < 0.1f ? quaternion.LookRotation(forward, up) : quaternion.identity;
     }
-
     public static bool operator ==(RightAngleRotation lhs, RightAngleRotation rhs) => lhs.Value == rhs.Value;
     public static bool operator !=(RightAngleRotation lhs, RightAngleRotation rhs) => lhs.Value != rhs.Value;
 
@@ -86,3 +86,4 @@ public struct RightAngleRotation
         return Value.ToString("X2");
     }
 }
+#pragma warning restore CS0660, CS0661

@@ -8,12 +8,7 @@ public struct BoundingBox
 
     public int3 Extents;
 
-    public readonly int3 Size => Max - Min + 1;
-
-    public readonly PostTransformMatrix ToScale(quaternion objectRotation) => new()
-    {
-        Value = float4x4.TRS(GridStructure.CELL_SIZE * 0.5f, objectRotation, Size)
-    }; // float4x4.Scale(math.abs(Size.Rotated(math.inverse(objectRotation))))};
+    public readonly uint3 Size => (uint3)(Max - Min + 1);
 
     public readonly BoundingBox AdjustedToObjectRotation(quaternion objectRotation)
     {
@@ -23,10 +18,18 @@ public struct BoundingBox
         bbox.Extents *=
             math.select(1, -1, bbox.Min != Min | bbox.Max != Max);
         return bbox;
+        // var centerToOrigin = math.mul(objectRotation, Origin - Center);
+        // var extents = math.mul(objectRotation, Extents);
+        // return new BoundingBox
+        // {
+        //     Origin = (int3)(centerToOrigin + Center),
+        //     Extents = (int3)extents
+        // };
     }
     public readonly int3 Min => math.min(Origin, Origin + Extents);
     public readonly int3 Max => math.max(Origin, Origin + Extents);
     public readonly float3 Center => math.lerp(Min, Max + 1, 0.5f);
+    public readonly int3 Pivot => (int3)(Center);
 
     public readonly bool IsValid => math.all(Max < short.MaxValue) &&
                                     math.all(Min > short.MinValue) && 

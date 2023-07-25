@@ -26,12 +26,12 @@ public partial struct FixGhostVisualsAndPhysicsSystem : ISystem
             {
                 var e = link.Value;
                 ecb.AddSharedComponent(e, new PhysicsWorldIndex(999));
-                ecb.AddSharedComponent(e, new RenderFilterSettings
-                {
-                    Layer = ghost.GhostBuildable ? 8 : 9, 
-                    ReceiveShadows = false,
-                    ShadowCastingMode = ShadowCastingMode.Off
-                });
+                // ecb.AddSharedComponent(e, new RenderFilterSettings
+                // {
+                //     Layer = ghost.GhostBuildable ? 8 : 9, 
+                //     ReceiveShadows = false,
+                //     ShadowCastingMode = ShadowCastingMode.Off
+                // });
             }
             ecb.RemoveComponent<FixGhostandChildren>(parent);
         }

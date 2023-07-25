@@ -50,16 +50,9 @@ public partial class GhostPlacementSystem : SystemBase
     {
         var builder = SystemAPI.GetSingletonRW<GhostPlacementBuilder>();
         var target = SystemAPI.GetComponent<Target>(SystemAPI.GetSingletonEntity<LocalPlayer>());
-        
-        var newPart = new BuildingPartInfo
-        {
-            Id = builder.ValueRW.PrefabIdToBuild,
-            Orientation = new RightAngleRotation(builder.ValueRW.CurrentRotation),
-            IsGhost = true,
-            Area = builder.ValueRW.Area
-        };
-        
-        var wantScaleGhost = Input.GetMouseButton(0) && builder.ValueRW.PrefabPart.Scalable;
+
+        var wantBuildGhost = Input.GetMouseButtonUp(0);
+        var wantScaleGhost = (Input.GetMouseButton(0) || wantBuildGhost) && builder.ValueRW.PrefabPart.Scalable;
         var targetMode = wantScaleGhost
             ? PlayerTargetSystem.PlayerTargetMode.ScaleGhost
             : PlayerTargetSystem.PlayerTargetMode.Build;
@@ -80,43 +73,36 @@ public partial class GhostPlacementSystem : SystemBase
         builder.ValueRW.RebuildGhost = false;
         if (builder.ValueRW.Target.Grid == Entity.Null || builder.ValueRW.PrefabIdToBuild == 0)
             return;
-        
+
         var buildable = true; // TODO
 
         var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
         var pendingParts = SystemAPI.GetBuffer<BuildingPartInfo>(builder.ValueRW.Target.Grid);
         if(!SystemAPI.TryGetSingletonEntity<Ghost>(out var ghost))
         {
-            if(newPart.Area.IsValid)
-                pendingParts.Add(newPart);
+            if(builder.ValueRW.ToPartInfo.ToGridItem.Area.IsValid)
+                pendingParts.Add(builder.ValueRW.ToPartInfo);
         }
         else
         {
             ecb.SetComponent(ghost, new Ghost { Buildable = buildable });
-            ecb.SetComponent(ghost, LocalTransform.FromPositionRotation(
-                GridStructure.CellToLocal(builder.ValueRW.DragStartCell),
-                builder.ValueRW.CurrentRotation));
-            if (Input.GetMouseButtonUp(0))
+            ecb.SetComponent(ghost, builder.ValueRW.ToPartInfo.ToTransform);
+            if(builder.ValueRW.PrefabPart.Scalable)
+                ecb.SetComponent(ghost, builder.ValueRW.ToPartInfo.ToScale);
+            if (wantBuildGhost)
             {
+                var newPart = builder.ValueRW.ToPartInfo;
                 newPart.IsGhost = false;
                 pendingParts.Add(newPart);
                 ecb.DestroyEntity(ghost);
             }
         }
         
-        var input = SystemAPI.GetSingleton<InputSystem.InputData>();
-        if (input.ScrollMode == InputSystem.ScrollMode.Rotate)
+        if(Input.GetKeyDown(KeyCode.R))
         {
-            var sign = (int)math.sign(input.Scroll);
-            var rotation = quaternion.identity;
-            if (Input.GetKey(KeyCode.Alpha1))
-                rotation = math.mul(rotation, quaternion.RotateX(math.PI * sign * 0.5f));
-            if (Input.GetKey(KeyCode.Alpha2))
-                rotation = math.mul(rotation, quaternion.RotateY(math.PI * sign * 0.5f));
-            if (Input.GetKey(KeyCode.Alpha3))
-                rotation = math.mul(rotation, quaternion.RotateZ(math.PI * sign * 0.5f));
-
-            builder.ValueRW.CurrentRotation = rotation;
+            var sign = Input.GetKeyDown(KeyCode.LeftShift) ? -1 : 1;
+            var rotation = quaternion.RotateY(math.PI * sign * 0.5f);
+            builder.ValueRW.CurrentRotation = math.mul(rotation, builder.ValueRW.CurrentRotation);
         }
         ecb.Playback(EntityManager);
     }

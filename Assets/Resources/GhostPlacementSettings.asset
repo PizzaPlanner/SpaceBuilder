@@ -22,4 +22,4 @@ MonoBehaviour:
   GridDestroyMaterial: {fileID: 0}
   DebugOccupationMaterial: {fileID: 2100000, guid: 54c0f65dcadda154a8708571afe467d5,
     type: 2}
-  DebugGhostMaterial: {fileID: 2100000, guid: 5a9c301ef0108bd47bf5023e9e1c599a, type: 2}
+  DebugGhostMaterial: {fileID: 2100000, guid: 725ef72e08b30114b8a178c6b0b85c0f, type: 2}

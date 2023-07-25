@@ -5,6 +5,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.UIElements;
 using Material = UnityEngine.Material;
 
@@ -13,96 +14,40 @@ public partial class DebugOccupationSystem : SystemBase
 {
     private Mesh mesh;
     private Material occupationMat, ghostMat;
+    Toggle _target;
+    Toggle _rooms;
+    Toggle _aabbs;
+    Toggle _occupations;
 
-    public struct Settings : IComponentData
-    {
-        public bool showAABBs, showOccupations, showRooms, showTarget;
-    }
-    
     protected override void OnCreate()
     {
-        Vector3[] vertices = {
-            new Vector3 (0, 0, 0),
-            new Vector3 (0.25f, 0, 0),
-            new Vector3 (0.25f, 0.25f, 0),
-            new Vector3 (0, 0.25f, 0),
-            new Vector3 (0, 0.25f, 0.25f),
-            new Vector3 (0.25f, 0.25f, 0.25f),
-            new Vector3 (0.25f, 0, 0.25f),
-            new Vector3 (0, 0, 0.25f),
-        };
-
-        int[] triangles = {
-            0, 2, 1, //face front
-            0, 3, 2,
-            2, 3, 4, //face top
-            2, 4, 5,
-            1, 2, 5, //face right
-            1, 5, 6,
-            0, 7, 4, //face left
-            0, 4, 3,
-            5, 4, 7, //face back
-            5, 7, 6,
-            0, 6, 7, //face bottom
-            0, 1, 6
-        };
-
-        mesh = new Mesh();
-        mesh.Clear ();
-        mesh.vertices = vertices;
-        mesh.triangles = triangles;
-        mesh.Optimize ();
-        mesh.RecalculateNormals ();
+        mesh = Addressables.LoadAssetAsync<Mesh>("Cube").WaitForCompletion();
 
         occupationMat = Resources.Load<GhostPlacementSettings>("GhostPlacementSettings").DebugOccupationMaterial;
         ghostMat = Resources.Load<GhostPlacementSettings>("GhostPlacementSettings").DebugGhostMaterial;
-        
-        RequireForUpdate<Settings>();
-        EntityManager.CreateEntity(typeof(Settings));    
     }
     
     protected override void OnStartRunning()
     {
-        // var ui = Object.FindObjectOfType<UIDocument>().rootVisualElement.Q("InfoTexts").Q("Grids");
-        // ui.Q<Toggle>("target").RegisterValueChangedCallback(x =>
-        // {
-        //     var settings = SystemAPI.GetSingletonRW<Settings>();
-        //     settings.ValueRW.showTarget = x.newValue;
-        // });
-        //
-        // ui.Q<Toggle>("aabbs").RegisterValueChangedCallback(x =>
-        // {
-        //     var settings = SystemAPI.GetSingletonRW<Settings>();
-        //     settings.ValueRW.showAABBs = x.newValue;
-        // });
-        //
-        // ui.Q<Toggle>("rooms").RegisterValueChangedCallback(x =>
-        // {
-        //     var settings = SystemAPI.GetSingletonRW<Settings>();
-        //     settings.ValueRW.showRooms = x.newValue;
-        // });
-        //
-        // ui.Q<Toggle>("occupations").RegisterValueChangedCallback(x =>
-        // {
-        //     var settings = SystemAPI.GetSingletonRW<Settings>();
-        //     settings.ValueRW.showOccupations = x.newValue;
-        // });
+        var ui = Object.FindObjectOfType<UIDocument>().rootVisualElement.Q("InfoTexts").Q("Grids");
+        _target = ui.Q<Toggle>("target");
+        _rooms = ui.Q<Toggle>("rooms");
+        _aabbs = ui.Q<Toggle>("aabbs");
+        _occupations = ui.Q<Toggle>("occupations");
     }
 
     protected override void OnUpdate()
     {
-        var settings = SystemAPI.GetSingleton<Settings>();
-
-        if (settings.showOccupations)
+        if (_occupations.value)
             ShowOccupations();
 
-        if (settings.showAABBs)
+        if (_aabbs.value)
             ShowAABBs();
 
-        if (settings.showRooms)
+        if (_rooms.value)
             ShowRooms();
         
-        if(settings.showTarget)
+        if(_target.value)
             ShowTargetBoundingBoxes();
     }
 
@@ -184,14 +129,14 @@ public partial class DebugOccupationSystem : SystemBase
             if (grid.WorldAABB.Contains(playerPos))
                 inGrid = grid;
             else
-                matrices.Add(float4x4.TRS(grid.WorldAABB.Center - grid.WorldAABB.Extents, 
+                matrices.Add(float4x4.TRS(grid.WorldAABB.Min, 
                     quaternion.identity, 
                     grid.WorldAABB.Size / GridStructure.CELL_SIZE));
         }
         Draw(matrices, ghostMat);
         
         matrices.Clear();
-        foreach(var (gridItem, parent) in SystemAPI.Query<GridItem, Parent>())
+        foreach(var (gridItem, parent) in SystemAPI.Query<GridItem, Parent>().WithNone<Ghost>())
         {
             var parentLtw = SystemAPI.GetComponent<LocalToWorld>(parent.Value);
             var bbox = gridItem.Area;

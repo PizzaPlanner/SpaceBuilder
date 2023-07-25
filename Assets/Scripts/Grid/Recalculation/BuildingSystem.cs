@@ -1,14 +1,6 @@
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Physics;
-using Unity.Transforms;
-using UnityEngine;
 
-public struct GridChangedEvent : IComponentData
-{
-    public Entity Grid;
-    public int3 Position;
-}
 
 public partial struct BuildingSystem : ISystem
 {
@@ -26,7 +18,6 @@ public partial struct BuildingSystem : ISystem
         new BuildJob
         {
             ecb = ecb,
-            gridItems = state.GetComponentLookup<GridItem>(true),
             colliders = state.GetComponentLookup<PhysicsCollider>(true),
             prefabMap = IdentifiableMappingSystem.EntitiesById,
             Rooms = SystemAPI.GetSingletonRW<RoomsLookup>().ValueRW

@@ -1,5 +1,4 @@
 using Unity.Entities;
-using Unity.Transforms;
 using UnityEngine;
 
 namespace Grid.Authoring
@@ -12,7 +11,7 @@ namespace Grid.Authoring
             {
                 var entity = GetEntity(TransformUsageFlags.Dynamic);
                 AddComponent(entity, new GhostDisplayBox());
-                AddComponent<PostTransformMatrix>(entity);
+                AddComponent(entity, PostRotationScale.Identity);
             }
         }
     }

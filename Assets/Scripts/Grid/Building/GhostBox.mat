@@ -15,13 +15,13 @@ Material:
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 0
-  m_EnableInstancingVariants: 0
+  m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 3050
   stringTagMap: {}
   disabledShaderPasses: []
-  m_LockedProperties: _BorderAlpha _BorderThickness _CrossAlpha _CrossLength _CrossThickness
-    _DefaultSize
+  m_LockedProperties: _BorderAlpha _BorderThickness _CrossAlpha _CrossLength _CrossRepetition
+    _CrossThickness _DefaultSize
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -39,12 +39,13 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BorderAlpha: 0.6
-    - _BorderThickness: 0.03
+    - _BorderAlpha: 1
+    - _BorderThickness: 0.15
     - _CenterOffset: 0
-    - _CrossAlpha: 0.1
-    - _CrossLength: 0.25
-    - _CrossRepetition: 4
+    - _CrossAlpha: 1
+    - _CrossColorization: 1
+    - _CrossLength: 0.2
+    - _CrossRepetition: 1
     - _CrossThickness: 0.02
     - _DecalMeshBiasType: 0
     - _DecalMeshDepthBias: -0.01

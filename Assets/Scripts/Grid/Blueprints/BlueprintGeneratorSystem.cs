@@ -69,6 +69,7 @@ public partial class BlueprintGeneratorSystem : SystemBase
                                 .Build();
         RequireForUpdate(_prefabQuery);
         RequireForUpdate<ReferenceFrame>();
+        RequireForUpdate<GridItemMappingSystem.Loaded>();
     }
 
     void LoadBlueprints()

@@ -70,24 +70,21 @@ public partial class GhostWireframeDisplaySystem : SystemBase
         if (hasDisplayBox)
         {
             SystemAPI.SetComponent(displayBox, new Parent { Value = builder.Target.Grid });
-            var area = builder.Area;
-            SystemAPI.SetComponent(displayBox, new PostTransformMatrix
-            {
-                Value = float4x4.TRS(
-                    GridStructure.CellToLocal(area.Origin),
-                    quaternion.identity, 
-                    area.Size)
-            });
+            SystemAPI.SetComponent(displayBox, builder.ToPartInfo.ToTransform);
+            SystemAPI.SetComponent(displayBox, builder.ToPartInfo.ToScaleForGhostBox);
         }
 
         if (!wantScaleGhost)
         {
+            var up = math.mul(builder.PlaneRotation, math.up());
+            var forward = math.mul(builder.PlaneRotation, math.forward());
             var position = GridStructure.CellCenterToLocal(builder.DragStartCell);
-            position -= (float3)builder.Target.Normal * GridStructure.CELL_SIZE * 0.5f;
+            position -= up * GridStructure.CELL_SIZE * 0.5f;
+
             EntityManager.SetComponentData(wireframe, new LocalTransform
             {
                 Position = position,
-                Rotation = builder.CurrentRotation,
+                Rotation = quaternion.LookRotation(forward, up),
                 Scale = 1
             });
         }
