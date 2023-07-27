@@ -19,7 +19,8 @@
         "Grid",
         "Items",
         "Identifiables",
-        "Blueprints"
+        "Blueprints",
+        "Controls"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

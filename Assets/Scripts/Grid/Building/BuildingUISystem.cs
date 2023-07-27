@@ -5,53 +5,76 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 [UpdateInGroup(typeof(PresentationSystemGroup))]
-public partial class BuildingUISystem : SystemBase
+partial class BuildingUIFrameSystem : SystemBase
 {
-    private VisualElement buildMenu, constructionBorder;
-    private GhostPlacementSystem placementSystem;
+    VisualElement constructionBorder, destructionBorder;
     protected override void OnCreate()
     {
-        RequireForUpdate<BuilderMode_Blueprint>();
+        RequireForUpdate<ControlScheme.Building>();
         RequireForUpdate<LocalPlayer>();
         RequireForUpdate<IdentifiableMappingSystem.Loaded>();
-        RequireForUpdate<GhostPlacementBuilder>();
+    }
+
+    protected override void OnStartRunning()
+    {
+        constructionBorder ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("BlueprintBorder");
+        destructionBorder ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("DestructionBorder");
+    }
+
+    protected override void OnStopRunning()
+    {
+        constructionBorder.style.display = DisplayStyle.None;
+        destructionBorder.style.display = DisplayStyle.None;
     }
 
     protected override void OnUpdate()
     {
-        var builder = SystemAPI.GetSingletonRW<GhostPlacementBuilder>();
-        if (builder.ValueRW.PrefabIdToBuild == 0)
-            constructionBorder.Q<Label>().text = "<Press T to select a Part>";
-        else if (builder.ValueRW.Target.Grid != Entity.Null)
+        if (SystemAPI.HasSingleton<ControlScheme.Building.Destroy>())
         {
-            var partName = SystemAPI
-                           .GetComponent<Name>(IdentifiableMappingSystem.EntitiesById[builder.ValueRW.PrefabIdToBuild])
-                           .Value.Value;
-            var builderArea = (float3)builder.ValueRW.DragArea.Size * GridStructure.CELL_SIZE;
-            constructionBorder.Q<Label>().text = $"{partName}\n{builderArea.x} x {builderArea.y} x {builderArea.z}";
+            destructionBorder.style.display = DisplayStyle.Flex;
+            constructionBorder.style.display = DisplayStyle.None;
+            return;
+        }
+        
+        destructionBorder.style.display = DisplayStyle.None;
+        constructionBorder.style.display = DisplayStyle.Flex;
+        if (SystemAPI.TryGetSingletonRW<GhostPlacementBuilder>(out var builder) 
+            && builder.ValueRW.Target.Grid != Entity.Null)
+        {
+            if (builder.ValueRW.PrefabIdToBuild == 0)
+                constructionBorder.Q<Label>().text = "<Press T to select a Part>";
+            else
+            {
+                var partName = SystemAPI
+                               .GetComponent<Name>(IdentifiableMappingSystem.EntitiesById[builder.ValueRW.PrefabIdToBuild])
+                               .Value.Value;
+                var builderArea = (float3)builder.ValueRW.ToPartInfo.ToArea.Size * GridStructure.CELL_SIZE;
+                constructionBorder.Q<Label>().text = $"{partName}\n{builderArea.x} x {builderArea.y} x {builderArea.z}";
+            }
         }
         else
             constructionBorder.Q<Label>().text = "<No Target>";
-
-        if (Input.GetKeyDown(KeyCode.T))
-        {
-            buildMenu.style.display = DisplayStyle.Flex;
-            World.GetExistingSystemManaged<InputSystem>().SetCursor(InputSystem.CursorState.HotMenu);
-        }
-        else if (Input.GetKeyUp(KeyCode.T))
-        {
-            buildMenu.style.display = DisplayStyle.None;
-            World.GetExistingSystemManaged<InputSystem>().SetCursor(InputSystem.CursorState.Disabled);
-        }
     }
+}
+
+[UpdateInGroup(typeof(PresentationSystemGroup))]
+public partial class BuildingUISystem : SystemBase
+{
+    private VisualElement buildMenu;
+    protected override void OnCreate()
+    {
+        RequireForUpdate<ControlScheme.UI.BuildingParts>();
+        RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<IdentifiableMappingSystem.Loaded>();
+    }
+
+    protected override void OnUpdate() { }
 
     protected override void OnStartRunning()
     {
         var root = GameObject.FindObjectOfType<UIDocument>().rootVisualElement;
         buildMenu ??= root.Q("BuildMenu");
-        buildMenu.style.display = DisplayStyle.None;
-        constructionBorder ??= root.Q("BlueprintBorder");
-        constructionBorder.style.display = DisplayStyle.Flex;
+        buildMenu.style.display = DisplayStyle.Flex;
         buildMenu.Clear();
 
         var query = GetEntityQuery(typeof(Prefab), typeof(GridItem), typeof(Identifieable), typeof(Name));
@@ -70,10 +93,7 @@ public partial class BuildingUISystem : SystemBase
 
     protected override void OnStopRunning()
     {
-        constructionBorder.style.display = DisplayStyle.None;
         buildMenu.style.display = DisplayStyle.None;
-        if(SystemAPI.HasSingleton<InputSystem.ControlHotMenu>())
-            World.GetExistingSystemManaged<InputSystem>().SetCursor(InputSystem.CursorState.Disabled);
     }
 
     void SetSelectedPrefab(ulong prefabId)

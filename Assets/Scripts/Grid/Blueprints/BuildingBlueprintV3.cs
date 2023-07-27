@@ -155,7 +155,7 @@ public struct BlueprintParserV3 : IBlueprintParser
         data.Parts = new Dictionary<ulong, List<PartData>>();
         data.Name = em.GetComponentData<Name>(grid).Value.Value;
         data.Version = 3;
-        var children = em.GetBuffer<Child>(grid);
+        var children = em.GetBuffer<Child>(grid, true);
         foreach (var child in children)
         {
             if (!em.HasComponent<GridItem>(child.Value) || em.HasComponent<Ghost>(child.Value))

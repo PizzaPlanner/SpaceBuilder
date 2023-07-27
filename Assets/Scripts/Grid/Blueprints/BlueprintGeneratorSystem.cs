@@ -53,6 +53,8 @@ public partial class BlueprintGeneratorSystem : SystemBase
         SharedStatic<NativeQueue<BlueprintSpawnInfo>>
             .GetOrCreate<BlueprintSpawnInfo>();
 
+    static NativeQueue<Entity> toSave;
+
     static string BaseFolder => Path.Combine(Application.persistentDataPath, "blueprints");
     static string[] SpawnablePOIs => Directory
         .EnumerateFiles(BaseFolder, $"*{BlueprintUtils.BlueprintFileExtension}", SearchOption.AllDirectories)
@@ -70,6 +72,8 @@ public partial class BlueprintGeneratorSystem : SystemBase
         RequireForUpdate(_prefabQuery);
         RequireForUpdate<ReferenceFrame>();
         RequireForUpdate<GridItemMappingSystem.Loaded>();
+
+        toSave = new NativeQueue<Entity>(Allocator.Persistent);
     }
 
     void LoadBlueprints()
@@ -109,6 +113,7 @@ public partial class BlueprintGeneratorSystem : SystemBase
         spawnables.Dispose();
         generatablePOIs.Dispose();
         toSpawn.Data.Dispose();
+        toSave.Dispose();
     }
 
     public static void QueueBlueprintSpawn(FixedString64Bytes path, LocalToGalaxy ltg, quaternion absoluteOrientation)
@@ -144,6 +149,11 @@ public partial class BlueprintGeneratorSystem : SystemBase
         });
     }
 
+    internal static void QueueBlueprintSave(Entity grid)
+    {
+        toSave.Enqueue(grid);
+    }
+
     protected override void OnUpdate()
     {
         var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
@@ -156,6 +166,18 @@ public partial class BlueprintGeneratorSystem : SystemBase
             var e = ecb.Instantiate(spawn.Prefab);
             ecb.SetComponent(e, spawn.LocalToGalaxy);
             ecb.SetComponent(e, LocalTransform.FromRotation(spawn.AbsoluteRotation));
+        }
+
+        while (toSave.TryDequeue(out var grid))
+        {
+            var text = BlueprintUtils.Serialize(grid, EntityManager);
+            var name = SystemAPI.GetComponent<Name>(grid).Value;
+            var targetPath = Path.Combine(BaseFolder, "Exported", $"{name}{BlueprintUtils.BlueprintFileExtension}");
+            var file = new FileInfo(targetPath);
+            file.Directory.Create();
+            File.WriteAllText(targetPath, text, Encoding.UTF8);
+            Debug.Log($"Exported Blueprint to {targetPath}");
+            LoadAsPrefab(text, $"Exported/{name}", SourceType.Local);
         }
         
         var keys = generatablePOIs;
@@ -188,7 +210,7 @@ public partial class BlueprintGeneratorSystem : SystemBase
             return;
         }
 
-        if (!BlueprintUtils.Load(text, out var data))
+        if (!BlueprintUtils.Deserialize(text, out var data))
             return;
 
         var result = new SpawnablePrefab

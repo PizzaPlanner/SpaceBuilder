@@ -33,30 +33,18 @@ public struct RightAngleRotation
         else if (up == GridItem.Side.Front) Value += 0b0100_0000;
     }
 
-    public GridItem.Side Forward
-    {
-        get
-        {
-            if ((Value & 0b0000_1001) != 0) return GridItem.Side.Left;
-            if ((Value & 0b0000_0001) != 0) return GridItem.Side.Right;
-            if ((Value & 0b0000_1010) != 0) return GridItem.Side.Down;
-            if ((Value & 0b0000_0010) != 0) return GridItem.Side.Up;
-            if ((Value & 0b0000_1100) != 0) return GridItem.Side.Back;
-            if ((Value & 0b0000_0100) != 0) return GridItem.Side.Front;
-            return 0;
-        }
-    }
+    public int3 Plane => 1 - math.abs(Up);
 
-    public GridItem.Side Up
+    public int3 Up
     {
         get
         {
-            if ((Value & 0b1001_0000) != 0) return GridItem.Side.Left;
-            if ((Value & 0b0001_0000) != 0) return GridItem.Side.Right;
-            if ((Value & 0b1010_0000) != 0) return GridItem.Side.Down;
-            if ((Value & 0b0010_0000) != 0) return GridItem.Side.Up;
-            if ((Value & 0b1100_0000) != 0) return GridItem.Side.Back;
-            if ((Value & 0b0100_0000) != 0) return GridItem.Side.Front;
+            if ((Value & 0b1001_0000) != 0) return (int3)math.left();
+            if ((Value & 0b0001_0000) != 0) return (int3)math.right();
+            if ((Value & 0b1010_0000) != 0) return (int3)math.down();
+            if ((Value & 0b0010_0000) != 0) return (int3)math.up();
+            if ((Value & 0b1100_0000) != 0) return (int3)math.back();
+            if ((Value & 0b0100_0000) != 0) return (int3)math.forward();
             return 0;
         }
     }

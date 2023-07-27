@@ -12,7 +12,7 @@ public partial class DebugModeSystem : SystemBase
     {
         RequireForUpdate<LocalPlayer>();
         RequireForUpdate<IdentifiableMappingSystem.Loaded>();
-        RequireForUpdate<InputSystem.ControlUI>();
+        RequireForUpdate<ControlScheme.UI.TabMenu>();
     }
 
     protected override void OnStartRunning()

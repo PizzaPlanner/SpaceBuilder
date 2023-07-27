@@ -12,7 +12,8 @@
         "Unity.Physics",
         "Grid",
         "Player",
-        "Identifiables"
+        "Identifiables",
+        "Controls"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

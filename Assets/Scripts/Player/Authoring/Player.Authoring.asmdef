@@ -9,6 +9,7 @@
         "Unity.Transforms.Hybrid",
         "Unity.Mathematics",
         "Player",
+        "Controls",
         "Unity.Physics.Custom"
     ],
     "includePlatforms": [],

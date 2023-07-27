@@ -85,7 +85,7 @@ public partial class GhostWireframeDisplaySystem : SystemBase
         var up = math.mul(builder.PlaneRotation, math.up());
         var forward = math.mul(builder.PlaneRotation, math.forward());
         var position = GridStructure.CellCenterToLocal(builder.DragStartCell);
-        position += up * 0.05f - up * GridStructure.CELL_SIZE * 0.5f;
+        position += up * 0.01f - up * GridStructure.CELL_SIZE * 0.5f;
 
         EntityManager.SetComponentData(wireframe, new LocalTransform
         {

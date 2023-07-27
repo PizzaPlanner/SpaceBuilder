@@ -39,14 +39,16 @@ public static class BlueprintUtils
         }
     }
 
-    public static string Save(Entity grid, EntityManager em)
+    public static void Save(Entity grid) => BlueprintGeneratorSystem.QueueBlueprintSave(grid);
+
+    internal static string Serialize(Entity grid, EntityManager em)
     {
         var parser = new BlueprintParserV3();
         return $@"{parser.VersionIdentifier}
 {parser.Save(grid, em)}";
     }
 
-    public static bool Load(string blueprint, out BlueprintData data)
+    public static bool Deserialize(string blueprint, out BlueprintData data)
     {
         if(versionToLoader == null)
             Initialize();

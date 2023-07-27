@@ -18,7 +18,7 @@ public partial class InteractionSystem : SystemBase
     protected override void OnUpdate()
     {
         EntityManager.RemoveComponent<Interacted>(GetEntityQuery(typeof(Interacted)));
-        if (Input.GetMouseButtonDown(0))
+        if (SystemAPI.GetSingleton<InputData>().WantInteraction)
         {
             var myTarget = SystemAPI.GetComponent<Target>(SystemAPI.GetSingletonEntity<LocalPlayer>());
             if (myTarget.CanInteract)

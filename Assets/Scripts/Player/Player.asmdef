@@ -9,7 +9,8 @@
         "Unity.Collections",
         "Unity.Entities.Graphics",
         "Unity.Physics",
-        "Galaxy"
+        "Galaxy",
+        "Controls"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

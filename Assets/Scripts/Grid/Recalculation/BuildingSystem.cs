@@ -1,8 +1,7 @@
 using Unity.Entities;
 using Unity.Physics;
 
-
-public partial struct BuildingSystem : ISystem
+internal partial struct BuildingSystem : ISystem
 {
     public void OnCreate(ref SystemState state)
     {
@@ -20,6 +19,12 @@ public partial struct BuildingSystem : ISystem
             ecb = ecb,
             colliders = state.GetComponentLookup<PhysicsCollider>(true),
             prefabMap = IdentifiableMappingSystem.EntitiesById,
+            Rooms = SystemAPI.GetSingletonRW<RoomsLookup>().ValueRW
+        }.Schedule();
+
+        new UnbuildJob()
+        {
+            ecb = ecb,
             Rooms = SystemAPI.GetSingletonRW<RoomsLookup>().ValueRW
         }.Schedule();
     }

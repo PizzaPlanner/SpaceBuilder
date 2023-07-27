@@ -1,35 +1,31 @@
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Transforms;
 
 public partial class SteeringToggleSystem : SystemBase
 {
-    private InputSystem inputSystem;
-
     protected override void OnCreate()
     {
-        inputSystem = World.GetExistingSystemManaged<InputSystem>();
         RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<ControlScheme.Player>();
     }
 
     protected override void OnUpdate()
     {
-        var localPlayer = GetSingletonEntity<LocalPlayer>();
-        var input = GetSingleton<InputSystem.InputData>();
-        Entities.ForEach((Entity e, in SteeringController ctrl, in Interacted interacted) =>
+        var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
+        var ecb = new EntityCommandBuffer(Allocator.Temp);
+        foreach(var (ctrl, parent, interacted, e) in 
+                SystemAPI.Query<SteeringController, Parent, Interacted>().WithEntityAccess())
         {
             if (interacted.Interactor != localPlayer)
                 return;
 
-            if (input.CurrentAction != InputSystem.ActionState.None)
+            if (!SystemAPI.HasComponent<ReferenceFrame>(parent.Value))
                 return;
+            
+            ecb.AddComponent<LocalShip>(e);
+        }
 
-            if (HasSingleton<ControlScheme.OnFeet>())
-            {
-                inputSystem.SetSchemeSteer(e);
-            }
-            else
-            {
-                inputSystem.SetSchemeFeet();
-            }
-        }).WithStructuralChanges().WithoutBurst().Run();
+        ecb.Playback(EntityManager);
     }
 }

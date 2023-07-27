@@ -108,16 +108,17 @@ public partial struct PlayerTargetSystem : ISystem
             // Calculate which grid cell was hit and on which side
             var gridLtw = SystemAPI.GetComponent<LocalToWorld>(grid);
 
-            var cellHit = GridStructure.CellFromPosition(gridLtw, target.Hit + camForward * GridStructure.CELL_SIZE * 0.1f);
+            var cellHit = GridStructure.CellFromPosition(gridLtw, target.Hit + camForward * 0.0001f);
             var cellHitCenter = GridStructure.CellCenterToWorld(gridLtw, cellHit);
-            var hitDirection = target.Hit - cellHitCenter;
+            var hitDirection = GridStructure.WorldToGrid(gridLtw, camPosition - cellHitCenter);
             Debug.DrawLine(target.Hit, cellHitCenter, Color.red);
             var absDiffLocal = math.abs(hitDirection);
-            bool3 biggest = new bool3(
+            var biggest = new bool3(
                 absDiffLocal.x > absDiffLocal.y && absDiffLocal.x >= absDiffLocal.z,
                 absDiffLocal.y >= absDiffLocal.x && absDiffLocal.y > absDiffLocal.z,
                 absDiffLocal.z >= absDiffLocal.y && absDiffLocal.z > absDiffLocal.x);
             var normalLocal = (int3)math.select(0, math.sign(hitDirection), biggest);
+            Debug.DrawRay(cellHitCenter, math.mul(gridLtw.Rotation, normalLocal), Color.blue);
             
             target.GridHit.Cell = cellHit;
             target.GridHit.Normal = normalLocal;

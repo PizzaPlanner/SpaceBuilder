@@ -1,0 +1,28 @@
+{
+    "name": "Grid.UI",
+    "rootNamespace": "",
+    "references": [
+        "Unity.Entities",
+        "Unity.Mathematics",
+        "Unity.Transforms",
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.Mathematics.Extensions",
+        "Unity.Addressables",
+        "Unity.ResourceManager",
+        "Grid",
+        "Blueprints",
+        "Player",
+        "Identifiables",
+        "Controls"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

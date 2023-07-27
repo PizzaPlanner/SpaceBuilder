@@ -19,9 +19,9 @@ public partial class GhostPlacementSystem : SystemBase
 
     protected override void OnCreate()
     {
-        RequireForUpdate<BuilderMode_Blueprint>();
         RequireForUpdate<LocalPlayer>();
         RequireForUpdate<IdentifiableMappingSystem.Loaded>();
+        RequireForUpdate<ControlScheme.Building.Build>();
         RequireForUpdate<PlayerTargetModeSettings>();
 
         _ghostQuery = GetEntityQuery(typeof(Ghost));
@@ -46,15 +46,15 @@ public partial class GhostPlacementSystem : SystemBase
             { Mode = PlayerTargetSystem.PlayerTargetMode.Interactions });
     }
 
-    int upOffset;
     protected override void OnUpdate()
     {
         var builder = SystemAPI.GetSingletonRW<GhostPlacementBuilder>();
         var target = SystemAPI.GetComponent<Target>(SystemAPI.GetSingletonEntity<LocalPlayer>());
         var rooms = SystemAPI.GetSingleton<RoomsLookup>();
+        var input = SystemAPI.GetSingleton<InputData>();
 
-        var wantBuildGhost = Input.GetMouseButtonUp(0);
-        var wantScaleGhost = (Input.GetMouseButton(0) || wantBuildGhost) && builder.ValueRW.PrefabPart.Scalable;
+        var wantBuildGhost = input.WantBuild;
+        var wantScaleGhost = (input.WantDrag || wantBuildGhost) && builder.ValueRW.PrefabPart.Scalable;
         var targetMode = wantScaleGhost
             ? PlayerTargetSystem.PlayerTargetMode.ScaleGhost
             : PlayerTargetSystem.PlayerTargetMode.Build;
@@ -64,8 +64,8 @@ public partial class GhostPlacementSystem : SystemBase
             builder.ValueRW.DragStartCell = target.GridHit.Cell + target.GridHit.Normal;
             builder.ValueRW.DragAreaUpOffset = 0;
         }
-        else
-            builder.ValueRW.DragAreaUpOffset += (int)math.sign(Input.mouseScrollDelta.y);
+        else if(input.ScrollMode == ScrollMode.Scale)
+            builder.ValueRW.DragAreaUpOffset += (int)math.sign(input.Scroll);
 
         if (target.GridHit.Grid == builder.ValueRW.Target.Grid)
             builder.ValueRW.DragEndCell = target.GridHit.Cell + target.GridHit.Normal;
@@ -81,18 +81,18 @@ public partial class GhostPlacementSystem : SystemBase
             return;
 
         // Check if space is already occupied
-        var buildable = builder.ValueRW.DragArea.IsValid;
-        for (int x = builder.ValueRW.DragArea.Min.x; x <= builder.ValueRW.DragArea.Max.x && buildable; x++)
-        for (int y = builder.ValueRW.DragArea.Min.y; y <= builder.ValueRW.DragArea.Max.y && buildable; y++)
-        for (int z = builder.ValueRW.DragArea.Min.z; z <= builder.ValueRW.DragArea.Max.z && buildable; z++)
+        var partArea = builder.ValueRW.ToPartInfo.ToArea;
+        var buildable = partArea.IsValid;
+        for (int x = partArea.Min.x; x <= partArea.Max.x && buildable; x++)
+        for (int y = partArea.Min.y; y <= partArea.Max.y && buildable; y++)
+        for (int z = partArea.Min.z; z <= partArea.Max.z && buildable; z++)
             buildable &= !rooms.OccupiedCells.Contains((builder.ValueRW.Target.Grid, new int3(x, y, z)));
 
         var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
         var pendingParts = SystemAPI.GetBuffer<BuildingPartInfo>(builder.ValueRW.Target.Grid);
         if(!SystemAPI.TryGetSingletonEntity<Ghost>(out var ghost))
         {
-            if(builder.ValueRW.ToPartInfo.ToArea.IsValid)
-                pendingParts.Add(builder.ValueRW.ToPartInfo);
+            pendingParts.Add(builder.ValueRW.ToPartInfo);
         }
         else
         {
@@ -109,9 +109,9 @@ public partial class GhostPlacementSystem : SystemBase
             }
         }
         
-        if(Input.GetKeyDown(KeyCode.R))
+        if(input.ScrollMode == ScrollMode.Rotate)
         {
-            var sign = Input.GetKeyDown(KeyCode.LeftShift) ? -1 : 1;
+            var sign = input.Scroll;
             var rotation = quaternion.RotateY(math.PI * sign * 0.5f);
             builder.ValueRW.CurrentRotation = math.mul(rotation, builder.ValueRW.CurrentRotation);
         }

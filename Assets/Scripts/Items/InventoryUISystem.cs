@@ -17,43 +17,49 @@ public partial class InventoryUISystem : SystemBase
     protected override void OnCreate()
     {
         RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<ControlScheme.UI.Inventory>();
     }
 
     protected override void OnStartRunning()
     {
-        if (initialized)
-            return;
-
-        var playerInventory = GetBuffer<Inventory>(GetSingletonEntity<LocalPlayer>());
-        Hotbar = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q<InventoryElement>("Hotbar");
-        Hotbar.Container = GetSingletonEntity<LocalPlayer>();
-        Hotbar.Subset = new int2(playerInventory.Length - 5, playerInventory.Length);
-        Hotbar.OnDragDrop = OnDragDrop;
-        Hotbar.style.display = DisplayStyle.Flex;
-
-        Inventory = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("Inventory").Q<InventoryElement>("MyBag");
-        Inventory.Container = GetSingletonEntity<LocalPlayer>();
-        Inventory.Subset = new int2(0, playerInventory.Length - 5);
-        Inventory.OnDragDrop = OnDragDrop;
-        Inventory.style.display = DisplayStyle.None;
-
-        RemoteInventory = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q<InventoryElement>("RemoteBag");
-        RemoteInventory.Container = Entity.Null;
-        RemoteInventory.Subset = int2.zero;
-        RemoteInventory.OnDragDrop = World.GetExistingSystemManaged<InventoryUISystem>().OnDragDrop;
-        RemoteInventory.style.display = DisplayStyle.None;
-
-        CraftWindow = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q<CraftingWindow>("Crafting");
-        CraftWindow.style.display = DisplayStyle.None;
-
-        initialized = true;
         EntityManager.CreateEntity(typeof(InventoryChanged));
+        if (!initialized)
+        {
+            var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
+            var playerInventory = SystemAPI.GetBuffer<Inventory>(localPlayer);
+            Hotbar = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q<InventoryElement>("Hotbar");
+            Hotbar.Container = localPlayer;
+            Hotbar.Subset = new int2(playerInventory.Length - 5, playerInventory.Length);
+            Hotbar.OnDragDrop = OnDragDrop;
+            Hotbar.style.display = DisplayStyle.Flex;
+
+            Inventory = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("Inventory")
+                                  .Q<InventoryElement>("MyBag");
+            Inventory.Container = localPlayer;
+            Inventory.Subset = new int2(0, playerInventory.Length - 5);
+            Inventory.OnDragDrop = OnDragDrop;
+            Inventory.style.display = DisplayStyle.None;
+
+            RemoteInventory = GameObject.FindObjectOfType<UIDocument>().rootVisualElement
+                                        .Q<InventoryElement>("RemoteBag");
+            RemoteInventory.Container = Entity.Null;
+            RemoteInventory.Subset = int2.zero;
+            RemoteInventory.OnDragDrop = World.GetExistingSystemManaged<InventoryUISystem>().OnDragDrop;
+            RemoteInventory.style.display = DisplayStyle.None;
+
+            CraftWindow = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q<CraftingWindow>("Crafting");
+            CraftWindow.style.display = DisplayStyle.None;
+
+            initialized = true;
+        }
+        Inventory.style.display = DisplayStyle.Flex;
+        Hotbar.style.display = DisplayStyle.Flex;
     }
 
     public void OnDragDrop(InventoryButton dragged, InventoryButton button)
     {
-        var i1 = GetBuffer<Inventory>(dragged.Container);
-        var i2 = GetBuffer<Inventory>(button.Container);
+        var i1 = SystemAPI.GetBuffer<Inventory>(dragged.Container);
+        var i2 = SystemAPI.GetBuffer<Inventory>(button.Container);
 
         var from = i1[dragged.Slot];
         var to = i2[button.Slot];
@@ -64,29 +70,17 @@ public partial class InventoryUISystem : SystemBase
         EntityManager.CreateEntity(typeof(InventoryChanged));
     }
 
-    protected override void OnStopRunning() { }
+    protected override void OnStopRunning()
+    {
+        Inventory.style.display = DisplayStyle.None;
+        Hotbar.style.display = DisplayStyle.None;
+    }
 
     protected override void OnUpdate()
     {
         var needFullUpdate = !GetEntityQuery(typeof(InventoryChanged)).IsEmpty;
-        if (Input.GetKeyDown(KeyCode.C) || wantOpenInventory)
-        {
-            wantOpenInventory = false;
-            inventoryOpen = !inventoryOpen;
-            Inventory.style.display = inventoryOpen ? DisplayStyle.Flex : DisplayStyle.None;
-            if (!inventoryOpen)
-            {
-                RemoteInventory.style.display = DisplayStyle.None;
-                CraftWindow.style.display = DisplayStyle.None;
-            }
-            else
-            {
-                needFullUpdate = true;
-            }
-            World.GetExistingSystemManaged<InputSystem>().SetCursor(inventoryOpen ? InputSystem.CursorState.Default : InputSystem.CursorState.Disabled);
-        }
 
-        var player = GetSingletonEntity<LocalPlayer>();
+        var player = SystemAPI.GetSingletonEntity<LocalPlayer>();
         var elm = InventoryUISystem.RemoteInventory;
         Entities
             .ForEach((Entity e, in DynamicBuffer<Inventory> inv, in Interacted interact) =>
@@ -131,8 +125,9 @@ public partial class InventoryUISystem : SystemBase
             CraftWindow.UpdateQueue(EntityManager);
         }
 
-        if(GetSingleton<InputSystem.InputData>().ScrollMode == InputSystem.ScrollMode.Inventory)
-            SelectHotbarItem(GetSingleton<InputSystem.InputData>().Scroll);
+        var input = SystemAPI.GetSingleton<InputData>();
+        if(input.ScrollMode == ScrollMode.Inventory)
+            SelectHotbarItem(input.Scroll);
     }
 
     void SelectHotbarItem(float scroll)
@@ -156,7 +151,7 @@ public partial class InventoryUISystem : SystemBase
 
         buttons[nextButton].Selected = true;
 
-        var item = GetBuffer<Inventory>(GetSingletonEntity<LocalPlayer>())[buttons[nextButton].Slot].Item;
+        var item = SystemAPI.GetBuffer<Inventory>(SystemAPI.GetSingletonEntity<LocalPlayer>())[buttons[nextButton].Slot].Item;
         if(item != Entity.Null)
             EntityManager.AddComponent<Selected>(item);
     }

@@ -40,18 +40,22 @@ public struct GhostPlacementBuilder : IComponentData
         IsGhost = true,
         Origin = _prefabPart.Scalable 
             ? DragArea.Min 
-            : DragStartCell - (int3)PrefabPart.Area.Center + PrefabPart.Area.Rotated(TotalRotation).Origin, // TODO: ok estimate but not correct
+            : DragArea.Origin,
         Scale = DragArea.Size
     };
 
-    public BoundingBox DragArea
+    BoundingBox DragArea
     {
         get
         {
-            var bb1 = new BoundingBox
+            var bb1 = _prefabPart.Scalable ? new BoundingBox
             {
                 Origin = DragStartCell,
                 Extents = DragEndCell + Target.Normal * DragAreaUpOffset - DragStartCell
+            }: new BoundingBox
+            {
+                Origin = DragStartCell - (new int3(1,0,1) * (int3)PrefabPart.Area.Center).Rotated(TotalRotation),
+                Extents = 0 // Not used
             };
             return bb1;
         }

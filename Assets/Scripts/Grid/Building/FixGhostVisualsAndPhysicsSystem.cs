@@ -1,22 +1,40 @@
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Entities.Graphics;
+using Unity.Mathematics;
 using Unity.Physics;
+using Unity.Rendering;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Rendering;
-
+using Material = UnityEngine.Material;
 
 
 [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
 [UpdateAfter(typeof(EndSimulationEntityCommandBufferSystem))]
-// Required until hopefully someday there is ecb.AddComponentForLinkedEntityGroup that accepts sharedcomponents
-public partial struct FixGhostVisualsAndPhysicsSystem : ISystem
+[CreateAfter(typeof(EntitiesGraphicsSystem))]
+public partial class FixGhostVisualsAndPhysicsSystem : SystemBase
 {
     public struct FixGhostandChildren : IComponentData
     {
         public bool GhostBuildable;
     }
-    
-    public void OnUpdate(ref SystemState state)
+
+    struct RelatedToGhost : IComponentData
+    {
+        public Entity Ghost;
+    }
+
+    BatchMaterialID ghostMaterialId, ghostBlockedMaterialId;
+    protected override void OnCreate()
+    {
+        RequireForUpdate<Ghost>();
+        var ghostMat = Addressables.LoadAssetAsync<Material>("GhostMaterial").WaitForCompletion();
+        var ghostBlockedMat = Addressables.LoadAssetAsync<Material>("GhostErrorMaterial").WaitForCompletion();
+        var graphicsSystem = World.GetExistingSystemManaged<EntitiesGraphicsSystem>();
+        ghostMaterialId = graphicsSystem.RegisterMaterial(ghostMat);
+        ghostBlockedMaterialId = graphicsSystem.RegisterMaterial(ghostBlockedMat);
+    }
+
+    protected override void OnUpdate()
     {
         var ecb = new EntityCommandBuffer(Allocator.Temp);
         foreach (var (ghost, linkedEntities, parent) 
@@ -26,15 +44,21 @@ public partial struct FixGhostVisualsAndPhysicsSystem : ISystem
             {
                 var e = link.Value;
                 ecb.AddSharedComponent(e, new PhysicsWorldIndex(999));
-                // ecb.AddSharedComponent(e, new RenderFilterSettings
-                // {
-                //     Layer = ghost.GhostBuildable ? 8 : 9, 
-                //     ReceiveShadows = false,
-                //     ShadowCastingMode = ShadowCastingMode.Off
-                // });
+                if (SystemAPI.HasComponent<MaterialMeshInfo>(e))
+                {
+                    ecb.AddComponent(e, new RelatedToGhost { Ghost = parent });
+                }
             }
             ecb.RemoveComponent<FixGhostandChildren>(parent);
         }
-        ecb.Playback(state.EntityManager);
+        ecb.Playback(EntityManager);
+
+        foreach (var (color, parent) in
+                 SystemAPI.Query<RefRW<MaterialMeshInfo>, RelatedToGhost>())
+        {
+            color.ValueRW.MaterialID = SystemAPI.GetComponent<Ghost>(parent.Ghost).Buildable
+                ? ghostMaterialId
+                : ghostBlockedMaterialId;
+        }
     }
 }

@@ -9,10 +9,13 @@
         "Unity.Collections",
         "Unity.Entities.Graphics",
         "Unity.Mathematics.Extensions",
+        "Unity.Addressables",
+        "Unity.ResourceManager",
         "Unity.Physics",
         "Player",
         "Galaxy",
-        "Identifiables"
+        "Identifiables",
+        "Controls"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

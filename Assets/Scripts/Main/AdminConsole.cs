@@ -275,6 +275,7 @@ public partial class AdminConsoleSystem : SystemBase
     {
         RequireForUpdate<LocalPlayer>();
         RequireForUpdate<IdentifiableMappingSystem.Loaded>();
+        RequireForUpdate<ControlScheme.UI>();
     }
 
     private AdminConsole uiRoot;
@@ -343,20 +344,6 @@ public partial class AdminConsoleSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        if (Input.GetKeyDown(KeyCode.KeypadPlus) || Input.GetKeyDown(KeyCode.Plus))
-        {
-            var pl = SystemAPI.GetComponent<Player>(SystemAPI.GetSingletonEntity<LocalPlayer>());
-            pl.MovementSpeedRun *= Input.GetKey(KeyCode.LeftShift) ? 10 : 100;
-            SystemAPI.SetComponent(SystemAPI.GetSingletonEntity<LocalPlayer>(), pl);
-        }
-
-        if (Input.GetKeyDown(KeyCode.KeypadMinus) || Input.GetKeyDown(KeyCode.Minus))
-        {
-            var pl = SystemAPI.GetComponent<Player>(SystemAPI.GetSingletonEntity<LocalPlayer>());
-            pl.MovementSpeedRun *= Input.GetKey(KeyCode.LeftShift) ? 0.1f : 0.01f;
-            SystemAPI.SetComponent(SystemAPI.GetSingletonEntity<LocalPlayer>(), pl);
-        }
-
         if (Input.GetKeyDown(KeyCode.Tab) && uiRoot.style.display == DisplayStyle.Flex)
         {
             InputNextHint();
@@ -367,14 +354,8 @@ public partial class AdminConsoleSystem : SystemBase
             uiRoot.style.display = uiRoot.style.display == DisplayStyle.Flex ? DisplayStyle.None : DisplayStyle.Flex;
             if (uiRoot.style.display == DisplayStyle.Flex)
             {
-                World.GetExistingSystemManaged<InputSystem>().SetCursor(InputSystem.CursorState.Default);
                 uiRoot.Q<TextField>().Focus();
             }
-            else
-            {
-                World.GetExistingSystemManaged<InputSystem>().SetCursor(InputSystem.CursorState.Disabled);
-            }
-
         }
     }
 }

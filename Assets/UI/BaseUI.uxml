@@ -119,7 +119,7 @@
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
-    <ui:VisualElement name="ContextMenu" picking-mode="Ignore" style="left: 60%; top: 50%; display: flex; max-width: 200px; align-items: flex-start;">
+    <ui:VisualElement name="ContextMenu" picking-mode="Ignore" style="left: 60%; top: 50%; display: none; max-width: 200px; align-items: flex-start;">
         <ui:VisualElement name="MainAction" style="flex-direction: row; align-items: center; background-image: url(&apos;project://database/Assets/UI/bg_slim.png?fileID=2800000&amp;guid=cc32439c45babc04593dca5896662d0a&amp;type=3#bg_slim&apos;);">
             <ui:VisualElement style="width: 24px; height: 24px;" />
             <ui:Label text="Build" display-tooltip-when-elided="true" name="MainActionName" />
@@ -143,7 +143,10 @@
         <CraftingWindow name="Crafting" style="background-image: url(&apos;project://database/Assets/UI/bg_slim.png?fileID=2800000&amp;guid=cc32439c45babc04593dca5896662d0a&amp;type=3#bg_slim&apos;); -unity-slice-left: 20; -unity-slice-top: 20; -unity-slice-right: 20; -unity-slice-bottom: 20; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; display: none;" />
         <InventoryElement name="RemoteBag" class="inventory" style="display: none;" />
     </ui:VisualElement>
-    <ui:VisualElement name="Center" picking-mode="Ignore" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; align-items: flex-end; justify-content: center;">
+    <ui:VisualElement name="TargetInfo" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; left: 50%; right: 50%; top: 300px; align-items: center;">
+        <Grid.UI.GridInfoWindow style="display: none;" />
+    </ui:VisualElement>
+    <ui:VisualElement name="Center" picking-mode="Ignore" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; align-items: center; justify-content: center;">
         <ui:VisualElement name="BuildMenu" style="flex-wrap: wrap; height: 50%; -unity-slice-left: 20; -unity-slice-top: 20; -unity-slice-right: 20; -unity-slice-bottom: 20; background-image: url(&apos;project://database/Assets/UI/bg_slim.png?fileID=2800000&amp;guid=cc32439c45babc04593dca5896662d0a&amp;type=3#bg_slim&apos;); display: flex;" />
     </ui:VisualElement>
     <ui:VisualElement name="DebugUI" picking-mode="Ignore" tabindex="-1" style="align-items: flex-start; display: none; justify-content: space-between; flex-direction: row;">

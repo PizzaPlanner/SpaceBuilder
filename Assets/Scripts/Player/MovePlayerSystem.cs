@@ -7,14 +7,12 @@ using UnityEngine;
 [UpdateBefore(typeof(TransformSystemGroup))]
 public partial class MovePlayerSystem : SystemBase
 {
-    private const float ROTATION_SENSIVITY = 0.2f;
-
     protected override void OnCreate()
     {
         RequireForUpdate<LocalPlayer>();
         RequireForUpdate<CameraAnchor>();
-        RequireForUpdate<InputSystem.ControlPlayer>();
-        RequireForUpdate<ControlScheme.OnFeet>();
+        RequireForUpdate<ControlScheme.Player>();
+        RequireForUpdate<InputData>();
     }
 
     protected override void OnUpdate()
@@ -22,16 +20,14 @@ public partial class MovePlayerSystem : SystemBase
         var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
         var camera = SystemAPI.GetSingletonEntity<CameraAnchor>();
         var cameraLtw = SystemAPI.GetComponent<LocalToWorld>(camera);
-
+        var inputData = SystemAPI.GetSingleton<InputData>();
+        
         // --- Movement ---
-        var movement = new float3(Input.GetAxis("MoveXAxis"), Input.GetAxis("MoveYAxis"), Input.GetAxis("MoveZAxis"));
-        // Normalized * Speed
-        movement = math.normalizesafe(movement);
-        // Local -> World
+        var movement = inputData.Movement;
         movement = math.mul(cameraLtw.Rotation, movement);
 
         // --- Rotation ---
-        var rotation =  new float3(-Input.GetAxis("Mouse Y"), Input.GetAxis("Mouse X"), Input.GetAxis("RotateZAxis") * 5) * ROTATION_SENSIVITY;
+        var rotation = inputData.Rotation;
 
         var camAnchor = SystemAPI.GetSingleton<CameraAnchor>();
         if (SystemAPI.HasComponent<Docked>(localPlayer))
@@ -44,7 +40,7 @@ public partial class MovePlayerSystem : SystemBase
         SystemAPI.SetSingleton(camAnchor);
 
         var p = SystemAPI.GetComponentRW<Player>(localPlayer);
-        p.ValueRW.Running = Input.GetKey(KeyCode.LeftShift);
+        p.ValueRW.Running = inputData.WantRun;
 
         var deltaTime = World.Time.DeltaTime;
         
