@@ -1,5 +1,6 @@
 using Unity.Entities;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public struct Interactable : IComponentData { }
 
@@ -10,22 +11,37 @@ public struct Interacted : IComponentData
 
 public partial class InteractionSystem : SystemBase
 {
+    VisualElement interactableIndicator;
     protected override void OnCreate()
     {
-        RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<ControlScheme.Player>();
+    }
+
+    protected override void OnStartRunning()
+    {
+        interactableIndicator ??= GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("ContextMenu");
+        interactableIndicator.style.display = DisplayStyle.None;
+    }
+
+    protected override void OnStopRunning()
+    {
+        EntityManager.RemoveComponent<Interacted>(GetEntityQuery(typeof(Interacted)));
+        interactableIndicator.style.display = DisplayStyle.None;
     }
 
     protected override void OnUpdate()
     {
         EntityManager.RemoveComponent<Interacted>(GetEntityQuery(typeof(Interacted)));
-        if (SystemAPI.GetSingleton<InputData>().WantInteraction)
+        var myTarget = SystemAPI.GetComponent<Target>(SystemAPI.GetSingletonEntity<LocalPlayer>());
+        interactableIndicator.style.display = myTarget.CanInteract ? DisplayStyle.Flex : DisplayStyle.None;
+        if (myTarget.CanInteract)
+            interactableIndicator.Q<Label>().text = "Interact";
+        if (myTarget.CanInteract && SystemAPI.GetSingleton<InputData>().WantInteraction)
         {
-            var myTarget = SystemAPI.GetComponent<Target>(SystemAPI.GetSingletonEntity<LocalPlayer>());
-            if (myTarget.CanInteract)
-                EntityManager.AddComponentData(myTarget.Value, new Interacted
-                {
-                    Interactor = SystemAPI.GetSingletonEntity<LocalPlayer>()
-                });
+            EntityManager.AddComponentData(myTarget.Value, new Interacted
+            {
+                Interactor = SystemAPI.GetSingletonEntity<LocalPlayer>()
+            });
         }
     }
 }

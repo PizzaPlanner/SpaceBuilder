@@ -28,11 +28,13 @@ public struct InputData : ICleanupComponentData
     public ScrollMode ScrollMode;
     public float Scroll;
     public float3 Rotation;
+    public float2 Cursor;
     public float3 Movement;
     public bool WantInteraction;
     public bool WantBuild;
     public bool WantDrag;
     public bool WantRun;
+    public bool WantCancel;
 }
 public enum ScrollMode
 {
@@ -78,6 +80,17 @@ public partial class InputSystemGroup : ComponentSystemGroup
             EntityManager.CreateEntity(typeof(ControlScheme.Ship));
         else if (schemeMissing && SystemAPI.HasSingleton<LocalPlayer>())
             EntityManager.CreateEntity(typeof(ControlScheme.Player));
+
+        var isInShip = SystemAPI.TryGetSingletonEntity<LocalShip>(out var ship);
+        if (isInShip && SystemAPI.TryGetSingletonEntity<ControlScheme.Player>(out var p))
+        {
+            EntityManager.DestroyEntity(p);
+        }
+        
+        if (!isInShip && SystemAPI.TryGetSingletonEntity<ControlScheme.Ship>(out var s))
+        {
+            EntityManager.DestroyEntity(s);
+        }
         
         var isAnyUiElementFocussed = uiRoot.focusController.focusedElement != null;
         if (!isAnyUiElementFocussed)
@@ -88,7 +101,7 @@ public partial class InputSystemGroup : ComponentSystemGroup
 
     public void SetCursor()
     {
-        if (SystemAPI.HasSingleton<ControlScheme.UI>())
+        if (SystemAPI.HasSingleton<ControlScheme.UI>() || SystemAPI.HasSingleton<ControlScheme.Ship>())
         {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;

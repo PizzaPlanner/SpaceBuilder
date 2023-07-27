@@ -50,7 +50,6 @@ partial class PlayerInputSystem : SystemBase
             Input.GetAxis("Mouse X") * ROTATION_SENSIVITY,
             Input.GetAxis("RotateZAxis"));
         input.WantRun = Input.GetKey(KeyCode.LeftShift);
-        SystemAPI.SetSingleton(input);
         
         if(Input.GetKeyDown(KeyCode.B))
             if (SystemAPI.TryGetSingletonEntity<ControlScheme.Building>(out var b))
@@ -60,5 +59,7 @@ partial class PlayerInputSystem : SystemBase
 
         if(!SystemAPI.HasSingleton<ControlScheme.Building>())
             input.WantInteraction = Input.GetMouseButtonDown(0);
+        
+        SystemAPI.SetSingleton(input);
     }
 }

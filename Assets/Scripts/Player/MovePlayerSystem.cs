@@ -18,19 +18,20 @@ public partial class MovePlayerSystem : SystemBase
     protected override void OnUpdate()
     {
         var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
+        var referenceFrame = SystemAPI.GetSingleton<ReferenceFrame>();
         var camera = SystemAPI.GetSingletonEntity<CameraAnchor>();
-        var cameraLtw = SystemAPI.GetComponent<LocalToWorld>(camera);
+        var cameraToWorld = SystemAPI.GetComponent<LocalToWorld>(camera);
         var inputData = SystemAPI.GetSingleton<InputData>();
         
         // --- Movement ---
-        var movement = inputData.Movement;
-        movement = math.mul(cameraLtw.Rotation, movement);
+        var frameToCamera = math.mul(referenceFrame.PreviousLtw.Rotation, math.inverse(cameraToWorld.Rotation));
+        var movement = math.mul(math.inverse(frameToCamera), inputData.Movement);
 
         // --- Rotation ---
         var rotation = inputData.Rotation;
 
         var camAnchor = SystemAPI.GetSingleton<CameraAnchor>();
-        if (SystemAPI.HasComponent<Docked>(localPlayer))
+        if (SystemAPI.HasComponent<Parent>(localPlayer))
         {
             camAnchor.XRotation += math.degrees(rotation.x);
             camAnchor.XRotation = math.clamp(camAnchor.XRotation, -90, 75);
