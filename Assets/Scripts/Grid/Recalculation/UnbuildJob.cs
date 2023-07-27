@@ -34,6 +34,10 @@ public partial struct UnbuildJob : IJobEntity
                 }
             }
         }
+        
+        // TODO: Reduce Mass
+        // TODO: Reduce BoundingBox
+        
         ecb.SetComponentEnabled<GridUpdate>(grid, true);
         ecb.SetComponent(grid, new GridUpdate
         {

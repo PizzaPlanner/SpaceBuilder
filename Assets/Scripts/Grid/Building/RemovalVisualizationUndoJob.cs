@@ -11,7 +11,8 @@ namespace Grid.Building
 
         void Execute(Entity e, ref MaterialMeshInfo materialInfo, in VisualizeRemoval removal)
         {
-            materialInfo.MaterialID = removal.OriginalMaterialId;
+            if(removal.OriginalMaterialCopied)
+                materialInfo.MaterialID = removal.OriginalMaterialId;
             ecb.RemoveComponent<VisualizeRemoval>(e);
         }
     }

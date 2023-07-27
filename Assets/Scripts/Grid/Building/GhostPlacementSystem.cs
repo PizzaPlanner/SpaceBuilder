@@ -61,14 +61,14 @@ public partial class GhostPlacementSystem : SystemBase
         if (!wantScaleGhost)
         {
             builder.ValueRW.Target = target.GridHit;
-            builder.ValueRW.DragStartCell = target.GridHit.Cell + target.GridHit.Normal;
+            builder.ValueRW.DragStartCell = GetNextBestCell(target.GridHit, rooms);
             builder.ValueRW.DragAreaUpOffset = 0;
         }
         else if(input.ScrollMode == ScrollMode.Scale)
             builder.ValueRW.DragAreaUpOffset += (int)math.sign(input.Scroll);
 
         if (target.GridHit.Grid == builder.ValueRW.Target.Grid)
-            builder.ValueRW.DragEndCell = target.GridHit.Cell + target.GridHit.Normal;
+            builder.ValueRW.DragEndCell = GetNextBestCell(target.GridHit, rooms);
         
         SystemAPI.SetSingleton(new PlayerTargetModeSettings { Mode =  targetMode });
         
@@ -116,5 +116,11 @@ public partial class GhostPlacementSystem : SystemBase
             builder.ValueRW.CurrentRotation = math.mul(rotation, builder.ValueRW.CurrentRotation);
         }
         ecb.Playback(EntityManager);
+    }
+
+    int3 GetNextBestCell(GridHitInfo hit, RoomsLookup rooms)
+    {
+        var candidate = hit.Cell + (rooms.OccupiedCells.Contains((hit.Grid, hit.Cell)) ? hit.Normal : 0);
+        return candidate;
     }
 }

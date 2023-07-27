@@ -16,7 +16,7 @@ public partial struct BuildJob : IJobEntity
     [ReadOnly] public NativeParallelHashMap<ulong, Entity> prefabMap;
     [ReadOnly] public ComponentLookup<PhysicsCollider> colliders;
 
-    public void Execute(Entity grid, DynamicBuffer<BuildingPartInfo> parts, GridUpdateAspect update)
+    public void Execute(Entity grid, DynamicBuffer<BuildingPartInfo> parts, GridUpdateAspect update, ref GridStructure structure)
     {
         if (parts.Length == 0)
             return;
@@ -109,6 +109,10 @@ public partial struct BuildJob : IJobEntity
                     if(newGridItem.IsWall)
                         Rooms.Walls.Add(grid, new int3(x,y,z));
                 }
+                
+                structure.BoundsMin = math.min(affectedArea.Min, structure.BoundsMin);
+                structure.BoundsMax = math.max(affectedArea.Max, structure.BoundsMax);
+                structure.Mass += newGridItem.Mass;
             }
         }
         parts.Clear();

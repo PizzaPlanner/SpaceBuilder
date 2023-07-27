@@ -10,14 +10,21 @@ public struct SteeringController : IComponentData
 
 public partial class SteeringSystem : SystemBase
 {
+    const float STEERING_MASS_MULTIPLIER = 0.0001f;
     protected override void OnUpdate()
     {
         foreach(var(steer, parent, items) in 
                 SystemAPI.Query<SteeringController, Parent, DynamicBuffer<ControlledItems>>())
         {
             var grid = parent.Value;
+            var gridMass = SystemAPI.GetComponent<GridStructure>(grid).Mass;
             var transform = SystemAPI.GetComponentRW<LocalTransform>(grid);
-            transform.ValueRW.Rotation = math.mul(transform.ValueRW.Rotation, quaternion.Euler(steer.SteeringAngle));
+            if (math.any(steer.SteeringAngle != 0) && gridMass > 0)
+            {
+                var targetRotation = math.mul(transform.ValueRW.Rotation,
+                    quaternion.Euler(steer.SteeringAngle));
+                transform.ValueRW.Rotation = math.slerp(transform.ValueRW.Rotation, targetRotation, SystemAPI.Time.DeltaTime / (gridMass * STEERING_MASS_MULTIPLIER));
+            }
             for (int i = 0; i < items.Length; i++)
             {
                 var target = items[i].Target;

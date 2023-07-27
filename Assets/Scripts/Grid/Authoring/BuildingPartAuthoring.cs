@@ -12,6 +12,7 @@ public class BuildingPartAuthoring : MonoBehaviour
     [SerializeField] private uint3 SizeInGrid;
     [SerializeField] private bool Scalable;
     [SerializeField] private bool IsWall;
+    [SerializeField] private float Mass;
     private void OnDrawGizmos()
     {
         var scale = (float3)SizeInGrid * GridStructure.CELL_SIZE;
@@ -46,7 +47,8 @@ public class BuildingPartAuthoring : MonoBehaviour
             {
                 Area = new BoundingBox{Origin = int3.zero, Extents = (int3)authoring.SizeInGrid - 1},
                 Scalable = math.all(authoring.SizeInGrid == 1) && authoring.Scalable,
-                IsWall = authoring.IsWall
+                IsWall = authoring.IsWall,
+                Mass = authoring.Mass
             });
             if(authoring.Scalable)
                 AddComponent(entity, PostRotationScale.Identity);

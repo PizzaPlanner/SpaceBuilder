@@ -16,6 +16,7 @@ public partial class SteeringDisplaySystem : SystemBase
     protected override void OnCreate()
     {
         RequireForUpdate<ControlScheme.Ship>();
+        RequireForUpdate<LocalShip>();
         RequireForUpdate<InputData>();
     }
 
@@ -24,7 +25,7 @@ public partial class SteeringDisplaySystem : SystemBase
         uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("SteeringOverlay");
         uiRoot.style.display = DisplayStyle.Flex;
         cursor = uiRoot.Q("Cursor");
-        lastMousePos = new float2(Input.mousePosition.x, Input.mousePosition.y);
+        lastMousePos = float2.zero;
         wantedAngle = float2.zero;
     }
 
@@ -36,13 +37,10 @@ public partial class SteeringDisplaySystem : SystemBase
     protected override void OnUpdate()
     {
         var input = SystemAPI.GetSingleton<InputData>();
-        var steerer = Entity.Null;
+        var steerer = SystemAPI.GetSingleton<LocalShip>().Controller;
         var ctrl = SystemAPI.GetComponent<SteeringController>(steerer);
-
-        var mouseDelta = input.Rotation.xy;
-        lastMousePos += mouseDelta;
-        mouseDelta.y *= -1;
-        wantedAngle += lastMousePos / SteeringScale * Precision;
+        
+        wantedAngle = input.Cursor * new float2(-1, 1) / SteeringScale;
         wantedAngle = math.clamp(wantedAngle, -1, 1);
         if (math.lengthsq(wantedAngle) > 1)
             wantedAngle = math.normalize(wantedAngle);

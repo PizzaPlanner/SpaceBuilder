@@ -32,8 +32,6 @@ public partial class GridRecalculationSystem : SystemBase
         {
             Debug.Log("Recalculating Grid!");
             // Update bounds
-            grid.ValueRW.BoundsMin = math.min(update.Area.Min, grid.ValueRW.BoundsMin);
-            grid.ValueRW.BoundsMax = math.max(update.Area.Max, grid.ValueRW.BoundsMax);
 
             // TODO: Should this not happen automatically? Maybe scheduling order problem?
             foreach (var (children, links, e) in

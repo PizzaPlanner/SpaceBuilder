@@ -39,7 +39,9 @@
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
-    <ui:VisualElement name="Crosshair" style="width: 16px; height: 16px; position: absolute; left: 50%; top: 50%; right: 50%; bottom: 50%; background-image: url(&apos;project://database/Assets/UI/crosshair.png?fileID=2800000&amp;guid=18c36555461a00541bedc3bed7a78b41&amp;type=3#crosshair&apos;);" />
+    <ui:VisualElement name="Crosshair" style="position: absolute; left: 50%; top: 50%; right: 50%; bottom: 50%; align-items: center; justify-content: center;">
+        <ui:VisualElement name="ActualCrosshair" style="width: 16px; height: 16px; background-image: url(&apos;project://database/Assets/UI/crosshair.png?fileID=2800000&amp;guid=18c36555461a00541bedc3bed7a78b41&amp;type=3#crosshair&apos;); position: absolute;" />
+    </ui:VisualElement>
     <ui:VisualElement name="Coordinates" style="flex-direction: column; align-items: center;">
         <ui:VisualElement name="Current" style="flex-direction: row;">
             <ui:VisualElement name="X" class="coorsys-axis" style="align-items: stretch;">

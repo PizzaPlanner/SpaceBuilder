@@ -110,7 +110,7 @@ public partial struct PlayerTargetSystem : ISystem
 
             var cellHit = GridStructure.CellFromPosition(gridLtw, target.Hit + camForward * 0.0001f);
             var cellHitCenter = GridStructure.CellCenterToWorld(gridLtw, cellHit);
-            var hitDirection = GridStructure.WorldToGrid(gridLtw, camPosition - cellHitCenter);
+            var hitDirection = math.mul(math.inverse(gridLtw.Rotation), target.Hit - cellHitCenter);
             Debug.DrawLine(target.Hit, cellHitCenter, Color.red);
             var absDiffLocal = math.abs(hitDirection);
             var biggest = new bool3(
@@ -119,7 +119,7 @@ public partial struct PlayerTargetSystem : ISystem
                 absDiffLocal.z >= absDiffLocal.y && absDiffLocal.z > absDiffLocal.x);
             var normalLocal = (int3)math.select(0, math.sign(hitDirection), biggest);
             Debug.DrawRay(cellHitCenter, math.mul(gridLtw.Rotation, normalLocal), Color.blue);
-            
+
             target.GridHit.Cell = cellHit;
             target.GridHit.Normal = normalLocal;
             target.GridHit.Grid = grid;

@@ -10,6 +10,9 @@ public partial struct StarSectorLoadJob : IJob
     public PendingSectors pendingSectors;
     public Entity prefab;
     public EntityCommandBuffer ecb;
+
+    const double MAX_LIGHT_EMISSION_DISTANCE = LocalToGalaxy.DISTANCE_PER_STARSECTOR * 20;
+    const double MAX_LIGHT_EMISSION_DISTANCE_SQ = MAX_LIGHT_EMISSION_DISTANCE * MAX_LIGHT_EMISSION_DISTANCE;
     
     public void Execute()
     {
@@ -41,7 +44,10 @@ public partial struct StarSectorLoadJob : IJob
         var random = new Random(data.StarGeneratorSeed);
         random.NextFloat();
 
-        var colorRgb = Color.HSVToRGB(random.NextFloat(), random.NextFloat(0.7f, 0.9f), 1);
+        var hue = random.NextFloat();
+        var saturation = random.NextFloat(0.7f, 0.9f);
+        var colorRgb = Color.HSVToRGB(hue, saturation, 1);
+        var lightRgb = Color.HSVToRGB(hue, saturation * 0.3f, 1);
         var size = data.Type switch
         {
             StarSectorType.Star => GalaxyTools.STAR_SIZE_MAX * random.NextFloat(0.4f, 1f),
@@ -52,20 +58,16 @@ public partial struct StarSectorLoadJob : IJob
         {
             StarSectorType.Star => random.NextFloat(3, 20),
             StarSectorType.BigStar => random.NextFloat(30, 50),
-            StarSectorType.BlackHole => random.NextFloat(.1f, .5f),
+            StarSectorType.BlackHole => 0,
         };
-        var color = new float4(colorRgb.r, colorRgb.g, colorRgb.b, brightness * size);
+        var colorStar = new float4(colorRgb.r, colorRgb.g, colorRgb.b, brightness * size);
+        var colorLight = new float4(lightRgb.r, lightRgb.g, lightRgb.b, brightness * size);
         var star = ecb.Instantiate(prefab);
         ecb.SetComponent(star, ltg);
         ecb.SetComponent(star, new CelestialBody { Size = size });
-        // ecb.SetComponent(star, new URPStarTemperature { Value = colorTemperature });
         ecb.SetComponent(star, new URPStarFlareIntensity { Value = brightness });
-        ecb.SetComponent(star, new URPStarColor { Value = color });
+        ecb.SetComponent(star, new URPStarColor { Value = colorStar });
         ecb.SetComponent(star, new GenerateIntoSector { LinkedSector = registerInSector });
-        ecb.SetComponent(star, new LightEmitter 
-        { 
-            Color = color,
-            MaxDistanceSq = LocalToGalaxy.DISTANCE_PER_STARSECTOR * 20 * LocalToGalaxy.DISTANCE_PER_STARSECTOR * 20
-        });
+        ecb.SetComponent(star, new LightEmitter { Color = colorLight, MaxDistanceSq = MAX_LIGHT_EMISSION_DISTANCE_SQ });
     }
 }

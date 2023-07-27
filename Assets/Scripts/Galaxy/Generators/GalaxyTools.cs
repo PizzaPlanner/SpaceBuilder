@@ -11,7 +11,7 @@ public static partial class GalaxyTools
     private const uint MIN_SECTORS_FROM_STAR_TO_PLANET = (uint)(6 * STAR_SIZE_MAX / LocalToGalaxy.DISTANCE_PER_PLANETSECTOR);
     private const uint MIN_SECTORS_BETWEEN_PLANETS = (int) (LocalToGalaxy.MAX_PLANETSECTOR * 0.03f);
     private const int PLANET_MAX_Y_DISTANCE = (int) (LocalToGalaxy.MAX_PLANETSECTOR * 0.03f);
-    const float LIGHTSECTOR_MAX_DENSITY = 0.0005f;
+    const float LIGHTSECTOR_MAX_DENSITY = 0.0004f;
     private const uint MAX_STARS_PER_LIGHTSECTOR = (int)(LIGHTSECTOR_MAX_DENSITY * LocalToGalaxy.MAX_STARSECTOR * LocalToGalaxy.MAX_STARSECTOR * LocalToGalaxy.MAX_STARSECTOR);
 
     public static float Perlin3D(in float3 xyz)

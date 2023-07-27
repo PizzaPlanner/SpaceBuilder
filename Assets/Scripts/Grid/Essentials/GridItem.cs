@@ -19,6 +19,7 @@ public struct GridItem : IComponentData
     public BoundingBox Area;
     public bool Scalable;
     public bool IsWall;
+    public float Mass;
 }
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]

@@ -29,6 +29,7 @@ public struct BuildingPartInfo : IBufferElementData
         {
             var item = _prefab;
             item.Area = ToArea;
+            item.Mass = _prefab.Scalable ? _prefab.Mass * Scale.x * Scale.y * Scale.z : _prefab.Mass;
             return item;
         }
     }
