@@ -25,11 +25,9 @@ public partial struct TRSToLocalToGalaxySystem : ISystem
         ecb.DestroyEntity(tooFarAwayQuery, EntityQueryCaptureMode.AtPlayback);
 
         var refFrame = SystemAPI.GetSingleton<ReferenceFrame>();
-        var refFramePrevRotInverse = math.inverse(refFrame.PreviousLtw.Value);
         new LTGToLocalTransformJob
         {
             refFrame = refFrame,
-            refFramePreviousLtwInverse = refFramePrevRotInverse
         }.ScheduleParallel();
     }
 }

@@ -4,23 +4,15 @@
     <Style src="project://database/Assets/UI/coordinatesegments.uss?fileID=7433441132597879392&amp;guid=b673c3db6dd869b499a1d50dce6a48bf&amp;type=3#coordinatesegments" />
     <ui:VisualElement name="POIMarkers" picking-mode="Ignore" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0;" />
     <ui:VisualElement name="BuildingUI" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0;">
-        <ui:VisualElement name="Icons" style="position: absolute; right: 0; bottom: 0; flex-direction: row-reverse; justify-content: flex-end;">
-            <ui:VisualElement name="BuildButton" style="background-image: url(&apos;project://database/Assets/UI/removemode.png?fileID=2800000&amp;guid=f09e848341690ed4ca9ff3582facad8b&amp;type=3#removemode&apos;); width: 64px; height: 64px;">
-                <ui:Label text="B" display-tooltip-when-elided="true" class="hotkey-label" />
-            </ui:VisualElement>
-            <ui:VisualElement name="RemoveButton" style="background-image: url(&apos;project://database/Assets/UI/buildmode.png?fileID=2800000&amp;guid=8786d4e12af4e0c4e8326f9092e3a0ae&amp;type=3#buildmode&apos;); width: 64px; height: 64px;">
-                <ui:Label text="F" display-tooltip-when-elided="true" class="hotkey-label" />
-            </ui:VisualElement>
-        </ui:VisualElement>
         <ui:VisualElement name="DestructionBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(255, 69, 40, 0.58); border-right-color: rgba(255, 69, 40, 0.58); border-top-color: rgba(255, 69, 40, 0.58); border-bottom-color: rgba(255, 69, 40, 0.58); display: none; align-items: center;" />
         <ui:VisualElement name="BlueprintBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(0, 178, 255, 0.58); border-right-color: rgba(0, 178, 255, 0.58); border-top-color: rgba(0, 178, 255, 0.58); border-bottom-color: rgba(0, 178, 255, 0.58); display: none; align-items: center;">
             <ui:Label text="Some Text" display-tooltip-when-elided="true" style="font-size: 20px; -unity-font-style: bold; background-color: rgba(75, 75, 75, 0.19); border-left-color: rgba(0, 178, 255, 0.58); border-right-color: rgba(0, 178, 255, 0.58); border-top-color: rgba(0, 178, 255, 0.58); border-bottom-color: rgba(0, 178, 255, 0.58); border-right-width: 5px; border-bottom-width: 5px; border-left-width: 5px; margin-top: -1px;" />
         </ui:VisualElement>
         <ui:VisualElement name="ConstructionBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(0, 255, 99, 0.58); border-right-color: rgba(0, 255, 99, 0.58); border-top-color: rgba(0, 255, 99, 0.58); border-bottom-color: rgba(0, 255, 99, 0.58); display: none; align-items: center;" />
     </ui:VisualElement>
-    <ui:VisualElement name="SteeringOverlay" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: none; align-items: center; justify-content: center; cursor: url(&apos;project://database/Assets/UI/swap.png?fileID=2800000&amp;guid=cd4c7e8cf29844f44878fed8eb19b629&amp;type=3#swap&apos;);">
-        <ui:VisualElement style="align-items: center; justify-content: center; background-image: url(&apos;project://database/Assets/UI/steering_overlay.png?fileID=2800000&amp;guid=2390d33e35567484db6db67e82ae9e65&amp;type=3#steering_overlay&apos;); width: 256px; height: 256px;">
-            <ui:VisualElement name="Cursor" style="background-image: url(&apos;project://database/Assets/UI/crosshair.png?fileID=2800000&amp;guid=18c36555461a00541bedc3bed7a78b41&amp;type=3#crosshair&apos;); width: 32px; height: 32px;" />
+    <ui:VisualElement name="SteeringOverlay" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: none; align-items: center; justify-content: center; cursor: url(&apos;project://database/Assets/UI/shipSteeringCursor.png?fileID=2800000&amp;guid=9ae11426ac19173439e43db57bd5085b&amp;type=3#shipSteeringCursor&apos;);">
+        <ui:VisualElement picking-mode="Ignore" style="align-items: center; justify-content: center; background-image: url(&apos;project://database/Assets/UI/steering_overlay.png?fileID=2800000&amp;guid=2390d33e35567484db6db67e82ae9e65&amp;type=3#steering_overlay&apos;); width: 256px; height: 256px;">
+            <ui:VisualElement name="Cursor" picking-mode="Ignore" style="background-image: url(&apos;project://database/Assets/3rdParty/64%20flat%20icons/png/64px/Modifiers_Accuracy.png?fileID=2800000&amp;guid=13dbe3e19f5da6849a01f0f4678e8f01&amp;type=3#Modifiers_Accuracy&apos;); width: 32px; height: 32px;" />
         </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement name="DockInfo" style="position: absolute; left: 0; bottom: 0; align-items: center; justify-content: center;">
@@ -38,6 +30,13 @@
                 <ui:Label text="G" display-tooltip-when-elided="true" style="font-size: 10px; padding-left: 2px; padding-right: 2px; padding-top: 0; padding-bottom: 0; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; -unity-text-align: middle-left;" />
             </ui:VisualElement>
         </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="ActionIcons" style="position: absolute; right: 0; bottom: 0; flex-direction: row-reverse; justify-content: flex-end; background-color: rgba(30, 38, 46, 0.82); border-left-color: rgb(26, 44, 63); border-right-color: rgb(26, 44, 63); border-top-color: rgb(26, 44, 63); border-bottom-color: rgb(26, 44, 63); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; padding-left: 2px; padding-right: 2px; padding-top: 2px; padding-bottom: 2px;">
+        <Main.ActionButton name="Menu" Hotkey="Tab" style="background-image: url(&apos;project://database/Assets/3rdParty/64%20flat%20icons/png/128px/UI_Gamepad.png?fileID=2800000&amp;guid=b9ce5ba43ad36ea4297fc0bc947f90b8&amp;type=3#UI_Gamepad&apos;);" />
+        <Main.ActionButton name="Build" Hotkey="B" style="background-image: url(&apos;project://database/Assets/3rdParty/64%20flat%20icons/png/128px/Tools_Hammer.png?fileID=2800000&amp;guid=926cdad46da8d3946a06209965661efb&amp;type=3#Tools_Hammer&apos;);" />
+        <Main.ActionButton name="Parts" Hotkey="T" style="background-image: url(&apos;project://database/Assets/3rdParty/64%20flat%20icons/png/128px/Inventory_Book.png?fileID=2800000&amp;guid=14a30e668006aa14f92003524e6667f7&amp;type=3#Inventory_Book&apos;);" />
+        <Main.ActionButton name="Inventory" Hotkey="C" style="background-image: url(&apos;project://database/Assets/3rdParty/64%20flat%20icons/png/128px/World_Chest.png?fileID=2800000&amp;guid=6b62d05057d633044b3dc427188695a5&amp;type=3#World_Chest&apos;);" />
+        <Main.ActionButton name="Map" style="background-image: url(&apos;project://database/Assets/3rdParty/64%20flat%20icons/png/128px/World_Compass.png?fileID=2800000&amp;guid=6ea0e3de66db60b4895a5af021ec2f96&amp;type=3#World_Compass&apos;);" />
     </ui:VisualElement>
     <ui:VisualElement name="Crosshair" style="position: absolute; left: 50%; top: 50%; right: 50%; bottom: 50%; align-items: center; justify-content: center;">
         <ui:VisualElement name="ActualCrosshair" style="width: 16px; height: 16px; background-image: url(&apos;project://database/Assets/UI/crosshair.png?fileID=2800000&amp;guid=18c36555461a00541bedc3bed7a78b41&amp;type=3#crosshair&apos;); position: absolute;" />
@@ -123,7 +122,7 @@
     </ui:VisualElement>
     <ui:VisualElement name="ContextMenu" picking-mode="Ignore" style="left: 60%; top: 50%; display: none; max-width: 200px; align-items: flex-start;">
         <ui:VisualElement name="MainAction" style="flex-direction: row; align-items: center; background-image: url(&apos;project://database/Assets/UI/bg_slim.png?fileID=2800000&amp;guid=cc32439c45babc04593dca5896662d0a&amp;type=3#bg_slim&apos;);">
-            <ui:VisualElement style="width: 24px; height: 24px;" />
+            <ui:VisualElement style="width: 24px; height: 24px; background-image: url(&apos;project://database/Assets/3rdParty/64%20flat%20icons/png/64px/UI_Mouse.png?fileID=2800000&amp;guid=7bd89bb5ec85b4e45a26707144625cf1&amp;type=3#UI_Mouse&apos;);" />
             <ui:Label text="Build" display-tooltip-when-elided="true" name="MainActionName" />
         </ui:VisualElement>
         <ui:VisualElement name="Construction" style="background-image: url(&apos;project://database/Assets/UI/bg_slim.png?fileID=2800000&amp;guid=cc32439c45babc04593dca5896662d0a&amp;type=3#bg_slim&apos;); -unity-slice-left: 20; -unity-slice-top: 20; -unity-slice-right: 20; -unity-slice-bottom: 20; padding-left: 2px; padding-right: 2px; padding-top: 2px; padding-bottom: 2px; display: none;">

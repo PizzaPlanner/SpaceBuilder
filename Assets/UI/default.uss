@@ -503,3 +503,39 @@ GridInfoWindow {
     border-top-color: rgb(159, 159, 159);
     border-bottom-color: rgb(159, 159, 159);
 }
+
+ActionButton {
+    width: 32px;
+    height: 32px;
+    background-image: url('project://database/Assets/UI/crosshair.png?fileID=2800000&guid=18c36555461a00541bedc3bed7a78b41&type=3#crosshair');
+    align-items: center;
+    background-color: rgba(0, 89, 137, 0.51);
+    border-left-color: rgb(0, 0, 0);
+    border-right-color: rgb(0, 0, 0);
+    border-top-color: rgb(0, 0, 0);
+    border-bottom-color: rgb(0, 0, 0);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    margin-left: 1px;
+    margin-right: 1px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+
+ActionButton > #Hotkey {
+    background-color: rgba(38, 38, 38, 0.5);
+    margin-left: 1px;
+    margin-right: 1px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+    -unity-text-align: upper-center;
+    font-size: 14px;
+    -unity-font-style: bold;
+    top: -20px;
+    padding-left: 1px;
+    padding-right: 1px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+}

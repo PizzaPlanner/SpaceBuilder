@@ -1,5 +1,4 @@
 using Unity.Burst;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -13,7 +12,7 @@ public struct ReferenceFrame : IComponentData
     public LocalToWorld CurrentLtw;
     public Entity Origin;
 
-    internal float DurationSinceLastChange;
+    public float DurationSinceLastChange;
 }
 
 
@@ -46,10 +45,13 @@ partial struct UpdateReferenceFrameTransformComponents : ISystem
 [UpdateInGroup(typeof(InitializationSystemGroup))]
 public partial struct EarlyReferenceFrameSystem : ISystem
 {
+    EntityQuery _promotionQuery;
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<ReferenceFrame>();
         state.EntityManager.CreateEntity(typeof(ReferenceFrame));
+
+        _promotionQuery = SystemAPI.QueryBuilder().WithAll<PromoteToReferenceFrame>().Build();
         
         var defaultLtw = new LocalToWorld { Value = float4x4.TRS(0, quaternion.identity, 1) };
         SystemAPI.SetSingleton(new ReferenceFrame
@@ -63,12 +65,16 @@ public partial struct EarlyReferenceFrameSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        var ecb = SystemAPI.GetSingleton<EndInitializationEntityCommandBufferSystem.Singleton>()
+                           .CreateCommandBuffer(state.WorldUnmanaged);
+        
+        ecb.RemoveComponent<PromoteToReferenceFrame>(_promotionQuery, EntityQueryCaptureMode.AtPlayback);
+        
         var hasNewFrame = SystemAPI.TryGetSingletonEntity<PromoteToReferenceFrame>(out var newFrame);
         var makeOldFrameAsChild = false;
         if (hasNewFrame)
         {
             makeOldFrameAsChild = SystemAPI.GetComponent<PromoteToReferenceFrame>(newFrame).MakePreviousFrameChildOfNewFrame;
-            state.EntityManager.RemoveComponent<PromoteToReferenceFrame>(newFrame);
         }
         var refFrame = SystemAPI.GetSingletonRW<ReferenceFrame>();
         refFrame.ValueRW.PreviousLtg = refFrame.ValueRW.CurrentLtg;
@@ -81,18 +87,11 @@ public partial struct EarlyReferenceFrameSystem : ISystem
         if (refFrame.ValueRW.DurationSinceLastChange < 1)
             return;
 
-        var ecb = new EntityCommandBuffer(Allocator.Temp);
-        
         var prevFrame = refFrame.ValueRW.Origin;
-        var newToWorld = SystemAPI.GetComponent<LocalToWorld>(newFrame).Value;
-        var worldToNew = math.inverse(newToWorld);
-        var prevToWorld = refFrame.ValueRW.PreviousLtw.Value;
-        var worldToPrev = math.inverse(prevToWorld);
-        
-        ecb.AddComponent<ReferenceFrameOrigin>(newFrame);
-        ecb.SetComponent(newFrame, LocalTransform.Identity); // Identity = newToLocal * localToNew
+        var localToNew = SystemAPI.GetComponent<LocalToWorld>(newFrame).Value;
+        var newToLocal = math.inverse(localToNew);
+        var localToPrev = refFrame.ValueRW.PreviousLtw.Value;
 
-        Debug.Log($"Origin Change: {prevFrame} -> {newFrame}");
         if (prevFrame != Entity.Null)
         {
             ecb.RemoveComponent<ReferenceFrameOrigin>(prevFrame);
@@ -100,26 +99,29 @@ public partial struct EarlyReferenceFrameSystem : ISystem
             // Player -> Ship: Parent player to ship and update transform so LTW of player is the same as before
             if (makeOldFrameAsChild)
             {
+                var newToPrev = math.mul(newToLocal, localToPrev);
+                var transform = LocalTransform.FromMatrix(newToPrev);
+                ecb.SetComponent(prevFrame, transform);
                 ecb.AddComponent(prevFrame, new Parent { Value = newFrame });
-                var prevToNew = math.mul(prevToWorld, worldToNew);
-                ecb.SetComponent(prevFrame, LocalTransform.FromMatrix(prevToNew));
-                Debug.DrawRay(prevToWorld.TransformPoint(0), math.mul(worldToNew, prevToNew).Forward(), Color.yellow, 5);
             }
             
-             
             // Ship -> Player: Get new LTG for player as ShipLTG + PlayerPosition in Ship
             if (!SystemAPI.HasComponent<LocalToGalaxy>(newFrame))
             {
-                var ltgForNewFrame = refFrame.ValueRW.PreviousLtg;
-                ltgForNewFrame += math.mul(prevToWorld.Rotation(),
+                var diffToLocal = math.mul(localToPrev.Rotation(),
                     SystemAPI.GetComponent<LocalTransform>(newFrame).Position);
+                var ltgForNewFrame = refFrame.ValueRW.PreviousLtg;
+                ltgForNewFrame += diffToLocal;
+                
                 ecb.AddComponent(newFrame, ltgForNewFrame);
             }
         }
         
+        ecb.AddComponent<ReferenceFrameOrigin>(newFrame);
+        ecb.SetComponent(newFrame, LocalTransform.FromRotation(localToNew.Rotation()));
+        
         refFrame.ValueRW.DurationSinceLastChange = 0;
         refFrame.ValueRW.Origin = newFrame;
-        ecb.Playback(state.EntityManager);
     }
 }
 
@@ -142,7 +144,7 @@ public partial struct LateReferenceFrameSystem : ISystem
         var gridLtg = SystemAPI.GetComponent<LocalToGalaxy>(refFrame.ValueRW.Origin);
         var gridLtw = SystemAPI.GetComponent<LocalToWorld>(refFrame.ValueRW.Origin);
         refFrame.ValueRW.CurrentLtg = gridLtg;
-        refFrame.ValueRW.CurrentLtw = new LocalToWorld { Value = float4x4.Translate(gridLtw.Position) };
+        refFrame.ValueRW.CurrentLtw = new LocalToWorld { Value = float4x4.TRS(gridLtw.Position, gridLtw.Rotation, 1) };
         Debug.DrawRay(gridLtw.Position, gridLtw.Up, Color.green);
         Debug.DrawRay(gridLtw.Position, gridLtw.Forward, Color.blue);
     }

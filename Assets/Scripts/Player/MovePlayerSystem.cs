@@ -20,12 +20,9 @@ public partial class MovePlayerSystem : SystemBase
         var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
         var referenceFrame = SystemAPI.GetSingleton<ReferenceFrame>();
         var camera = SystemAPI.GetSingletonEntity<CameraAnchor>();
-        var cameraToWorld = SystemAPI.GetComponent<LocalToWorld>(camera);
+        var localToCamera = SystemAPI.GetComponent<LocalToWorld>(camera);
         var inputData = SystemAPI.GetSingleton<InputData>();
-        
-        // --- Movement ---
-        var frameToCamera = math.mul(referenceFrame.PreviousLtw.Rotation, math.inverse(cameraToWorld.Rotation));
-        var movement = math.mul(math.inverse(frameToCamera), inputData.Movement);
+        var alignUpVector = math.min(referenceFrame.DurationSinceLastChange / 3, 1);
 
         // --- Rotation ---
         var rotation = inputData.Rotation;
@@ -35,6 +32,7 @@ public partial class MovePlayerSystem : SystemBase
         {
             camAnchor.XRotation += math.degrees(rotation.x);
             camAnchor.XRotation = math.clamp(camAnchor.XRotation, -90, 75);
+            rotation.z = 0;
         }
         else
             camAnchor.XRotation = 0;
@@ -44,14 +42,15 @@ public partial class MovePlayerSystem : SystemBase
         p.ValueRW.Running = inputData.WantRun;
 
         var deltaTime = World.Time.DeltaTime;
-        
-        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                           .CreateCommandBuffer(World.Unmanaged);
+
         Entities
             .WithAll<ReferenceFrameOrigin>()
-            .ForEach((Entity e, ref LocalTransform transform, ref CanTravelSectors cts, ref LocalToGalaxy ltg, ref Player player) =>
+            .ForEach((Entity e, ref LocalTransform transform, ref CanTravelSectors cts, ref LocalToGalaxy ltg, in Player player) =>
             {
-                transform.Rotation = math.mul(transform.Rotation, quaternion.EulerXYZ(rotation));
+                var movement = math.mul(localToCamera.Rotation, inputData.Movement);
+
+                var targetRotation = math.mul(transform.Rotation, quaternion.EulerXYZ(rotation));
+                transform.Rotation = targetRotation;
                 var totalMovement = (movement * (double3)(player.Running ? player.MovementSpeedRun : player.MovementSpeedDefault) * deltaTime);
                 ltg += totalMovement;
 
@@ -67,9 +66,15 @@ public partial class MovePlayerSystem : SystemBase
             .WithNone<ReferenceFrameOrigin>()
             .ForEach((ref LocalTransform transform, in Player player) =>
             {
+                var frameToCamera = math.mul(math.inverse(referenceFrame.PreviousLtw.Rotation), localToCamera.Rotation);
+                var movement = math.mul(frameToCamera, inputData.Movement);
+                
                 var totalMovement = (movement * (player.Running ? player.MovementSpeedRun : player.MovementSpeedDefault) * deltaTime);
                 transform.Position += totalMovement;
-                transform.Rotation = math.mul(transform.Rotation, quaternion.EulerXYZ(rotation));
+                var targetRotation = math.mul(transform.Rotation, quaternion.EulerXYZ(rotation));
+                var targetRotationUpAligned =
+                    quaternion.LookRotationSafe(math.mul(targetRotation, math.forward()), math.up());
+                transform.Rotation = math.slerp(targetRotation, targetRotationUpAligned, alignUpVector);
             }).Schedule();
     }
 }

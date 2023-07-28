@@ -10,17 +10,13 @@ public struct TooFarAway : IComponentData, IEnableableComponent { }
 public partial struct LTGToLocalTransformJob : IJobEntity
 {
     public ReferenceFrame refFrame;
-    public float4x4 refFramePreviousLtwInverse;
 
     void Execute(ref LocalTransform transform, ref LocalToWorld ltw, in LocalToGalaxy ltg, EnabledRefRW<TooFarAway> tooFarAway)
     {
         var delta = ltg - refFrame.CurrentLtg;
         var ltgDiff = delta.Distance;
         tooFarAway.ValueRW = !math.all(delta.DistanceMeasureable);
-        var relativeRotation = math.mul(new quaternion(refFramePreviousLtwInverse), transform.Rotation);
-
         transform.Position = (float3)ltgDiff;
-        transform.Rotation = math.mul(relativeRotation, refFrame.CurrentLtw.Rotation);
 
         ltw.Value = transform.ToMatrix();
     }
