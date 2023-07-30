@@ -1,3 +1,4 @@
+using Grid.Essentials;
 using System;
 using Unity.Collections;
 using Unity.Entities;
@@ -6,17 +7,19 @@ using UnityEngine;
 
 public struct RoomsLookup : IComponentData, IDisposable
 {
-    public NativeParallelMultiHashMap<Entity, int3> Walls;
-    public NativeParallelHashMap<(Entity, int3), int> CellRoomMap;
+    public NativeParallelMultiHashMap<Entity, Cell> Walls;
+    public NativeParallelHashMap<(Entity, Cell), int> CellRoomMap;
     public NativeParallelMultiHashMap<Entity, (int, Room)> GridRooms;
-    public NativeParallelHashSet<(Entity, int3)> OccupiedCells;
+    public NativeParallelHashSet<(Entity, Cell)> OccupiedCells;
+    public NativeParallelHashMap<(Entity, Cell), Entity> LogicLookup;
 
     public void Initialize()
     {
-        Walls = new NativeParallelMultiHashMap<Entity, int3>(0, Allocator.Persistent);
-        CellRoomMap = new NativeParallelHashMap<(Entity, int3), int>(0, Allocator.Persistent);
+        Walls = new NativeParallelMultiHashMap<Entity, Cell>(0, Allocator.Persistent);
+        CellRoomMap = new NativeParallelHashMap<(Entity, Cell), int>(0, Allocator.Persistent);
         GridRooms = new NativeParallelMultiHashMap<Entity, (int, Room)>(0, Allocator.Persistent);
-        OccupiedCells = new NativeParallelHashSet<(Entity, int3)>(0, Allocator.Persistent);
+        OccupiedCells = new NativeParallelHashSet<(Entity, Cell)>(0, Allocator.Persistent);
+        LogicLookup = new NativeParallelHashMap<(Entity, Cell), Entity>(0, Allocator.Persistent);
     }
     
     public void Dispose()
@@ -25,6 +28,7 @@ public struct RoomsLookup : IComponentData, IDisposable
         CellRoomMap.Dispose();
         GridRooms.Dispose();
         OccupiedCells.Dispose();
+        LogicLookup.Dispose();
     }
 }
 

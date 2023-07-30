@@ -16,6 +16,7 @@ public class GridStructureAuthoring : MonoBehaviour
             AddBuffer<BuildingPartInfo>(e);
             AddBuffer<LinkedEntityGroup>(e).Add(e);
             AddBuffer<Child>(e);
+            AddComponent<MoveableShip>(e);
             AddComponent<ShouldShowAsPOI>(e);
             SetComponentEnabled<ShouldShowAsPOI>(e, false);
         }

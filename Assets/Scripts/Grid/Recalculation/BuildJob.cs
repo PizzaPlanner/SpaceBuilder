@@ -1,3 +1,4 @@
+using Grid.Logic;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -16,7 +17,7 @@ public partial struct BuildJob : IJobEntity
     [ReadOnly] public NativeParallelHashMap<ulong, Entity> prefabMap;
     [ReadOnly] public ComponentLookup<PhysicsCollider> colliders;
 
-    public void Execute(Entity grid, DynamicBuffer<BuildingPartInfo> parts, GridUpdateAspect update, ref GridStructure structure)
+    public void Execute(Entity grid, DynamicBuffer<BuildingPartInfo> parts, GridUpdateAspect update, ref MoveableShip ship, ref GridStructure structure)
     {
         if (parts.Length == 0)
             return;
@@ -97,6 +98,9 @@ public partial struct BuildJob : IJobEntity
             }
             else
             {
+                foreach(var target in part.LogicTargets)
+                    ecb.AppendToBuffer(entity, target);
+
                 updates++;
                 affectedArea.Min = math.min(area.Min, affectedArea.Min);
                 affectedArea.Max = math.max(area.Max, affectedArea.Max);
@@ -112,7 +116,7 @@ public partial struct BuildJob : IJobEntity
                 
                 structure.BoundsMin = math.min(affectedArea.Min, structure.BoundsMin);
                 structure.BoundsMax = math.max(affectedArea.Max, structure.BoundsMax);
-                structure.Mass += newGridItem.Mass;
+                ship.Mass += newGridItem.Mass;
             }
         }
         parts.Clear();

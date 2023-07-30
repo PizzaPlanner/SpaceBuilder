@@ -1,41 +1,34 @@
+using Grid.Logic;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics;
-using Unity.Physics.Extensions;
 using Unity.Transforms;
 
 public struct Thruster : IComponentData
 {
-    public bool On;
-    public float RequiredPower;
-    public float Strength;
     public float MaxStrength;
-    public float3 ForwardThrust;
-    public GridItem.Side DefaultDirection;
-
-    public GridItem.Side Direction(quaternion rotation) => DefaultDirection.Rotate(rotation);
+    public float3 Forward;
 }
 
-public partial class ThrusterSystem : SystemBase
+public partial struct ThrusterSystem : ISystem
 {
-    protected override void OnUpdate()
+    public void OnUpdate(ref SystemState state)
     {
-        foreach(var (thrust, parent) in SystemAPI.Query<Thruster, Parent>())
+        foreach(var (thrust, ports, parent) in SystemAPI.Query<Thruster, DynamicBuffer<LogicPort>, Parent>())
         {
-            if (!SystemAPI.HasComponent<PhysicsVelocity>(parent.Value) ||
-                !SystemAPI.HasComponent<PhysicsMass>(parent.Value))
-                return;
+            var accellerationForce = thrust.Forward * thrust.MaxStrength;
+            foreach (var port in ports)
+            {
+                if (port.Type == PortType.Ratio)
+                    accellerationForce *= port.Data;
+            }
 
-            var velocity = SystemAPI.GetComponent<PhysicsVelocity>(parent.Value);
-            var mass = SystemAPI.GetComponent<PhysicsMass>(parent.Value);
-            velocity.ApplyLinearImpulse(mass, thrust.ForwardThrust);
-            SystemAPI.SetComponent(parent.Value, velocity);
+            var ship = SystemAPI.GetComponentRW<MoveableShip>(parent.Value);
+            ship.ValueRW.LinearAcceleration += accellerationForce;
         };
 
-        foreach(var (thrust, ltw) in SystemAPI.Query<RefRW<Thruster>, LocalToWorld>())
+        foreach(var (thrust, transform) in SystemAPI.Query<RefRW<Thruster>, LocalTransform>().WithChangeFilter<LocalTransform>())
         {
-            thrust.ValueRW.ForwardThrust = thrust.ValueRW.On ? 
-                -ltw.Forward * thrust.ValueRW.Strength * thrust.ValueRW.MaxStrength : float3.zero;
+            thrust.ValueRW.Forward = -transform.Forward();
         }
     }
 }

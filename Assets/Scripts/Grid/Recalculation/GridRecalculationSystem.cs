@@ -1,3 +1,4 @@
+using Grid.Logic;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -31,7 +32,6 @@ public partial class GridRecalculationSystem : SystemBase
                  SystemAPI.Query<GridUpdate, RefRW<GridStructure>>())
         {
             Debug.Log("Recalculating Grid!");
-            // Update bounds
 
             // TODO: Should this not happen automatically? Maybe scheduling order problem?
             foreach (var (children, links, e) in

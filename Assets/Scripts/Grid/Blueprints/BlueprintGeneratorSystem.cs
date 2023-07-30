@@ -103,6 +103,11 @@ public partial class BlueprintGeneratorSystem : SystemBase
     protected override void OnStartRunning()
     {
         LoadBlueprints();
+        RefreshUI();
+    }
+
+    void RefreshUI()
+    {
         var bpWindow = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q<BlueprintLibraryWindow>();
         bpWindow.Prefabs = spawnables.GetValueArray(Allocator.Temp);
     }
@@ -168,6 +173,7 @@ public partial class BlueprintGeneratorSystem : SystemBase
             ecb.SetComponent(e, LocalTransform.FromRotation(spawn.AbsoluteRotation));
         }
 
+        var blueprintsUpdated = false;
         while (toSave.TryDequeue(out var grid))
         {
             var text = BlueprintUtils.Serialize(grid, EntityManager);
@@ -178,7 +184,11 @@ public partial class BlueprintGeneratorSystem : SystemBase
             File.WriteAllText(targetPath, text, Encoding.UTF8);
             Debug.Log($"Exported Blueprint to {targetPath}");
             LoadAsPrefab(text, $"Exported/{name}", SourceType.Local);
+            blueprintsUpdated = true;
         }
+        if(blueprintsUpdated)
+            RefreshUI();
+        
         
         var keys = generatablePOIs;
         Entities
@@ -204,14 +214,19 @@ public partial class BlueprintGeneratorSystem : SystemBase
     {
         key = $"{type}/{key}";
 
-        if (spawnables.ContainsKey(key))
-        {
-            Debug.LogError($"Could not load Blueprint {key}: Blueprint with same name already loaded");
-            return;
-        }
 
         if (!BlueprintUtils.Deserialize(text, out var data))
+        {
+            Debug.LogError($"Error loading Blueprint {key}");
             return;
+        }
+        
+        if (spawnables.TryGetValue(key, out var oldPrefab))
+        {
+            Debug.Log($"Blueprint {key} already exists: Old blueprint is replaced");
+            EntityManager.DestroyEntity(oldPrefab.Prefab);
+            spawnables.Remove(key);
+        }
 
         var result = new SpawnablePrefab
         {

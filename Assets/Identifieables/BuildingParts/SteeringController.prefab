@@ -404,7 +404,7 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3364769202363141643, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 7597001107858422390}
+      addedObject: {fileID: 514351381667256901}
   m_SourcePrefab: {fileID: 100100000, guid: e943c85a6f7a7854f92eef9792967afe, type: 3}
 --- !u!4 &4924729973323506675 stripped
 Transform:
@@ -430,7 +430,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e188da1125ad49ae810cdb3da6538db7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &7597001107858422390
+--- !u!114 &514351381667256901
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -439,7 +439,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 6322375491119358443}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f8c7d2205bef45659d69535ee61258ca, type: 3}
+  m_Script: {fileID: 11500000, guid: 0cdce6fa6ff14af68351da4c4e73d215, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Doors: []
+  Ports:
+  - Type: 4
+    Access: 1
+  - Type: 5
+    Access: 1
+  - Type: 6
+    Access: 1
+  - Type: 8
+    Access: 1
+  - Type: 9
+    Access: 1
+  - Type: 7
+    Access: 1

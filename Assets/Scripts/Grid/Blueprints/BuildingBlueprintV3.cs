@@ -16,6 +16,13 @@ public struct BlueprintParserV3 : IBlueprintParser
         public ushort Stack;
     }
 
+    public class PortData
+    {
+        public byte MyPort;
+        public byte TheirPort;
+        public int3 Target;
+    }
+
     public class PartData
     {
         public int3 Position;
@@ -23,6 +30,7 @@ public struct BlueprintParserV3 : IBlueprintParser
         public int3 Color;
         public uint3 Scale;
         public List<ItemData> Inventory;
+        public List<PortData> LogicPorts;
     }
 
     public class DataStructure
@@ -126,6 +134,10 @@ public struct BlueprintParserV3 : IBlueprintParser
                             current.Inventory = new List<ItemData>();
                             CurrentToken.Push((current.Inventory, indent));
                             break;
+                        case "Ports":
+                            current.LogicPorts = new List<PortData>();
+                            CurrentToken.Push((current.LogicPorts, indent));
+                            break;
                     }
                 }
                 else if (CurrentToken.Peek().Property is List<ItemData> inventory)
@@ -143,6 +155,10 @@ public struct BlueprintParserV3 : IBlueprintParser
                             current.Stack = ushort.Parse(value);
                             break;
                     }
+                }
+                else if (CurrentToken.Peek().Property is List<PortData> ports)
+                {
+                    Debug.Log($"TODO: {line}");
                 }
             }
         }

@@ -6,8 +6,7 @@ public struct GridStructure : IComponentData
 {
     public const float CELL_SIZE = 0.25f;
     public int3 BoundsMin, BoundsMax;
-    public float Mass;
-    
+
     // Bounds in World Space
     public AABB WorldAABB;
     public IntAABB LocalAABB => new IntAABB { Min = BoundsMin, Max = BoundsMax };

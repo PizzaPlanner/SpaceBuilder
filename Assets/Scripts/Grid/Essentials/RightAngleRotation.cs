@@ -71,7 +71,36 @@ public struct RightAngleRotation
 
     public override string ToString()
     {
-        return Value.ToString("X2");
+        var c1 = (Value & 0b0001) != 0 ? "x" : (Value & 0b0010) != 0 ? "y" : "z";
+        c1 = (Value & 0b1000) != 0 ? c1.ToLower() : c1.ToUpper(); 
+        var c2 = (Value & 0b0001_0000) != 0 ? "x" : (Value & 0b0010_0000) != 0 ? "y" : "z";
+        c2 = (Value & 0b1000_0000) != 0 ? c2.ToLower() : c2.ToUpper();
+        return $"{c2}{c1}";
+    }
+
+    public static RightAngleRotation Identity => new RightAngleRotation(quaternion.identity);
+
+    public static RightAngleRotation FromString(string f)
+    {
+        var v1 =  f[0] switch
+        {
+            'x' => 0b1001,
+            'y' => 0b1010,
+            'z' => 0b1100,
+            'X' => 0b0001,
+            'Y' => 0b0010,
+            'Z' => 0b0100,
+        };
+        var v2 =  f[1] switch
+        {
+            'x' => 0b1001,
+            'y' => 0b1010,
+            'z' => 0b1100,
+            'X' => 0b0001,
+            'Y' => 0b0010,
+            'Z' => 0b0100,
+        };
+        return new RightAngleRotation((byte)((v1 << 4) | v2));
     }
 }
 #pragma warning restore CS0660, CS0661

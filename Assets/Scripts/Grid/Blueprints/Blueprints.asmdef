@@ -16,7 +16,8 @@
         "Grid",
         "Items",
         "Player",
-        "Identifiables"
+        "Identifiables",
+        "YamlDotNet"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

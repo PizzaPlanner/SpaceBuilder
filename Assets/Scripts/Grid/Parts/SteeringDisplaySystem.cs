@@ -9,8 +9,7 @@ public partial class SteeringDisplaySystem : SystemBase
     private VisualElement uiRoot, cursor;
     private readonly float SteeringScale = 128;
     private readonly float SteeringDeadzone = 0.1f;
-    private readonly float Precision = 0.2f;
-    private float2 lastMousePos;
+    readonly float Precision = 0.2f;
     private float2 wantedAngle;
 
     protected override void OnCreate()
@@ -25,7 +24,6 @@ public partial class SteeringDisplaySystem : SystemBase
         uiRoot = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("SteeringOverlay");
         uiRoot.style.display = DisplayStyle.Flex;
         cursor = uiRoot.Q("Cursor");
-        lastMousePos = float2.zero;
         wantedAngle = float2.zero;
     }
 
@@ -46,7 +44,7 @@ public partial class SteeringDisplaySystem : SystemBase
             wantedAngle = math.normalize(wantedAngle);
         cursor.transform.position = new Vector3(wantedAngle.x * SteeringScale, wantedAngle.y * SteeringScale, 0);
         var angle2D = math.length(wantedAngle) > SteeringDeadzone ? wantedAngle : 0;
-        var angleZ = input.Rotation.z * 2;
+        var angleZ = input.Rotation.z;
         ctrl.SteeringAngle = new float3(angle2D.y, angle2D.x, angleZ);
         ctrl.Thrust = input.Movement;
 

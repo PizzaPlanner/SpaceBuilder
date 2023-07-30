@@ -1,3 +1,4 @@
+using Grid.Blueprints;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,8 @@ public static class BlueprintUtils
 
     private static Dictionary<string, IBlueprintParser> versionToLoader;
 
+    static IBlueprintParser DefaultSerializer => new BlueprintParserV4();
+
     static void Initialize()
     {
         versionToLoader = new Dictionary<string, IBlueprintParser>();
@@ -43,7 +46,7 @@ public static class BlueprintUtils
 
     internal static string Serialize(Entity grid, EntityManager em)
     {
-        var parser = new BlueprintParserV3();
+        var parser = DefaultSerializer;
         return $@"{parser.VersionIdentifier}
 {parser.Save(grid, em)}";
     }
@@ -55,12 +58,21 @@ public static class BlueprintUtils
         var versionId = blueprint.Split('\n')[0].Trim();
         if (!versionToLoader.ContainsKey(versionId))
         {
-            Debug.LogError($"Failed to load {blueprint}: No Parser found for version identifier '{versionId}'");
+            Debug.LogError($"No Parser found for version identifier '{versionId}'");
             data = default;
             return false;
         }
 
-        data = versionToLoader[versionId].Load(blueprint);
-        return true;
+        try
+        {
+            data = versionToLoader[versionId].Load(blueprint);
+            return data.Name != default;
+        }
+        catch(Exception e)
+        {
+            Debug.LogException(e);
+            data = default;
+            return false;
+        }
     }
 }
