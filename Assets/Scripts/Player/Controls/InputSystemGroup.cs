@@ -21,6 +21,7 @@ public static class ControlScheme
         public struct TabMenu : IComponentData { }
         public struct Inventory : IComponentData { }
         public struct BuildingParts : IComponentData { }
+        public struct LogicDisplay : IComponentData { }
     }
 }
 public struct InputData : ICleanupComponentData

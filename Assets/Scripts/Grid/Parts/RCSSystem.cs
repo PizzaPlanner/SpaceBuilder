@@ -18,11 +18,11 @@ public partial struct RCSSystem : ISystem
             foreach (var port in ports)
             {
                 if (port.Type == PortType.Pitch)
-                    accellerationForce.x *= port.Data;
+                    accellerationForce.x *= (float)port.Data.AsDouble;
                 else if (port.Type == PortType.Yaw)
-                    accellerationForce.y *= port.Data;
+                    accellerationForce.y *= (float)port.Data.AsDouble;
                 else if (port.Type == PortType.Roll)
-                    accellerationForce.z *= port.Data;
+                    accellerationForce.z *= (float)port.Data.AsDouble;
             }
 
             var ship = SystemAPI.GetComponentRW<MoveableShip>(parent.Value);

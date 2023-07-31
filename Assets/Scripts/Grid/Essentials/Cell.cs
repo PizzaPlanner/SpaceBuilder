@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Unity.Mathematics;
 
 namespace Grid.Essentials
@@ -20,6 +21,7 @@ namespace Grid.Essentials
             z = data.z
         };
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Equals(Cell other)
         {
             return x == other.x && y == other.y && z == other.z;
@@ -32,7 +34,7 @@ namespace Grid.Essentials
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(x, y, z);
+            return ((int3)this).GetHashCode();
         }
     }
 }

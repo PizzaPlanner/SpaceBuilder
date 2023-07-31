@@ -444,14 +444,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Ports:
   - Type: 4
-    Access: 1
+    Access: 0
   - Type: 5
-    Access: 1
+    Access: 0
   - Type: 6
-    Access: 1
+    Access: 0
   - Type: 8
-    Access: 1
+    Access: 0
   - Type: 9
-    Access: 1
+    Access: 0
   - Type: 7
-    Access: 1
+    Access: 0

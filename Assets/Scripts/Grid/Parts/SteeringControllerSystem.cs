@@ -23,7 +23,7 @@ public partial class SteeringControllerSystem : SystemBase
                     PortType.Roll => steering.SteeringAngle.z,
                     _ => float.NaN
                 };
-                port.SetDirect(valueToSet);
+                port.SetDirect(LogicData.Double(valueToSet));
                 ports[i] = port;
             }
         }

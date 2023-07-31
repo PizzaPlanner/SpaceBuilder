@@ -1,4 +1,5 @@
 using Unity.Entities;
+using UnityEngine;
 
 public struct GridUpdate : IComponentData, IEnableableComponent
 {
@@ -24,6 +25,7 @@ public readonly partial struct GridUpdateAspect : IAspect
         {        
             _update.ValueRW = value;
             _flag.ValueRW = true;
+            Debug.Log($"Update next frame!");
         }
         get => _update.ValueRW;
     }

@@ -21,28 +21,53 @@ public struct IntAABB
 [UpdateInGroup(typeof(GridRecalculationSystemGroup), OrderFirst = true)]
 public partial class GridRecalculationSystem : SystemBase
 {
-    protected override void OnCreate()
-    {
-        RequireForUpdate<GridUpdate>();
-    }
-
     protected override void OnUpdate()
     {
-        foreach (var (update, grid) in
-                 SystemAPI.Query<GridUpdate, RefRW<GridStructure>>())
+        // TODO: Should this not happen automatically? Maybe scheduling order problem?
+        // foreach (var (children, links, e) in
+        //          SystemAPI.Query<DynamicBuffer<Child>, DynamicBuffer<LinkedEntityGroup>>()
+        //                   .WithChangeFilter<Child>().WithAll<GridStructure>().WithEntityAccess())
+        // {
+        //     Debug.Log("Recalculating Grid!");
+        //     links.Clear();
+        //     links.Add(e);
+        //     foreach (var child in children)
+        //         links.Add(child.Value);
+        // }
+        
+        foreach(var (logicConnections, children) in 
+                SystemAPI.Query<DynamicBuffer<PendingLogicConnection>, DynamicBuffer<Child>>().WithChangeFilter<Child>())
         {
-            Debug.Log("Recalculating Grid!");
-
-            // TODO: Should this not happen automatically? Maybe scheduling order problem?
-            foreach (var (children, links, e) in
-                     SystemAPI.Query<DynamicBuffer<Child>, DynamicBuffer<LinkedEntityGroup>>()
-                              .WithChangeFilter<Child>().WithAll<GridStructure>().WithEntityAccess())
+            foreach (var connection in logicConnections)
             {
-                links.Clear();
-                links.Add(e);
+                var from = Entity.Null;
+                var to = Entity.Null;
                 foreach (var child in children)
-                    links.Add(child.Value);
+                {
+                    if (!SystemAPI.HasComponent<GridItem>(child.Value))
+                        continue;
+                    var origin = SystemAPI.GetComponent<GridItem>(child.Value).Area.Origin;
+                    if (math.all(origin == connection.FromCell))
+                        from = child.Value;
+                    else if (math.all(origin == connection.ToCell))
+                        to = child.Value;
+                }
+
+                if (from != Entity.Null && to != Entity.Null && SystemAPI.HasBuffer<LogicPort>(to))
+                {
+                    var buffer = SystemAPI.GetBuffer<LogicPort>(to);
+                    var port = buffer[connection.ToPort];
+                    port.Connection = new LogicInput
+                    {
+                        FromEntity = from,
+                        FromPort = connection.FromPort
+                    };
+                    buffer[connection.ToPort] = port;
+                }
+                else
+                    Debug.LogWarning($"Skipped loading invalid Logic connection");
             }
+            logicConnections.Clear();
         }
     }
 }

@@ -22,18 +22,18 @@ namespace Grid.Logic
                 var e = GetEntity(TransformUsageFlags.None);
                 if (authoring.Ports.Length != 0)
                 {
-                    AddComponent<RegisterAsLogicAddressable>(e);
                     var buffer = AddBuffer<LogicPort>(e);
                     foreach (var port in authoring.Ports)
                         buffer.Add(new LogicPort
                         {
                             Type = port.Type, 
-                            Access = port.Access
+                            Access = port.Access,
+                            Data = new LogicData
+                            {
+                                UseFractions = port.Type.IsFractionalType()
+                            }
                         });
                 }
-
-                if (authoring.Ports.Any(x => (x.Access & LogicAccess.Read) != 0))
-                    AddBuffer<LogicTarget>(e);
             }
         }
     }

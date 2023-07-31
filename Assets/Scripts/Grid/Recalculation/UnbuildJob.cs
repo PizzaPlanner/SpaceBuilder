@@ -34,8 +34,6 @@ public partial struct UnbuildJob : IJobEntity
                 }
             }
         }
-
-        Rooms.LogicLookup.Remove((parent.Value, gridItem.Area.Origin));
         
         // TODO: Reduce Mass
         // TODO: Reduce BoundingBox

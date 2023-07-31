@@ -1,3 +1,4 @@
+using Grid.Logic;
 using System;
 using System.IO;
 using System.Linq;
@@ -242,11 +243,20 @@ public partial class BlueprintGeneratorSystem : SystemBase
 #if UNITY_EDITOR
         EntityManager.SetName(result.Prefab, $"Blueprint: {data.Name}");
 #endif
-        var bpBuffer = EntityManager.GetBuffer<BuildingPartInfo>(result.Prefab);
-        foreach (var part in data.Parts)
+        if (data.Parts != null)
         {
-            bpBuffer.Add(part);
+            var bpBuffer = EntityManager.GetBuffer<BuildingPartInfo>(result.Prefab);
+            foreach (var part in data.Parts)
+                bpBuffer.Add(part);
         }
+
+        if (data.LogicConnections != null)
+        {
+            var logicBuffer = EntityManager.GetBuffer<PendingLogicConnection>(result.Prefab);
+            foreach (var connection in data.LogicConnections)
+                logicBuffer.Add(connection);
+        }
+        
         if(data.Tags != null)
             foreach(var tag in data.Tags)
                 if (Enum.TryParse<SpawnableTag>(tag, out var t1))

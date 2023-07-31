@@ -1,4 +1,5 @@
 using Grid.Blueprints;
+using Grid.Logic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ public struct BlueprintData
 {
     public IEnumerable<string> Tags;
     public IEnumerable<BuildingPartInfo> Parts;
+    public IEnumerable<PendingLogicConnection> LogicConnections;
     public string Name;
 }
 

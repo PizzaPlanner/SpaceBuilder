@@ -19,7 +19,7 @@ public partial struct ThrusterSystem : ISystem
             foreach (var port in ports)
             {
                 if (port.Type == PortType.Ratio)
-                    accellerationForce *= port.Data;
+                    accellerationForce *= (float)port.Data.AsDouble;
             }
 
             var ship = SystemAPI.GetComponentRW<MoveableShip>(parent.Value);

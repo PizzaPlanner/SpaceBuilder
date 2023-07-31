@@ -11,7 +11,6 @@ public struct RoomsLookup : IComponentData, IDisposable
     public NativeParallelHashMap<(Entity, Cell), int> CellRoomMap;
     public NativeParallelMultiHashMap<Entity, (int, Room)> GridRooms;
     public NativeParallelHashSet<(Entity, Cell)> OccupiedCells;
-    public NativeParallelHashMap<(Entity, Cell), Entity> LogicLookup;
 
     public void Initialize()
     {
@@ -19,7 +18,6 @@ public struct RoomsLookup : IComponentData, IDisposable
         CellRoomMap = new NativeParallelHashMap<(Entity, Cell), int>(0, Allocator.Persistent);
         GridRooms = new NativeParallelMultiHashMap<Entity, (int, Room)>(0, Allocator.Persistent);
         OccupiedCells = new NativeParallelHashSet<(Entity, Cell)>(0, Allocator.Persistent);
-        LogicLookup = new NativeParallelHashMap<(Entity, Cell), Entity>(0, Allocator.Persistent);
     }
     
     public void Dispose()
@@ -28,7 +26,6 @@ public struct RoomsLookup : IComponentData, IDisposable
         CellRoomMap.Dispose();
         GridRooms.Dispose();
         OccupiedCells.Dispose();
-        LogicLookup.Dispose();
     }
 }
 

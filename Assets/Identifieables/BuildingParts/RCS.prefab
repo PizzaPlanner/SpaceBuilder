@@ -307,11 +307,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Ports:
   - Type: 4
-    Access: 2
+    Access: 1
   - Type: 5
-    Access: 2
+    Access: 1
   - Type: 6
-    Access: 2
+    Access: 1
 --- !u!114 &4800496342248642327
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -156,10 +156,6 @@ public struct BlueprintParserV3 : IBlueprintParser
                             break;
                     }
                 }
-                else if (CurrentToken.Peek().Property is List<PortData> ports)
-                {
-                    Debug.Log($"TODO: {line}");
-                }
             }
         }
     }

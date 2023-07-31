@@ -20,7 +20,6 @@ public struct BuildingPartInfo : IBufferElementData
     public int3 Origin;
     public uint3 Scale;
     public RightAngleRotation Orientation;
-    public FixedList128Bytes<LogicTarget> LogicTargets;
     public Color Color;
     public bool IsGhost;
 

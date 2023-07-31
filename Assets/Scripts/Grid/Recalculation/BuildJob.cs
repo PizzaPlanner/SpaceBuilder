@@ -98,9 +98,6 @@ public partial struct BuildJob : IJobEntity
             }
             else
             {
-                foreach(var target in part.LogicTargets)
-                    ecb.AppendToBuffer(entity, target);
-
                 updates++;
                 affectedArea.Min = math.min(area.Min, affectedArea.Min);
                 affectedArea.Max = math.max(area.Max, affectedArea.Max);

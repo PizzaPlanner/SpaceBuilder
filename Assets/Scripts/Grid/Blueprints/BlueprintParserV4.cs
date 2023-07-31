@@ -24,8 +24,9 @@ namespace Grid.Blueprints
     internal class BlueprintV4DataStructure
     {
         public string Name;
-        public IDictionary<ulong, IList<PartData>> Parts = new Dictionary<ulong, IList<PartData>>();
         public IList<string> Tags = new List<string>();
+        public IDictionary<ulong, IList<PartData>> Parts = new Dictionary<ulong, IList<PartData>>();
+        public IList<PortData> LogicConnections = new List<PortData>();
 
         internal class TRS
         {
@@ -39,28 +40,6 @@ namespace Grid.Blueprints
             public TRS At;
             public byte[] Color = new[] { byte.MinValue, byte.MinValue, byte.MinValue };
             public IList<ItemData> Inventory = new List<ItemData>();
-            public IDictionary<Cell, IList<PortData>> LogicPorts = new Dictionary<Cell, IList<PortData>>();
-
-            [YamlIgnore]
-            public FixedList128Bytes<LogicTarget> LogicPortsAsFixedList
-            {
-                get
-                {
-                    if (LogicPorts == null)
-                        return new FixedList128Bytes<LogicTarget>();
-                    
-                    var ports = LogicPorts.SelectMany(target => target.Value.Select(x => new LogicTarget
-                    {
-                        TargetOriginCell = target.Key,
-                        MyOutPort = x.From,
-                        TargetInPort = x.To
-                    }));
-                    var list = new FixedList128Bytes<LogicTarget>();
-                    foreach(var port in ports)
-                        list.Add(port);
-                    return list;
-                }
-            }
         } 
         
         internal class ItemData
@@ -75,6 +54,10 @@ namespace Grid.Blueprints
             public byte From;
             [YamlMember(DefaultValuesHandling = DefaultValuesHandling.Preserve)]
             public byte To;
+            [YamlMember(DefaultValuesHandling = DefaultValuesHandling.Preserve)]
+            public Cell FromPart;
+            [YamlMember(DefaultValuesHandling = DefaultValuesHandling.Preserve)]
+            public Cell ToPart;
         }
     }
 
@@ -85,72 +68,12 @@ namespace Grid.Blueprints
             var data = new BlueprintV4DataStructure();
             data.Parts = new Dictionary<ulong, IList<BlueprintV4DataStructure.PartData>>();
             data.Name = em.GetComponentData<Name>(grid).Value.Value;
+            data.LogicConnections = new List<BlueprintV4DataStructure.PortData>();
+            
             var children = em.GetBuffer<Child>(grid, true);
             foreach (var child in children)
             {
-                if (!em.HasComponent<GridItem>(child.Value) || em.HasComponent<Ghost>(child.Value))
-                    continue;
-                var gridItem = em.GetComponentData<GridItem>(child.Value);
-                var identifieable = em.GetComponentData<Identifieable>(child.Value);
-                var rotation = em.GetComponentData<LocalTransform>(child.Value).Rotation;
-                var scale = gridItem.Scalable ? gridItem.Area.Size : 1;
-
-                BlueprintV4DataStructure.ItemData[] inventory = null;
-                if (em.HasComponent<Inventory>(child.Value))
-                {
-                    var buffer = em.GetBuffer<Inventory>(child.Value);
-                    inventory = new BlueprintV4DataStructure.ItemData[buffer.Length];
-                    for (int i = 0; i < inventory.Length; i++)
-                    {
-                        var item = buffer[i].Item;
-                        if (item == Entity.Null)
-                            continue;
-
-                        var id = em.GetComponentData<Identifieable>(item).ItemId;
-                        var stack = em.HasComponent<Stackable>(item)
-                            ? em.GetComponentData<Stackable>(item).Size
-                            : (ushort)1u;
-                        inventory[i] = new BlueprintV4DataStructure.ItemData { Stack = stack, Id = id };
-                    }
-                }
-
-                if (!data.Parts.ContainsKey(identifieable.ItemId))
-                    data.Parts[identifieable.ItemId] = new List<BlueprintV4DataStructure.PartData>();
-                var color = em.HasComponent<URPMaterialPropertyBaseColor>(child.Value)
-                    ? (int4)(em.GetComponentData<URPMaterialPropertyBaseColor>(child.Value).Value * 255)
-                    : int4.zero;
-
-                Dictionary<Cell, IList<BlueprintV4DataStructure.PortData>> ports = null;
-                if (em.HasBuffer<LogicTarget>(child.Value))
-                {
-                    ports = new Dictionary<Cell, IList<BlueprintV4DataStructure.PortData>>();
-                    var portsBuffer = em.GetBuffer<LogicTarget>(child.Value, true);
-                    foreach (var connection in portsBuffer)
-                    {
-                        var cell = connection.TargetOriginCell;
-                        if (!ports.ContainsKey(cell))
-                            ports[cell] = new List<BlueprintV4DataStructure.PortData>();
-                        ports[cell].Add(new BlueprintV4DataStructure.PortData
-                        {
-                            From = connection.MyOutPort,
-                            To = connection.TargetInPort,
-                        });
-                    }
-                }
-
-                var partToAdd = new BlueprintV4DataStructure.PartData
-                {
-                    At = new BlueprintV4DataStructure.TRS
-                    {
-                        T = gridItem.Area.Origin,
-                        R = new RightAngleRotation(rotation).ToString(),
-                        S = new[] { scale.x, scale.y, scale.z }
-                    },
-                    Inventory = inventory?.ToList(),
-                    Color = new[] { (byte)color.x, (byte)color.y, (byte)color.z },
-                    LogicPorts = ports
-                };
-                data.Parts[identifieable.ItemId].Add(partToAdd);
+                HandleChild(child, em, data);
             }
 
             var cellConverter = new CellConverter();
@@ -162,6 +85,78 @@ namespace Grid.Blueprints
                           .WithTypeConverter(cellConverter)
                           .WithEmissionPhaseObjectGraphVisitor(args => new CustomObjectGraphVisitor(args));
             return builder.Build().Serialize(data);
+        }
+
+        void HandleChild(Child child, EntityManager em, BlueprintV4DataStructure data)
+        {
+            if (!em.HasComponent<GridItem>(child.Value) || em.HasComponent<Ghost>(child.Value))
+                return;
+            var gridItem = em.GetComponentData<GridItem>(child.Value);
+            var identifieable = em.GetComponentData<Identifieable>(child.Value);
+            var rotation = em.GetComponentData<LocalTransform>(child.Value).Rotation;
+            var scale = gridItem.Scalable ? gridItem.Area.Size : 1;
+
+            // Inventory
+            BlueprintV4DataStructure.ItemData[] inventory = null;
+            if (em.HasComponent<Inventory>(child.Value))
+            {
+                var buffer = em.GetBuffer<Inventory>(child.Value);
+                inventory = new BlueprintV4DataStructure.ItemData[buffer.Length];
+                for (int i = 0; i < inventory.Length; i++)
+                {
+                    var item = buffer[i].Item;
+                    if (item == Entity.Null)
+                        continue;
+
+                    var id = em.GetComponentData<Identifieable>(item).ItemId;
+                    var stack = em.HasComponent<Stackable>(item)
+                        ? em.GetComponentData<Stackable>(item).Size
+                        : (ushort)1u;
+                    inventory[i] = new BlueprintV4DataStructure.ItemData { Stack = stack, Id = id };
+                }
+            }
+
+            // Part
+            if (!data.Parts.ContainsKey(identifieable.ItemId))
+                data.Parts[identifieable.ItemId] = new List<BlueprintV4DataStructure.PartData>();
+            var color = em.HasComponent<URPMaterialPropertyBaseColor>(child.Value)
+                ? (int4)(em.GetComponentData<URPMaterialPropertyBaseColor>(child.Value).Value * 255)
+                : int4.zero;
+            
+            var partToAdd = new BlueprintV4DataStructure.PartData
+            {
+                At = new BlueprintV4DataStructure.TRS
+                {
+                    T = gridItem.Area.Origin,
+                    R = new RightAngleRotation(rotation).ToString(),
+                    S = new[] { scale.x, scale.y, scale.z }
+                },
+                Inventory = inventory?.ToList(),
+                Color = new[] { (byte)color.x, (byte)color.y, (byte)color.z }
+            };
+            data.Parts[identifieable.ItemId].Add(partToAdd);
+
+            // Logic
+            if (em.HasBuffer<LogicPort>(child.Value))
+            {
+                var portsBuffer = em.GetBuffer<LogicPort>(child.Value, true);
+                var myCell = gridItem.Area.Origin;
+                for (var i = 0; i < portsBuffer.Length; i++)
+                {
+                    var connection = portsBuffer[i];
+                    if (connection.Connection.FromEntity == Entity.Null)
+                        continue;
+
+                    var theirCell = em.GetComponentData<GridItem>(connection.Connection.FromEntity).Area.Origin;
+                    data.LogicConnections.Add(new BlueprintV4DataStructure.PortData
+                    {
+                        From = connection.Connection.FromPort,
+                        FromPart = theirCell,
+                        ToPart = myCell,
+                        To = (byte)i
+                    });
+                }
+            }
         }
 
         public BlueprintData Load(string data)
@@ -186,8 +181,14 @@ namespace Grid.Blueprints
                     Origin = value.At.T,
                     Orientation = RightAngleRotation.FromString(value.At.R),
                     Scale = new uint3(value.At.S[0], value.At.S[1], value.At.S[2]),
-                    LogicTargets = value.LogicPortsAsFixedList
                 })),
+                LogicConnections = blueprint.LogicConnections.Select(c => new PendingLogicConnection
+                {
+                   FromPort = c.From,
+                   FromCell = c.FromPart,
+                   ToCell = c.ToPart,
+                   ToPort = c.To
+                })
             };
         }
 

@@ -9,7 +9,8 @@ partial class UIInputSystem : SystemBase
             ControlScheme.UI.BuildingParts, 
             ControlScheme.UI.MainMenu, 
             ControlScheme.UI.TabMenu,
-            ControlScheme.UI.Inventory>().Build();
+            ControlScheme.UI.Inventory,
+            ControlScheme.UI.LogicDisplay>().Build();
         RequireForUpdate(query);
     }
 

@@ -362,7 +362,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Ports:
   - Type: 1
-    Access: 255
+    Access: 1
 --- !u!1001 &4475049141318146660
 PrefabInstance:
   m_ObjectHideFlags: 0
