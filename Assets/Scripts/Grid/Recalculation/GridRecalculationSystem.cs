@@ -1,3 +1,4 @@
+using Grid.Blueprints;
 using Grid.Logic;
 using Unity.Collections;
 using Unity.Entities;
@@ -35,39 +36,63 @@ public partial class GridRecalculationSystem : SystemBase
         //         links.Add(child.Value);
         // }
         
-        foreach(var (logicConnections, children) in 
-                SystemAPI.Query<DynamicBuffer<PendingLogicConnection>, DynamicBuffer<Child>>().WithChangeFilter<Child>())
+        foreach(var (pending, children) in 
+                SystemAPI.Query<PendingBlockSettings, DynamicBuffer<Child>>().WithChangeFilter<Child>())
         {
-            foreach (var connection in logicConnections)
+            if (SystemAPI.HasBuffer<PendingLogicConnection>(pending.Changes))
             {
-                var from = Entity.Null;
-                var to = Entity.Null;
-                foreach (var child in children)
+                var changes = SystemAPI.GetBuffer<PendingLogicConnection>(pending.Changes);
+                foreach (var connection in changes)
                 {
-                    if (!SystemAPI.HasComponent<GridItem>(child.Value))
-                        continue;
-                    var origin = SystemAPI.GetComponent<GridItem>(child.Value).Area.Origin;
-                    if (math.all(origin == connection.FromCell))
-                        from = child.Value;
-                    else if (math.all(origin == connection.ToCell))
-                        to = child.Value;
-                }
-
-                if (from != Entity.Null && to != Entity.Null && SystemAPI.HasBuffer<LogicPort>(to))
-                {
-                    var buffer = SystemAPI.GetBuffer<LogicPort>(to);
-                    var port = buffer[connection.ToPort];
-                    port.Connection = new LogicInput
+                    var from = Entity.Null;
+                    var to = Entity.Null;
+                    foreach (var child in children)
                     {
-                        FromEntity = from,
-                        FromPort = connection.FromPort
-                    };
-                    buffer[connection.ToPort] = port;
+                        if (!SystemAPI.HasComponent<GridItem>(child.Value))
+                            continue;
+                        var origin = SystemAPI.GetComponent<GridItem>(child.Value).Area.Origin;
+                        if (math.all(origin == connection.FromCell))
+                            from = child.Value;
+                        else if (math.all(origin == connection.ToCell))
+                            to = child.Value;
+                    }
+
+                    if (from != Entity.Null && to != Entity.Null && SystemAPI.HasBuffer<LogicPort>(to))
+                    {
+                        var buffer = SystemAPI.GetBuffer<LogicPort>(to);
+                        var port = buffer[connection.ToPort];
+                        port.Connection = new LogicInput
+                        {
+                            FromEntity = from,
+                            FromPort = connection.FromPort
+                        };
+                        buffer[connection.ToPort] = port;
+                    }
+                    else
+                        Debug.LogWarning($"Skipped loading invalid Logic connection");
                 }
-                else
-                    Debug.LogWarning($"Skipped loading invalid Logic connection");
+                changes.Clear(); 
             }
-            logicConnections.Clear();
+            
+            if (SystemAPI.HasBuffer<PendingLogicUIData>(pending.Changes))
+            {
+                var changes = SystemAPI.GetBuffer<PendingLogicUIData>(pending.Changes);
+                foreach (var logicUI in changes)
+                {
+                    foreach (var child in children)
+                    {
+                        if (!SystemAPI.HasComponent<GridItem>(child.Value) || !SystemAPI.HasComponent<LogicItem>(child.Value))
+                            continue;
+                        
+                        if(math.any(SystemAPI.GetComponent<GridItem>(child.Value).Area.Origin != logicUI.Target))
+                            continue;
+                        
+                        SystemAPI.SetComponent(child.Value, new LogicItem { SavedUIPosition = logicUI.Position });
+                    }
+                }
+                changes.Clear(); 
+            }
+               
         }
     }
 }

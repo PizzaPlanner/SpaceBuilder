@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 public partial class DebugButtonsSystem : SystemBase
 {
-    VisualElement addSpeed, showColliders, targetFilter;
+    VisualElement addSpeed, showColliders, targetFilter, noClip;
     
     protected override void OnCreate()
     {
@@ -49,9 +49,18 @@ public partial class DebugButtonsSystem : SystemBase
                 wantUpdateTM = true;
             });
         }
+        
+        if (noClip == null)
+        {
+            noClip = root.Q("NoClip");
+            noClip.RegisterCallback<MouseDownEvent>(x =>
+            {
+                wantToggleNoClip = true;
+            });
+        }
     }
 
-    bool wantToggleColliders;
+    bool wantToggleColliders, wantToggleNoClip;
     PlayerTargetSystem.PlayerTargetMode newTargetMode;
     bool wantUpdateTM;
 
@@ -74,6 +83,22 @@ public partial class DebugButtonsSystem : SystemBase
         {
             wantUpdateTM = false;
             SystemAPI.SetSingleton(new PlayerTargetModeSettings { Mode = newTargetMode });
+        }
+
+        if (wantToggleNoClip)
+        {
+            wantToggleNoClip = false;
+            var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
+            if (SystemAPI.HasComponent<NoClip>(localPlayer))
+            {
+                EntityManager.RemoveComponent<NoClip>(localPlayer);
+                (noClip as Label)!.text = "Enable NoClip";
+            }
+            else
+            {
+                EntityManager.AddComponent<NoClip>(localPlayer);
+                (noClip as Label)!.text = "Disable NoClip";
+            }
         }
     }
 }

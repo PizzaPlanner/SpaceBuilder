@@ -3,12 +3,12 @@ public partial struct LocalToGalaxy
     const int LOCALPOSITION_BITS = 16;
     public const int MAX_POSITION = 1 << LOCALPOSITION_BITS;
 
-    const int LOCALSECTOR_BITS = 10;
+    const int LOCALSECTOR_BITS = 14;
     const int LOCALSECTOR_SHIFT = 0;
     const long LOCALSECTOR_MASK = (MAX_LOCALSECTOR - 1L) << LOCALSECTOR_SHIFT;
     public const int MAX_LOCALSECTOR = 1 << LOCALSECTOR_BITS;
     
-    const int PLANETSECTOR_BITS = 16;
+    const int PLANETSECTOR_BITS = 8;
     const int PLANETSECTOR_SHIFT = LOCALSECTOR_BITS + LOCALSECTOR_SHIFT;
     const long PLANETSECTOR_MASK = (MAX_PLANETSECTOR - 1L) << PLANETSECTOR_SHIFT;
     public const int MAX_PLANETSECTOR = 1 << PLANETSECTOR_BITS;

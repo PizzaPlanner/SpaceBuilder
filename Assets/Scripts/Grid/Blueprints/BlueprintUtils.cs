@@ -12,6 +12,7 @@ public struct BlueprintData
     public IEnumerable<string> Tags;
     public IEnumerable<BuildingPartInfo> Parts;
     public IEnumerable<PendingLogicConnection> LogicConnections;
+    public IEnumerable<PendingLogicUIData> LogicUIData;
     public string Name;
 }
 

@@ -160,6 +160,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="Settings" style="background-color: rgba(55, 55, 55, 0.22); padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;">
             <ui:Label text="±Speed" display-tooltip-when-elided="true" name="MoreSpeed" enable-rich-text="false" class="debug-button" />
+            <ui:Label text="Enable NoClip" display-tooltip-when-elided="true" name="NoClip" enable-rich-text="false" class="debug-button" />
             <ui:Label text="Colliders" display-tooltip-when-elided="true" name="Colliders" enable-rich-text="false" class="debug-button" />
             <ui:EnumField type="PlayerTargetSystem+PlayerTargetMode, Grid" name="TargetFilter" tabindex="-1" class="debug-button" />
         </ui:VisualElement>

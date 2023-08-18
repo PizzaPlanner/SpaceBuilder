@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -27,6 +28,7 @@ namespace Grid.Blueprints
         public IList<string> Tags = new List<string>();
         public IDictionary<ulong, IList<PartData>> Parts = new Dictionary<ulong, IList<PartData>>();
         public IList<PortData> LogicConnections = new List<PortData>();
+        public IList<PendingLogicUIData> LogicUIData = new List<PendingLogicUIData>();
 
         internal class TRS
         {
@@ -75,14 +77,14 @@ namespace Grid.Blueprints
             {
                 HandleChild(child, em, data);
             }
-
-            var cellConverter = new CellConverter();
+            
             var builder = new SerializerBuilder()
                           .WithNamingConvention(PascalCaseNamingConvention.Instance)
                           .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitDefaults |
                                                           DefaultValuesHandling.OmitEmptyCollections)
                           .WithEventEmitter(x => new FlowArraysEmitter(x))
-                          .WithTypeConverter(cellConverter)
+                          .WithTypeConverter(new CellConverter())
+                          .WithTypeConverter(new Float2Converter())
                           .WithEmissionPhaseObjectGraphVisitor(args => new CustomObjectGraphVisitor(args));
             return builder.Build().Serialize(data);
         }
@@ -157,14 +159,23 @@ namespace Grid.Blueprints
                     });
                 }
             }
+
+            if (em.HasComponent<LogicItem>(child.Value))
+            {
+                data.LogicUIData.Add(new PendingLogicUIData
+                {
+                    Position = em.GetComponentData<LogicItem>(child.Value).SavedUIPosition,
+                    Target = gridItem.Area.Origin
+                });
+            }
         }
 
         public BlueprintData Load(string data)
         {
-            var cellConverter = new CellConverter();
             var builder = new DeserializerBuilder()
                           .WithNamingConvention(PascalCaseNamingConvention.Instance)
-                          .WithTypeConverter(cellConverter);
+                          .WithTypeConverter(new CellConverter())
+                          .WithTypeConverter(new Float2Converter());
 
             var blueprint = builder.Build().Deserialize<BlueprintV4DataStructure>(data);
             
@@ -188,7 +199,8 @@ namespace Grid.Blueprints
                    FromCell = c.FromPart,
                    ToCell = c.ToPart,
                    ToPort = c.To
-                })
+                }),
+                LogicUIData = blueprint.LogicUIData
             };
         }
 
@@ -252,36 +264,5 @@ public class CustomObjectGraphVisitor : ChainedObjectGraphVisitor
 
         // Include all other properties in serialization
         return base.EnterMapping(key, value, context);
-    }
-}
-
-public sealed class CellConverter : IYamlTypeConverter
-{
-    public bool Accepts(Type type) => type == typeof(Cell);
-
-    public object ReadYaml(IParser parser, Type type)
-    {
-        parser.Consume<SequenceStart>();
-        var cell = new Cell()
-        {
-            x = (short)int.Parse(parser.Consume<Scalar>().Value),
-            y = (short)int.Parse(parser.Consume<Scalar>().Value),
-            z = (short)int.Parse(parser.Consume<Scalar>().Value),
-        };
-        parser.Consume<SequenceEnd>();
-        
-        return cell;
-    }
-    
-    public void WriteYaml(IEmitter emitter, object value, Type type)
-    {
-        emitter.Emit(new SequenceStart(null, null, true, SequenceStyle.Flow));
-
-        var cell = (Cell)value;
-        emitter.Emit(new Scalar(cell.x.ToString()));
-        emitter.Emit(new Scalar(cell.y.ToString()));
-        emitter.Emit(new Scalar(cell.z.ToString()));
-
-        emitter.Emit(new SequenceEnd());
     }
 }

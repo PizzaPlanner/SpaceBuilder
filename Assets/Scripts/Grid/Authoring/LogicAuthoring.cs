@@ -22,6 +22,7 @@ namespace Grid.Logic
                 var e = GetEntity(TransformUsageFlags.None);
                 if (authoring.Ports.Length != 0)
                 {
+                    AddComponent<LogicItem>(e);
                     var buffer = AddBuffer<LogicPort>(e);
                     foreach (var port in authoring.Ports)
                         buffer.Add(new LogicPort

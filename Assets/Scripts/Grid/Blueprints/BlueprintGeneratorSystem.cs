@@ -1,3 +1,4 @@
+using Grid.Blueprints;
 using Grid.Logic;
 using System;
 using System.IO;
@@ -44,6 +45,7 @@ public partial class BlueprintGeneratorSystem : SystemBase
         public Entity Prefab;
         public LocalToGalaxy LocalToGalaxy;
         public quaternion AbsoluteRotation;
+        public bool ShowMarker;
     }
     
     private static NativeParallelHashMap<FixedString64Bytes, SpawnablePrefab> spawnables;
@@ -142,16 +144,17 @@ public partial class BlueprintGeneratorSystem : SystemBase
     
     public static void QueueBlueprintSpawnAtPlayer(Entity prefab)
     {
-        QueueBlueprintSpawn(prefab, _lastRefFrame.CurrentLtg, _lastRefFrame.CurrentLtw.Rotation);
+        QueueBlueprintSpawn(prefab, _lastRefFrame.CurrentLtg, _lastRefFrame.CurrentLtw.Rotation, true);
     }
 
-    public static void QueueBlueprintSpawn(Entity prefab, LocalToGalaxy ltg, quaternion absoluteOrientation)
+    public static void QueueBlueprintSpawn(Entity prefab, LocalToGalaxy ltg, quaternion absoluteOrientation, bool addMarker = false)
     {
         toSpawn.Data.Enqueue(new BlueprintSpawnInfo
         {
             LocalToGalaxy = ltg, 
             Prefab = prefab, 
-            AbsoluteRotation = absoluteOrientation
+            AbsoluteRotation = absoluteOrientation,
+            ShowMarker = addMarker
         });
     }
 
@@ -172,6 +175,8 @@ public partial class BlueprintGeneratorSystem : SystemBase
             var e = ecb.Instantiate(spawn.Prefab);
             ecb.SetComponent(e, spawn.LocalToGalaxy);
             ecb.SetComponent(e, LocalTransform.FromRotation(spawn.AbsoluteRotation));
+            if(spawn.ShowMarker)
+                ecb.SetComponentEnabled<ShouldShowAsPOI>(e, true);
         }
 
         var blueprintsUpdated = false;
@@ -243,6 +248,10 @@ public partial class BlueprintGeneratorSystem : SystemBase
 #if UNITY_EDITOR
         EntityManager.SetName(result.Prefab, $"Blueprint: {data.Name}");
 #endif
+        var postLoadPendingChanges = EntityManager.CreateEntity(typeof(Prefab));
+        EntityManager.AddComponentData(result.Prefab, new PendingBlockSettings { Changes = postLoadPendingChanges });
+        EntityManager.GetBuffer<LinkedEntityGroup>(result.Prefab).Add(postLoadPendingChanges);
+        
         if (data.Parts != null)
         {
             var bpBuffer = EntityManager.GetBuffer<BuildingPartInfo>(result.Prefab);
@@ -252,8 +261,15 @@ public partial class BlueprintGeneratorSystem : SystemBase
 
         if (data.LogicConnections != null)
         {
-            var logicBuffer = EntityManager.GetBuffer<PendingLogicConnection>(result.Prefab);
+            var logicBuffer = EntityManager.AddBuffer<PendingLogicConnection>(postLoadPendingChanges);
             foreach (var connection in data.LogicConnections)
+                logicBuffer.Add(connection);
+        }
+        
+        if (data.LogicUIData != null)
+        {
+            var logicBuffer = EntityManager.AddBuffer<PendingLogicUIData>(postLoadPendingChanges);
+            foreach (var connection in data.LogicUIData)
                 logicBuffer.Add(connection);
         }
         

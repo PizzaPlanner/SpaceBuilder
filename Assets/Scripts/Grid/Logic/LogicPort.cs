@@ -86,7 +86,6 @@ namespace Grid.Logic
         public LogicData Data;
     }
 
-    
     [StructLayout(LayoutKind.Explicit)]
     public struct LogicData
     {

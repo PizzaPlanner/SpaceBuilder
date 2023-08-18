@@ -26,7 +26,7 @@ namespace Grid.Logic
             _dragger.OnDrag = delta =>
             {
                 _dragTarget += delta;
-                GetFirstAncestorOfType<LogicEditorWindow>().UpdateOverlay();
+                LogicEditorWindow.Instance.UpdateOverlay();
             };
             _dragger.OnDrop = delta =>
             {
@@ -81,7 +81,7 @@ namespace Grid.Logic
                 if (value.FromEntity == Entity.Null)
                     InputPort = null;
                 else
-                    InputPort = GetFirstAncestorOfType<LogicEditorWindow>().GetItemFor(value.FromEntity)
+                    InputPort = LogicEditorWindow.Instance.GetItemFor(value.FromEntity)
                                                                            .GetPort(value.FromPort);
             }
         }

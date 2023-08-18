@@ -699,3 +699,16 @@ LogicPortElement > #Port:hover {
 LogicPortElement > #Port.dragging {
     background-image: url('project://database/Assets/3rdParty/64%20flat%20icons/png/128px/Modifiers_Accuracy.png?fileID=2800000&guid=9b901b0342008d345a7c96c77616dfe5&type=3#Modifiers_Accuracy');
 }
+
+POIMarker > PlanetCircleMarker {
+    display: none;
+}
+
+POIMarker.highlighted > PlanetCircleMarker {
+    display: flex;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}

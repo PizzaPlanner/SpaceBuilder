@@ -4,6 +4,7 @@ using Unity.Transforms;
 
 namespace Grid.Logic
 {
+    [UpdateInGroup(typeof(LogicSystemGroup), OrderFirst = true)]
     partial struct PropagateLogicSystem : ISystem
     {
         public void OnCreate(ref SystemState state)

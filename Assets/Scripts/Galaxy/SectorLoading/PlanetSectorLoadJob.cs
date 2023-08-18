@@ -27,7 +27,7 @@ public partial struct PlanetSectorLoadJob : IJob
                 {
                     LightSector = newSector.LightSector,
                     StarSector = newSector.StarSector,
-                    PlanetSector = planetSectors[i],
+                    PlanetSector = planetSectors[i].PlanetSector,
                     LocalSector = GalaxyTools.PlanetSectorCenter
                 };
                 GeneratePlanet(ltg, newSector);

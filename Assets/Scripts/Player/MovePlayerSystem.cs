@@ -1,21 +1,32 @@
-using Galaxy.SectorLoading;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics;
+using Unity.Physics.Aspects;
+using Unity.Physics.Extensions;
 using Unity.Transforms;
 using UnityEngine;
+using CapsuleCollider = Unity.Physics.CapsuleCollider;
+
+public struct NoClip : IComponentData { }
 
 [UpdateBefore(typeof(TransformSystemGroup))]
 public partial class MovePlayerSystem : SystemBase
 {
+    CollisionFilter _collisionFilter;
     protected override void OnCreate()
     {
         RequireForUpdate<LocalPlayer>();
         RequireForUpdate<CameraAnchor>();
         RequireForUpdate<ControlScheme.Player>();
         RequireForUpdate<InputData>();
+        RequireForUpdate<PhysicsWorldSingleton>();
+        RequireForUpdate<ReferenceFrame>();
+        
+        _collisionFilter = CollisionFilter.Default;
+        _collisionFilter.CollidesWith &= ~(1u<<3);
     }
 
-    protected override void OnUpdate()
+    protected override unsafe void OnUpdate()
     {
         var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
         var referenceFrame = SystemAPI.GetSingleton<ReferenceFrame>();
@@ -36,45 +47,53 @@ public partial class MovePlayerSystem : SystemBase
         }
         else
             camAnchor.XRotation = 0;
+
         SystemAPI.SetSingleton(camAnchor);
+
+        var physicsWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>();
+        var collisionWorld = physicsWorld.CollisionWorld;
 
         var p = SystemAPI.GetComponentRW<Player>(localPlayer);
         p.ValueRW.Running = inputData.WantRun;
+        var movementSpeed = p.ValueRW.Running ? p.ValueRW.MovementSpeedRun : p.ValueRW.MovementSpeedDefault;
 
         var deltaTime = World.Time.DeltaTime;
 
-        Entities
-            .WithAll<ReferenceFrameOrigin>()
-            .ForEach((Entity e, ref LocalTransform transform, ref CanTravelSectors cts, ref LocalToGalaxy ltg, in Player player) =>
+        var playerIsRefFrame = SystemAPI.HasComponent<ReferenceFrameOrigin>(localPlayer);
+
+        var frameToCamera = playerIsRefFrame 
+            ? localToCamera.Rotation 
+            : math.mul(math.inverse(referenceFrame.PreviousLtw.Rotation), localToCamera.Rotation);
+        var movement = math.mul(frameToCamera, inputData.Movement);
+        var totalMovement = movement * movementSpeed * deltaTime;
+        var transform = SystemAPI.GetComponentRW<LocalTransform>(localPlayer);
+
+        if (math.any(movement != 0) && !SystemAPI.HasComponent<NoClip>(localPlayer))
+        {
+            var colliderAspect = SystemAPI.GetAspect<ColliderAspect>(localPlayer);
+            var direction = math.normalize(movement);
+            var distance = math.length(totalMovement);
+            if(collisionWorld.CastCollider(colliderAspect, direction, distance, out var hit))
             {
-                var movement = math.mul(localToCamera.Rotation, inputData.Movement);
+                Debug.Log($"Collision {localPlayer.Index} / {hit.Entity.Index}: {hit.Fraction}");
+                totalMovement *= hit.Fraction;
+            }
+        }
 
-                var targetRotation = math.mul(transform.Rotation, quaternion.EulerXYZ(rotation));
-                transform.Rotation = targetRotation;
-                var totalMovement = (movement * (double3)(player.Running ? player.MovementSpeedRun : player.MovementSpeedDefault) * deltaTime);
-                ltg += totalMovement;
-
-                cts.CurrentTravelType = player.Running && player.MovementSpeedRun > 1e9
-                    ? SectorChangeType.FTL
-                    : SectorChangeType.Normal;
-
-                var relativePos = (cts.PreviousSector - ltg).Distance;
-                cts.CurrentSpeed = math.length(relativePos) / deltaTime;
-            }).Schedule();
-
-        Entities
-            .WithNone<ReferenceFrameOrigin>()
-            .ForEach((ref LocalTransform transform, in Player player) =>
-            {
-                var frameToCamera = math.mul(math.inverse(referenceFrame.PreviousLtw.Rotation), localToCamera.Rotation);
-                var movement = math.mul(frameToCamera, inputData.Movement);
-                
-                var totalMovement = (movement * (player.Running ? player.MovementSpeedRun : player.MovementSpeedDefault) * deltaTime);
-                transform.Position += totalMovement;
-                var targetRotation = math.mul(transform.Rotation, quaternion.EulerXYZ(rotation));
-                var targetRotationUpAligned =
-                    quaternion.LookRotationSafe(math.mul(targetRotation, math.forward()), math.up());
-                transform.Rotation = math.slerp(targetRotation, targetRotationUpAligned, alignUpVector);
-            }).Schedule();
+        if (playerIsRefFrame)
+        {
+            var targetRotation = math.mul(transform.ValueRW.Rotation, quaternion.EulerXYZ(rotation));
+            transform.ValueRW.Rotation = targetRotation;
+            var ltg = SystemAPI.GetComponentRW<LocalToGalaxy>(localPlayer);
+            ltg.ValueRW += totalMovement;
+        }
+        else
+        {
+            transform.ValueRW.Position += totalMovement;
+            var targetRotation = math.mul(transform.ValueRW.Rotation, quaternion.EulerXYZ(rotation));
+            var targetRotationUpAligned =
+                quaternion.LookRotationSafe(math.mul(targetRotation, math.forward()), math.up());
+            transform.ValueRW.Rotation = math.slerp(targetRotation, targetRotationUpAligned, alignUpVector);
+        }
     }
 }

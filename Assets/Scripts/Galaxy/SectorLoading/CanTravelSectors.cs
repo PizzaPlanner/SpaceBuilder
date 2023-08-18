@@ -6,7 +6,6 @@ namespace Galaxy.SectorLoading
     {
         public LocalToGalaxy PreviousSector;
         public SectorChangeType CurrentTravelType;
-        public double CurrentSpeed;
     }
 
     public enum SectorChangeType

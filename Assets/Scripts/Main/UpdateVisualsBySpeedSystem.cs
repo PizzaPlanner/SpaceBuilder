@@ -15,7 +15,7 @@ public partial class UpdateVisualsBySpeedSystem : SystemBase
     protected override void OnCreate()
     {
         RequireForUpdate<CameraAnchor>();
-        RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<ReferenceFrame>();
     }
 
     protected override void OnStartRunning()
@@ -25,8 +25,8 @@ public partial class UpdateVisualsBySpeedSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var localPlayer = GetSingletonEntity<LocalPlayer>();
-        var speed = GetComponent<CanTravelSectors>(localPlayer).CurrentSpeed;
+        var refFrame = SystemAPI.GetSingleton<ReferenceFrame>();
+        var speed = math.length(refFrame.DeltaLtg) * SystemAPI.Time.DeltaTime;
         if (speed > 0)
         {
             var intensity = (float) math.log10(speed) / 7.5f - 0.3f;

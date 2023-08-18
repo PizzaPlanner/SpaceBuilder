@@ -24,6 +24,7 @@ namespace Grid.Logic
         {
             root = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q<LogicEditorWindow>();
             root.style.display = DisplayStyle.Flex;
+            LogicEditorWindow.Instance = root;
             var window = EntityManager.CreateEntity(typeof(LogicEditorWindow), typeof(ControlScheme.UI.LogicDisplay));
             EntityManager.SetComponentData(window, root);
 
@@ -33,8 +34,8 @@ namespace Grid.Logic
             
             // Add UI stuff for all relevant parts
             var ecb = new EntityCommandBuffer(Allocator.Temp);
-            foreach (var (parent, ports, name, e) in 
-                     SystemAPI.Query<Parent, DynamicBuffer<LogicPort>, Name>()
+            foreach (var (parent, ports, item, name, e) in 
+                     SystemAPI.Query<Parent, DynamicBuffer<LogicPort>, LogicItem, Name>()
                               .WithAll<GridItem>()
                               .WithNone<LogicEditorElement>()
                               .WithEntityAccess())
@@ -44,6 +45,7 @@ namespace Grid.Logic
                 
                 var element = new LogicEditorElement { Name = name.Value.Value, Ports = ports.AsNativeArray() };
                 ecb.AddComponent(e, element);
+                element.Position = item.SavedUIPosition;
             }
             ecb.Playback(EntityManager);
             
@@ -70,12 +72,13 @@ namespace Grid.Logic
             if(SystemAPI.HasSingleton<ControlScheme.UI.TabMenu>())
                 EntityManager.DestroyEntity(SystemAPI.GetSingletonEntity<ControlScheme.UI.LogicDisplay>());
 
-            foreach (var (editor, ports, parent, e) in
-                     SystemAPI.Query<LogicEditorElement, DynamicBuffer<LogicPort>, Parent>().WithAll<GridItem>().WithEntityAccess())
+            foreach (var (editor, ports, item, parent, e) in
+                     SystemAPI.Query<LogicEditorElement, DynamicBuffer<LogicPort>, RefRW<LogicItem>, Parent>().WithAll<GridItem>().WithEntityAccess())
             {
                 if(parent.Value != root.Grid)
                     continue;
-                
+
+                item.ValueRW.SavedUIPosition = editor.Position;
                 var portsRW = ports;
                 for (int i = 0; i < ports.Length; i++)
                 {

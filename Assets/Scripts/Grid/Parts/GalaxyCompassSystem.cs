@@ -9,6 +9,7 @@ public struct GalaxyCompass : IComponentData
     public int Level;
 }
 
+[UpdateInGroup(typeof(LogicSystemGroup))]
 public partial class GalaxyCompassSystem : SystemBase
 {
     partial struct ApplyCoordinatesJob : IJobEntity

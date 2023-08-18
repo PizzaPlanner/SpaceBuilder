@@ -16,7 +16,7 @@ namespace Grid.Logic
                 _position = value;
                 this.style.left = _position.x;
                 this.style.top = _position.y;
-                GetFirstAncestorOfType<LogicEditorWindow>().UpdateOverlay();
+                LogicEditorWindow.Instance.UpdateOverlay();
             }
             get => _position;
         }
@@ -42,7 +42,7 @@ namespace Grid.Logic
             _dragger = new DragAndDropManipulator
             {
                 OnDrag = offset => Position += offset,
-                OnDrop = _ => Position = math.clamp(Position - Position % 5, 0, 
+                OnDrop = _ => Position = math.clamp(Position - Position % 10, 0, 
                     new float2(parent.resolvedStyle.width, parent.resolvedStyle.height) - 30)
             };
             this.Q<Label>("Name").AddManipulator(_dragger);

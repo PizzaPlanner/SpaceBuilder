@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
 
+[UpdateInGroup(typeof(LogicSystemGroup))]
 public partial class SteeringControllerSystem : SystemBase
 {
     partial struct SteeringJob : IJobEntity

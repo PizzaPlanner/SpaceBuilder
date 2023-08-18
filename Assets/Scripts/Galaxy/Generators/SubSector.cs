@@ -32,7 +32,7 @@ public struct StarSectorData : IComponentData
     public byte NumberOfPlanets;
     public StarSectorType Type;
 
-    public NativeArray<int3> CalculatePlanetSectors => GalaxyTools.GetPlanetSectorsOfStarSector(this);
+    public NativeArray<GalaxyTools.PlanetSectorOffsetData> CalculatePlanetSectors => GalaxyTools.GetPlanetSectorsOfStarSector(this);
     public string Name => GalaxyTools.GetStarName(StarGeneratorSeed).Value;
 }
 

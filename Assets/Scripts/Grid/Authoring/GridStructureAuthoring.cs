@@ -15,7 +15,6 @@ public class GridStructureAuthoring : MonoBehaviour
             AddComponent<GridUpdate>(e);
             SetComponentEnabled<GridUpdate>(e, false);
             AddBuffer<BuildingPartInfo>(e);
-            AddBuffer<PendingLogicConnection>(e);
             AddBuffer<LinkedEntityGroup>(e).Add(e);
             AddBuffer<Child>(e);
             AddComponent<MoveableShip>(e);

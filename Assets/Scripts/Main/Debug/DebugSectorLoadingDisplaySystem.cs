@@ -59,9 +59,9 @@ public partial class DebugSectorLoadingDisplaySystem : SystemBase
 
         var player = SystemAPI.GetSingletonEntity<LocalPlayer>();
         var refFrame = SystemAPI.GetSingleton<ReferenceFrame>();
-        var speed = SystemAPI.GetComponent<CanTravelSectors>(player);
         var player2 = SystemAPI.GetComponent<Player>(player);
         var ltg = refFrame.CurrentLtg;
+        var speed = math.length(refFrame.DeltaLtg) * SystemAPI.Time.DeltaTime;
 
         var sectorData = GalaxyTools.GetLightSectorData(ltg);
         var starSector = GalaxyTools.GetStarSectorData(ltg);
@@ -76,7 +76,7 @@ public partial class DebugSectorLoadingDisplaySystem : SystemBase
             var planetSectors = starSector.CalculatePlanetSectors;
             for (byte i = 0; i < planetSectors.Length; i++)
             {
-                if (math.all(ltg.PlanetSector == planetSectors[i]))
+                if (math.all(ltg.PlanetSector == planetSectors[i].PlanetSector))
                 {
                     isInPlanetSector = true;
                     planetId = i;
@@ -96,8 +96,8 @@ public partial class DebugSectorLoadingDisplaySystem : SystemBase
   z: {ltg.LightSector.z:X}:{ltg.StarSector.z:X}:{ltg.PlanetSector.z:X}@{ltg.LocalPosition.z:F0}
   {lightSectorInfo}
 
-Speed: {GalaxyTools.ToGalacticDistanceWithUnit(speed.CurrentSpeed)}/{GalaxyTools.ToGalacticDistanceWithUnit(player2.MovementSpeedRun)}
-Travel: {speed.CurrentTravelType}";
+Speed: {GalaxyTools.ToGalacticDistanceWithUnit(speed)}/{GalaxyTools.ToGalacticDistanceWithUnit(player2.MovementSpeedRun)}
+Travel: {speed}";
 
         infoTexts.Q<Label>("sectors").text = $@"Sectors: {loadedLS} +{lsToLoad} / -{lsToUnload}
 Stars: {loadedStars} +{starsToLoad} / -{starsToUnload}

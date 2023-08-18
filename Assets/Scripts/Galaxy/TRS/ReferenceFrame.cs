@@ -13,6 +13,7 @@ public struct ReferenceFrame : IComponentData
     public Entity Origin;
 
     public float DurationSinceLastChange;
+    public double3 DeltaLtg => (CurrentLtg - PreviousLtg).Distance;
 }
 
 
@@ -145,7 +146,5 @@ public partial struct LateReferenceFrameSystem : ISystem
         var gridLtw = SystemAPI.GetComponent<LocalToWorld>(refFrame.ValueRW.Origin);
         refFrame.ValueRW.CurrentLtg = gridLtg;
         refFrame.ValueRW.CurrentLtw = new LocalToWorld { Value = float4x4.TRS(gridLtw.Position, gridLtw.Rotation, 1) };
-        Debug.DrawRay(gridLtw.Position, gridLtw.Up, Color.green);
-        Debug.DrawRay(gridLtw.Position, gridLtw.Forward, Color.blue);
     }
 }

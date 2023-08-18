@@ -1,17 +1,18 @@
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEngine.UIElements;
 using Random = Unity.Mathematics.Random;
 
 public static partial class GalaxyTools
 {
     private const float PERLIN_SECTOR_RESOLUTION = 0.0001f;
-    public const float PLANET_SIZE_MAX = (float)LocalToGalaxy.DISTANCE_PER_PLANETSECTOR * 0.3f;
-    public const float STAR_SIZE_MAX = (float)(LocalToGalaxy.DISTANCE_PER_STARSECTOR / 22);
+    public const float PLANET_SIZE_MAX = (float)LocalToGalaxy.DISTANCE_PER_PLANETSECTOR * 0.6f;
+    public const float STAR_SIZE_MAX = (float)(LocalToGalaxy.DISTANCE_PER_STARSECTOR / 33);
     public const float GIANTSTAR_SIZE_MAX = (float)(LocalToGalaxy.DISTANCE_PER_STARSECTOR / 3);
-    private const uint MIN_SECTORS_FROM_STAR_TO_PLANET = (uint)(6 * STAR_SIZE_MAX / LocalToGalaxy.DISTANCE_PER_PLANETSECTOR);
-    private const uint MIN_SECTORS_BETWEEN_PLANETS = (int) (LocalToGalaxy.MAX_PLANETSECTOR * 0.03f);
+    private const uint MIN_SECTORS_FROM_STAR_TO_PLANET = (uint)(7 * STAR_SIZE_MAX / LocalToGalaxy.DISTANCE_PER_PLANETSECTOR);
+    private const uint MIN_SECTORS_BETWEEN_PLANETS = (int) (LocalToGalaxy.MAX_PLANETSECTOR * 0.05f);
     private const int PLANET_MAX_Y_DISTANCE = (int) (LocalToGalaxy.MAX_PLANETSECTOR * 0.03f);
-    const float LIGHTSECTOR_MAX_DENSITY = 0.0004f;
+    const float LIGHTSECTOR_MAX_DENSITY = 0.0005f;
     private const uint MAX_STARS_PER_LIGHTSECTOR = (int)(LIGHTSECTOR_MAX_DENSITY * LocalToGalaxy.MAX_STARSECTOR * LocalToGalaxy.MAX_STARSECTOR * LocalToGalaxy.MAX_STARSECTOR);
 
     public static float Perlin3D(in float3 xyz)
@@ -96,10 +97,23 @@ public static partial class GalaxyTools
             array[i] = random.NextInt3(1, LocalToGalaxy.MAX_STARSECTOR - 1);
         return array;
     }
-    
-    public static NativeArray<int3> GetPlanetSectorsOfStarSector(StarSectorData data)
+
+    public struct PlanetSectorOffsetData
     {
-        var array = new NativeArray<int3>(data.NumberOfPlanets, Allocator.Temp);
+        public byte Index;
+        public uint DistanceInPlanetSectors;
+        public float Angle;
+        public float3 OrbitForward;
+        public float3 OrbitRight;
+
+        public double3 Distance => new LocalToGalaxy{PlanetSector = PlanetSector - StarSectorCenter}.Distance;
+        public int3 PlanetSector => StarSectorCenter +
+                                    (int3)((float3)DistanceInPlanetSectors * (OrbitRight * math.cos(Angle) + OrbitForward * math.sin(Angle)));
+    }
+    
+    public static NativeArray<PlanetSectorOffsetData> GetPlanetSectorsOfStarSector(StarSectorData data)
+    {
+        var array = new NativeArray<PlanetSectorOffsetData>(data.NumberOfPlanets, Allocator.Temp);
         var random = new Random(data.StarGeneratorSeed);
         
         var lastDistance = MIN_SECTORS_FROM_STAR_TO_PLANET - MIN_SECTORS_BETWEEN_PLANETS;
@@ -107,12 +121,15 @@ public static partial class GalaxyTools
         {
             lastDistance += (uint)(random.NextFloat(1, 3) * MIN_SECTORS_BETWEEN_PLANETS);
             var angle = random.NextFloat(0, math.PI * 2);
-            var sector = StarSectorCenter + new int3(
-                (int)(lastDistance * math.sin(angle)),
-                random.NextInt(-PLANET_MAX_Y_DISTANCE, PLANET_MAX_Y_DISTANCE),
-                (int)(lastDistance * math.cos(angle))
-            );
-            array[i] = sector;
+            var tilt = math.step(.8f, random.NextFloat()) * random.NextFloat(-0.2f, 0.2f);
+            array[i] = new PlanetSectorOffsetData
+            {
+                Index = (byte)i,
+                Angle = angle,
+                OrbitForward = math.forward(),
+                OrbitRight = math.right() + math.up() * tilt,
+                DistanceInPlanetSectors = lastDistance,
+            };
         }
         return array;
     }

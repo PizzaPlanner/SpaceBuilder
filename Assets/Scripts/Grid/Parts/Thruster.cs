@@ -2,6 +2,7 @@ using Grid.Logic;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 public struct Thruster : IComponentData
 {
@@ -9,6 +10,7 @@ public struct Thruster : IComponentData
     public float3 Forward;
 }
 
+[UpdateInGroup(typeof(LogicSystemGroup))]
 public partial struct ThrusterSystem : ISystem
 {
     public void OnUpdate(ref SystemState state)
@@ -23,7 +25,7 @@ public partial struct ThrusterSystem : ISystem
             }
 
             var ship = SystemAPI.GetComponentRW<MoveableShip>(parent.Value);
-            ship.ValueRW.LinearAcceleration += accellerationForce;
+            ship.ValueRW.LinearAcceleration += accellerationForce / SystemAPI.Time.DeltaTime;
         };
 
         foreach(var (thrust, transform) in SystemAPI.Query<RefRW<Thruster>, LocalTransform>().WithChangeFilter<LocalTransform>())

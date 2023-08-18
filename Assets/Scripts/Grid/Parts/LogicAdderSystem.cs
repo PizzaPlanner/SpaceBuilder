@@ -6,6 +6,7 @@ using UnityEngine;
 
 public struct LogicAdder : IComponentData { }
 
+[UpdateInGroup(typeof(LogicSystemGroup))]
 public partial class LogicAdderSystem : SystemBase
 {
     partial struct LogicAdderJob : IJobEntity

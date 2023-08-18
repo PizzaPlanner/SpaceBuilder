@@ -8,6 +8,7 @@ public struct RCS : IComponentData
     public float Strength;
 }
 
+[UpdateInGroup(typeof(LogicSystemGroup))]
 public partial struct RCSSystem : ISystem
 {
     public void OnUpdate(ref SystemState state)
@@ -26,7 +27,7 @@ public partial struct RCSSystem : ISystem
             }
 
             var ship = SystemAPI.GetComponentRW<MoveableShip>(parent.Value);
-            ship.ValueRW.AngularAcceleration += accellerationForce;
+            ship.ValueRW.AngularAcceleration += accellerationForce / SystemAPI.Time.DeltaTime;
         };
     }
 }
