@@ -9,10 +9,10 @@ EditorBuildSettings:
     path: Assets/Scenes/Infrastructure.unity
     guid: 3fe91a29152ba4347bc5f7fa00552f2b
   - enabled: 1
-    path: Assets/Scenes/SampleScene/Spawn.unity
+    path: Assets/Scenes/Infrastructure/Spawn.unity
     guid: 28eb40219f79ce44faae52d233f6990c
   - enabled: 1
-    path: Assets/Scenes/SampleScene/AsteroidPrefabsEditor.unity
+    path: Assets/Scenes/Infrastructure/AsteroidPrefabsEditor.unity
     guid: e6933e8dced62e34fb222a91c55b579e
   - enabled: 1
     path: Assets/Scenes/Infrastructure/Identifieables.unity

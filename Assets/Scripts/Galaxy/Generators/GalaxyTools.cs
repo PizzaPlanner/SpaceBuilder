@@ -1,17 +1,15 @@
 using Unity.Collections;
 using Unity.Mathematics;
-using UnityEngine.UIElements;
 using Random = Unity.Mathematics.Random;
 
 public static partial class GalaxyTools
 {
     private const float PERLIN_SECTOR_RESOLUTION = 0.0001f;
-    public const float PLANET_SIZE_MAX = (float)LocalToGalaxy.DISTANCE_PER_PLANETSECTOR * 0.6f;
+    public const float PLANET_SIZE_MAX = (float)LocalToGalaxy.DISTANCE_PER_PLANETSECTOR * 0.7f;
     public const float STAR_SIZE_MAX = (float)(LocalToGalaxy.DISTANCE_PER_STARSECTOR / 33);
     public const float GIANTSTAR_SIZE_MAX = (float)(LocalToGalaxy.DISTANCE_PER_STARSECTOR / 3);
-    private const uint MIN_SECTORS_FROM_STAR_TO_PLANET = (uint)(7 * STAR_SIZE_MAX / LocalToGalaxy.DISTANCE_PER_PLANETSECTOR);
-    private const uint MIN_SECTORS_BETWEEN_PLANETS = (int) (LocalToGalaxy.MAX_PLANETSECTOR * 0.05f);
-    private const int PLANET_MAX_Y_DISTANCE = (int) (LocalToGalaxy.MAX_PLANETSECTOR * 0.03f);
+    private const uint MIN_SECTORS_FROM_STAR_TO_PLANET = (uint)(3 * STAR_SIZE_MAX / LocalToGalaxy.DISTANCE_PER_PLANETSECTOR);
+    private const uint MIN_SECTORS_BETWEEN_PLANETS = (int) (LocalToGalaxy.MAX_PLANETSECTOR * 0.02f);
     const float LIGHTSECTOR_MAX_DENSITY = 0.0005f;
     private const uint MAX_STARS_PER_LIGHTSECTOR = (int)(LIGHTSECTOR_MAX_DENSITY * LocalToGalaxy.MAX_STARSECTOR * LocalToGalaxy.MAX_STARSECTOR * LocalToGalaxy.MAX_STARSECTOR);
 

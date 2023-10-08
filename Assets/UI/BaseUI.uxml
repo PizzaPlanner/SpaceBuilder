@@ -3,12 +3,26 @@
     <Style src="project://database/Assets/UI/coordinates.uss?fileID=7433441132597879392&amp;guid=6a3d0a31285f421e8a2ad20fd30cf8aa&amp;type=3#coordinates" />
     <Style src="project://database/Assets/UI/coordinatesegments.uss?fileID=7433441132597879392&amp;guid=b673c3db6dd869b499a1d50dce6a48bf&amp;type=3#coordinatesegments" />
     <ui:VisualElement name="POIMarkers" picking-mode="Ignore" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0;" />
-    <ui:VisualElement name="BuildingUI" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0;">
+    <ui:VisualElement name="Crosshair" style="position: absolute; left: 50%; top: 50%; right: 50%; bottom: 50%; align-items: center; justify-content: center;">
+        <ui:VisualElement name="ActualCrosshair" picking-mode="Ignore" style="width: 16px; height: 16px; background-image: url(&apos;project://database/Assets/UI/crosshair.png?fileID=2800000&amp;guid=18c36555461a00541bedc3bed7a78b41&amp;type=3#crosshair&apos;); position: absolute;" />
+    </ui:VisualElement>
+    <ui:VisualElement name="BuildingUI" style="position: absolute; left: 0; top: -2px; right: 0; bottom: 2px;">
         <ui:VisualElement name="DestructionBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(255, 69, 40, 0.58); border-right-color: rgba(255, 69, 40, 0.58); border-top-color: rgba(255, 69, 40, 0.58); border-bottom-color: rgba(255, 69, 40, 0.58); display: none; align-items: center;" />
         <ui:VisualElement name="BlueprintBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(0, 178, 255, 0.58); border-right-color: rgba(0, 178, 255, 0.58); border-top-color: rgba(0, 178, 255, 0.58); border-bottom-color: rgba(0, 178, 255, 0.58); display: none; align-items: center;">
             <ui:Label text="Some Text" display-tooltip-when-elided="true" style="font-size: 20px; -unity-font-style: bold; background-color: rgba(75, 75, 75, 0.19); border-left-color: rgba(0, 178, 255, 0.58); border-right-color: rgba(0, 178, 255, 0.58); border-top-color: rgba(0, 178, 255, 0.58); border-bottom-color: rgba(0, 178, 255, 0.58); border-right-width: 5px; border-bottom-width: 5px; border-left-width: 5px; margin-top: -1px;" />
         </ui:VisualElement>
         <ui:VisualElement name="ConstructionBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(0, 255, 99, 0.58); border-right-color: rgba(0, 255, 99, 0.58); border-top-color: rgba(0, 255, 99, 0.58); border-bottom-color: rgba(0, 255, 99, 0.58); display: none; align-items: center;" />
+        <ui:VisualElement view-data-key="InMenu" name="InMenu" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: none;">
+            <BlueprintLibraryWindow name="BlueprintLibraryWindow" style="right: 0; position: absolute; top: 25%;" />
+            <ui:VisualElement name="TargetInfo" style="position: absolute; left: 50%; right: 50%; top: 50%; align-items: center; bottom: 50%; justify-content: center; flex-direction: column;">
+                <ui:VisualElement name="VisualElement" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute;">
+                    <Grid.UI.GridInfoWindow style="display: flex;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="BuildMenuContainer" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; left: 50%; top: 25%; right: 50%; bottom: 25%; align-items: center; justify-content: center;">
+            <ui:VisualElement name="BuildMenu" style="flex-wrap: wrap; -unity-slice-left: 20; -unity-slice-top: 20; -unity-slice-right: 20; -unity-slice-bottom: 20; background-image: url(&apos;project://database/Assets/UI/bg_slim.png?fileID=2800000&amp;guid=cc32439c45babc04593dca5896662d0a&amp;type=3#bg_slim&apos;); display: flex; position: absolute; height: 100%;" />
+        </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement name="SteeringOverlay" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: none; align-items: center; justify-content: center; cursor: url(&apos;project://database/Assets/UI/shipSteeringCursor.png?fileID=2800000&amp;guid=9ae11426ac19173439e43db57bd5085b&amp;type=3#shipSteeringCursor&apos;);">
         <ui:VisualElement picking-mode="Ignore" style="align-items: center; justify-content: center; background-image: url(&apos;project://database/Assets/UI/steering_overlay.png?fileID=2800000&amp;guid=2390d33e35567484db6db67e82ae9e65&amp;type=3#steering_overlay&apos;); width: 256px; height: 256px;">
@@ -37,9 +51,6 @@
         <Main.ActionButton name="Parts" Hotkey="T" style="background-image: url(&apos;project://database/Assets/3rdParty/64%20flat%20icons/png/128px/Inventory_Book.png?fileID=2800000&amp;guid=14a30e668006aa14f92003524e6667f7&amp;type=3#Inventory_Book&apos;);" />
         <Main.ActionButton name="Inventory" Hotkey="C" style="background-image: url(&apos;project://database/Assets/3rdParty/64%20flat%20icons/png/128px/World_Chest.png?fileID=2800000&amp;guid=6b62d05057d633044b3dc427188695a5&amp;type=3#World_Chest&apos;);" />
         <Main.ActionButton name="Map" style="background-image: url(&apos;project://database/Assets/3rdParty/64%20flat%20icons/png/128px/World_Compass.png?fileID=2800000&amp;guid=6ea0e3de66db60b4895a5af021ec2f96&amp;type=3#World_Compass&apos;);" />
-    </ui:VisualElement>
-    <ui:VisualElement name="Crosshair" style="position: absolute; left: 50%; top: 50%; right: 50%; bottom: 50%; align-items: center; justify-content: center;">
-        <ui:VisualElement name="ActualCrosshair" picking-mode="Ignore" style="width: 16px; height: 16px; background-image: url(&apos;project://database/Assets/UI/crosshair.png?fileID=2800000&amp;guid=18c36555461a00541bedc3bed7a78b41&amp;type=3#crosshair&apos;); position: absolute;" />
     </ui:VisualElement>
     <ui:VisualElement name="Coordinates" style="flex-direction: column; align-items: center;">
         <ui:VisualElement name="Current" style="flex-direction: row;">
@@ -148,16 +159,7 @@
         <Grid.Logic.LogicEditorElement />
         <Grid.Logic.LogicEditorElement />
     </Grid.Logic.LogicEditorWindow>
-    <ui:VisualElement name="Center" picking-mode="Ignore" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; align-items: center; justify-content: center;">
-        <ui:VisualElement name="BuildMenu" style="flex-wrap: wrap; height: 50%; -unity-slice-left: 20; -unity-slice-top: 20; -unity-slice-right: 20; -unity-slice-bottom: 20; background-image: url(&apos;project://database/Assets/UI/bg_slim.png?fileID=2800000&amp;guid=cc32439c45babc04593dca5896662d0a&amp;type=3#bg_slim&apos;); display: flex;" />
-    </ui:VisualElement>
     <ui:VisualElement name="DebugUI" picking-mode="Ignore" tabindex="-1" style="align-items: flex-start; display: none; justify-content: space-between; flex-direction: row; position: absolute; left: 0; top: 0; right: 0; bottom: 0;">
-        <ui:VisualElement name="TargetInfo" style="position: absolute; left: 50%; right: 50%; top: 50%; align-items: center; bottom: 50%; justify-content: center; flex-direction: column;">
-            <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute;">
-                <BlueprintLibraryWindow name="BlueprintLibraryWindow" />
-                <Grid.UI.GridInfoWindow style="display: flex;" />
-            </ui:VisualElement>
-        </ui:VisualElement>
         <ui:VisualElement name="Settings" style="background-color: rgba(55, 55, 55, 0.22); padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;">
             <ui:Label text="±Speed" display-tooltip-when-elided="true" name="MoreSpeed" enable-rich-text="false" class="debug-button" />
             <ui:Label text="Enable NoClip" display-tooltip-when-elided="true" name="NoClip" enable-rich-text="false" class="debug-button" />

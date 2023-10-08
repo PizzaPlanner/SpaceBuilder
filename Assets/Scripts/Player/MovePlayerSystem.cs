@@ -74,10 +74,7 @@ public partial class MovePlayerSystem : SystemBase
             var direction = math.normalize(movement);
             var distance = math.length(totalMovement);
             if(collisionWorld.CastCollider(colliderAspect, direction, distance, out var hit))
-            {
-                Debug.Log($"Collision {localPlayer.Index} / {hit.Entity.Index}: {hit.Fraction}");
                 totalMovement *= hit.Fraction;
-            }
         }
 
         if (playerIsRefFrame)

@@ -17,7 +17,8 @@
         "Items",
         "Player",
         "Identifiables",
-        "YamlDotNet"
+        "YamlDotNet",
+        "Controls"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
