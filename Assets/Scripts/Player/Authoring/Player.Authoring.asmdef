@@ -10,7 +10,8 @@
         "Unity.Mathematics",
         "Player",
         "Controls",
-        "Unity.Physics.Custom"
+        "Unity.Physics.Custom",
+        "Unity.Physics"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

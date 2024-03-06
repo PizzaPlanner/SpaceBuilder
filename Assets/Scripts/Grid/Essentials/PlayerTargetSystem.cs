@@ -11,7 +11,7 @@ public struct PlayerTargetModeSettings : IComponentData
     public PlayerTargetSystem.PlayerTargetMode Mode;
 }
 
-public partial struct PlayerTargetSystem : ISystem
+public partial class PlayerTargetSystem : SystemBase
 {
     private const float TARGET_MAX_RANGE = 100;
     private const float TARGET_MAX_RANGE_CONSTRUCTABLE = 15;
@@ -25,14 +25,12 @@ public partial struct PlayerTargetSystem : ISystem
         ScaleGhost,
     }
     
-    public void OnCreate(ref SystemState state)
+    protected override void OnCreate()
     {
-        state.RequireForUpdate<PhysicsWorldSingleton>();
-        state.RequireForUpdate<LocalPlayer>();
-        state.RequireForUpdate<CameraAnchor>();
-        state.RequireForUpdate<PlayerTargetModeSettings>();
-
-        state.EntityManager.CreateEntity(typeof(PlayerTargetModeSettings));
+        RequireForUpdate<PhysicsWorldSingleton>();
+        RequireForUpdate<LocalPlayer>();
+        RequireForUpdate<PlayerTargetModeSettings>();
+        EntityManager.CreateEntity(typeof(PlayerTargetModeSettings));
         SystemAPI.SetSingleton(new PlayerTargetModeSettings { Mode = PlayerTargetMode.Interactions });
 
         collisionFilterMap = new NativeHashMap<byte, CollisionFilter>(0, Allocator.Persistent);
@@ -51,17 +49,16 @@ public partial struct PlayerTargetSystem : ISystem
         collisionFilterMap.Add((byte)PlayerTargetMode.ScaleGhost, fScaleGhost);
     }
 
-    public void OnDestroy(ref SystemState state)
+    protected override void OnDestroy()
     {
         collisionFilterMap.Dispose();
     }
-
-    [BurstCompile]
-    public void OnUpdate(ref SystemState state)
+    
+    protected override void OnUpdate()
     {
-        var camera = SystemAPI.GetSingleton<CameraAnchor>();
-        var camPosition = camera.CameraPosition;
-        var camForward = camera.CameraForward;
+        var camera = Camera.main.transform;
+        var camPosition = (float3)camera.position;
+        var camForward = (float3)camera.forward;
         var targetMode = SystemAPI.GetSingleton<PlayerTargetModeSettings>().Mode;
         if (!collisionFilterMap.TryGetValue((byte)targetMode, out var filter))
         {

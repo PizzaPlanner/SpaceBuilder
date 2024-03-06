@@ -5,6 +5,7 @@ using UnityEngine;
 [BakingType]
 public class IdentifieableLoader : MonoBehaviour
 {
+    [SerializeField] GameObject[] AdditionalPrefabs;
     class Baker : Baker<IdentifieableLoader>
     {
         public override void Bake(IdentifieableLoader authoring)
@@ -25,14 +26,19 @@ public class IdentifieableLoader : MonoBehaviour
                     else
                     {
                         RegisterPrefabForBaking(go);
-                        GetEntity(go);
+                        GetEntity(go, TransformUsageFlags.None);
                         prefabs++;
                     }
                 }
             }
             Debug.Log($"Created {prefabs} Identifieables");
 
-            
+            foreach (var prefab in authoring.AdditionalPrefabs)
+            {
+                RegisterPrefabForBaking(prefab);
+                GetEntity(prefab, TransformUsageFlags.None);
+            }
+            Debug.Log($"Created {authoring.AdditionalPrefabs.Length} Prefabs");
         }
     }
 }

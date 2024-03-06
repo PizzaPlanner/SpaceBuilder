@@ -1,3 +1,4 @@
+using Galaxy.SectorLoading;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -24,8 +25,8 @@ public struct PromoteToReferenceFrame : IComponentData
     public bool MakePreviousFrameChildOfNewFrame;
 }
 
-[UpdateInGroup(typeof(InitializationSystemGroup))]
-[UpdateAfter(typeof(EarlyReferenceFrameSystem))]
+[UpdateInGroup(typeof(InitializationSystemGroup), OrderLast = true)]
+[UpdateAfter(typeof(EndInitializationEntityCommandBufferSystem))]
 partial struct UpdateReferenceFrameTransformComponents : ISystem
 {
     EntityQuery _refOriginParentQuery, _ltgParentQuery;

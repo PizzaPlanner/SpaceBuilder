@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
@@ -12,6 +13,7 @@ public partial struct DockingSystem : ISystem
         state.RequireForUpdate<RoomsLookup>();
     }
 
+    [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         var roomsLookup = SystemAPI.GetSingleton<RoomsLookup>();

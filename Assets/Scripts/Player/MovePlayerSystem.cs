@@ -2,10 +2,8 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Physics.Aspects;
-using Unity.Physics.Extensions;
 using Unity.Transforms;
 using UnityEngine;
-using CapsuleCollider = Unity.Physics.CapsuleCollider;
 
 public struct NoClip : IComponentData { }
 
@@ -16,7 +14,6 @@ public partial class MovePlayerSystem : SystemBase
     protected override void OnCreate()
     {
         RequireForUpdate<LocalPlayer>();
-        RequireForUpdate<CameraAnchor>();
         RequireForUpdate<ControlScheme.Player>();
         RequireForUpdate<InputData>();
         RequireForUpdate<PhysicsWorldSingleton>();
@@ -30,25 +27,9 @@ public partial class MovePlayerSystem : SystemBase
     {
         var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
         var referenceFrame = SystemAPI.GetSingleton<ReferenceFrame>();
-        var camera = SystemAPI.GetSingletonEntity<CameraAnchor>();
-        var localToCamera = SystemAPI.GetComponent<LocalToWorld>(camera);
+        var camOrientation = SystemAPI.GetSingletonRW<CameraSettings>();
         var inputData = SystemAPI.GetSingleton<InputData>();
-        var alignUpVector = math.min(referenceFrame.DurationSinceLastChange / 3, 1);
-
-        // --- Rotation ---
-        var rotation = inputData.Rotation;
-
-        var camAnchor = SystemAPI.GetSingleton<CameraAnchor>();
-        if (SystemAPI.HasComponent<Parent>(localPlayer))
-        {
-            camAnchor.XRotation += math.degrees(rotation.x);
-            camAnchor.XRotation = math.clamp(camAnchor.XRotation, -90, 75);
-            rotation.z = 0;
-        }
-        else
-            camAnchor.XRotation = 0;
-
-        SystemAPI.SetSingleton(camAnchor);
+        var alignUpVector = math.min(referenceFrame.DurationSinceLastChange / 2, 1);
 
         var physicsWorld = SystemAPI.GetSingleton<PhysicsWorldSingleton>();
         var collisionWorld = physicsWorld.CollisionWorld;
@@ -59,38 +40,52 @@ public partial class MovePlayerSystem : SystemBase
 
         var deltaTime = World.Time.DeltaTime;
 
-        var playerIsRefFrame = SystemAPI.HasComponent<ReferenceFrameOrigin>(localPlayer);
-
-        var frameToCamera = playerIsRefFrame 
-            ? localToCamera.Rotation 
-            : math.mul(math.inverse(referenceFrame.PreviousLtw.Rotation), localToCamera.Rotation);
-        var movement = math.mul(frameToCamera, inputData.Movement);
-        var totalMovement = movement * movementSpeed * deltaTime;
+        var playerIsRefFrame = referenceFrame.Origin == localPlayer;
         var transform = SystemAPI.GetComponentRW<LocalTransform>(localPlayer);
+        var appliedRotationChange = camOrientation.ValueRW.Orientation;
+
+        var updatedRotationFull = math.mul(transform.ValueRW.Rotation, appliedRotationChange);
+        if (!playerIsRefFrame)
+        {
+            var euler = math.Euler(updatedRotationFull);
+            var camYaw = quaternion.Euler(0, euler.y, 0); // Camera rotation with only yaw
+            var camPitch = quaternion.Euler(euler.x, 0, 0); // Camera rotation with only pitch
+
+            transform.ValueRW.Rotation = math.slerp(transform.ValueRW.Rotation, camYaw, alignUpVector);
+            appliedRotationChange = camPitch;
+        }
+        else
+        {
+            transform.ValueRW.Rotation = updatedRotationFull;
+            appliedRotationChange = quaternion.identity;
+        }
+        camOrientation.ValueRW.Orientation = appliedRotationChange;
+
+        var movement = math.mul(transform.ValueRW.Rotation, inputData.Movement);
+        var totalMovement = movement * movementSpeed * deltaTime;
 
         if (math.any(movement != 0) && !SystemAPI.HasComponent<NoClip>(localPlayer))
         {
             var colliderAspect = SystemAPI.GetAspect<ColliderAspect>(localPlayer);
             var direction = math.normalize(movement);
             var distance = math.length(totalMovement);
-            if(collisionWorld.CastCollider(colliderAspect, direction, distance, out var hit))
-                totalMovement *= hit.Fraction;
+            if (collisionWorld.CastCollider(colliderAspect, direction, distance, out var hit))
+            {
+                var slide = math.reflect(direction, hit.SurfaceNormal);
+                var angleDifference = Vector3.Angle(slide, direction) / 180;
+                var dampingFactor = math.lerp(1f, 0f, math.clamp(angleDifference, 0, 1)); // Adjust the range as needed
+                totalMovement = slide * distance * dampingFactor;
+            }
         }
 
         if (playerIsRefFrame)
         {
-            var targetRotation = math.mul(transform.ValueRW.Rotation, quaternion.EulerXYZ(rotation));
-            transform.ValueRW.Rotation = targetRotation;
             var ltg = SystemAPI.GetComponentRW<LocalToGalaxy>(localPlayer);
             ltg.ValueRW += totalMovement;
         }
         else
         {
             transform.ValueRW.Position += totalMovement;
-            var targetRotation = math.mul(transform.ValueRW.Rotation, quaternion.EulerXYZ(rotation));
-            var targetRotationUpAligned =
-                quaternion.LookRotationSafe(math.mul(targetRotation, math.forward()), math.up());
-            transform.ValueRW.Rotation = math.slerp(targetRotation, targetRotationUpAligned, alignUpVector);
         }
     }
 }
