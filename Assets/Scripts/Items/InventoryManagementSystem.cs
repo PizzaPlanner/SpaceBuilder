@@ -8,19 +8,17 @@ public partial class UpdateInventoryAddedSystem : SystemBase
 {
     protected override void OnUpdate()
     {
-        var ecb = GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
-        Entities.ForEach((Entity e, in RegisterWithInventory rwi) =>
+        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                           .CreateCommandBuffer(World.Unmanaged);
+        foreach(var (rwi, e) in SystemAPI.Query<RegisterWithInventory>().WithEntityAccess())
         {
-            var inventory = GetBuffer<Inventory>(rwi.Inventory);
+            var inventory = SystemAPI.GetBuffer<Inventory>(rwi.Inventory);
             var slot = inventory[rwi.Slot]; 
             slot.Item = e;
             inventory[rwi.Slot] = slot;
             
             ecb.RemoveComponent<RegisterWithInventory>(e);
-            
-            var change = ecb.CreateEntity();
-            ecb.AddComponent(change, new InventoryUISystem.InventoryChanged());
-        }).Run();
+        }
     }
 }
 
@@ -49,15 +47,13 @@ public partial class InventoryManagementSystem : SystemBase
     {
         var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                            .CreateCommandBuffer(World.Unmanaged);
-        var prefabMap = IdentifiableMappingSystem.EntitiesById;
 
-        var inventoryBuffer = GetBufferLookup<Inventory>(false);
+        var inventoryLookup = GetBufferLookup<Inventory>(false);
         var addedTransactionsThisFrame = new NativeList<Entity>(Allocator.TempJob);
         var stackables = GetComponentLookup<Stackable>(false);
         var identifiables = GetComponentLookup<Identifieable>(true);
         
         Entities
-            .WithReadOnly(prefabMap)
             .WithReadOnly(identifiables)
             .WithDisposeOnCompletion(addedTransactionsThisFrame)
             .WithNone<Completed>()
@@ -68,31 +64,27 @@ public partial class InventoryManagementSystem : SystemBase
                 return;
             
             // Fail if the target is not an inventory
-            if (!inventoryBuffer.HasComponent(transaction.TargetInventory))
-            {
+            if (!inventoryLookup.HasBuffer(transaction.TargetInventory))
                 return;
-            }
 
             // Block the target inventory with this as the next pending transaction
-            if (!HasComponent<PendingTransaction>(transaction.TargetInventory))
+            if (!SystemAPI.HasComponent<PendingTransaction>(transaction.TargetInventory))
             {
                 ecb.AddComponent(transaction.TargetInventory, new PendingTransaction { Transaction = e });
                 return;
             }
             
             // Mark as waiting and stop if there is another transaction ongoing
-            if (GetComponent<PendingTransaction>(transaction.TargetInventory).Transaction != e)
-            {
+            if (SystemAPI.GetComponent<PendingTransaction>(transaction.TargetInventory).Transaction != e)
                 return;
-            }
-            
-            var inventory = inventoryBuffer[transaction.TargetInventory];
+
+            var inventory = inventoryLookup[transaction.TargetInventory];
 
             var success = true;
             for (int addIdx = 0; addIdx < addBuffer.Length && success; addIdx++)
             {
                 var operation = addBuffer[addIdx];
-                var prefab = prefabMap[operation.ItemId];
+                var prefab = operation.ItemId.AsPrefab;
                 // TODO: This needs reversion logic or verify success beforehand
                 success &= transaction.Type switch
                 {
@@ -105,18 +97,13 @@ public partial class InventoryManagementSystem : SystemBase
             
             ecb.RemoveComponent<PendingTransaction>(transaction.TargetInventory);
 
-            if (!HasComponent<RequiresManualReview>(e))
+            if (!SystemAPI.HasComponent<RequiresManualReview>(e))
                 ecb.DestroyEntity(e);
             else
                 ecb.AddComponent(e, new Completed { Success = success });
             
             if(!success)
                 Debug.LogError($"Item Transaction '{transaction.Type}' on {transaction.TargetInventory} failed");
-            else
-            {
-                var change = ecb.CreateEntity();
-                ecb.AddComponent(change, new InventoryUISystem.InventoryChanged());
-            }
         }).Schedule();
     }
 
@@ -131,7 +118,7 @@ public partial class InventoryManagementSystem : SystemBase
         for (int i = 0; i < inventory.Length && operation.QuantityLeft > 0; i++)
         {
             if (inventory[i].Item != Entity.Null &&
-                (identifiables[inventory[i].Item].ItemId != operation.ItemId ||
+                (identifiables[inventory[i].Item] != operation.ItemId ||
                  !stackables.HasComponent(inventory[i].Item)))
                 // Item can not fit in this slot
                 continue;
@@ -173,7 +160,7 @@ public partial class InventoryManagementSystem : SystemBase
     {
         for (int i = 0; i < inventory.Length && operation.QuantityLeft > 0; i++)
         {
-            if (inventory[i].Item == Entity.Null || identifiables[inventory[i].Item].ItemId != operation.ItemId)
+            if (inventory[i].Item == Entity.Null || identifiables[inventory[i].Item] != operation.ItemId)
                 // Can not remove from this slot
                 continue;
 

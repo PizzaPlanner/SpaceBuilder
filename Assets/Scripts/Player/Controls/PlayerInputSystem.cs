@@ -5,7 +5,7 @@ using UnityEngine;
 [UpdateInGroup(typeof(InputSystemGroup))]
 partial class PlayerInputSystem : SystemBase
 {
-    private const float ROTATION_SENSIVITY = .1f;
+    private const float ROTATION_SENSIVITY = .2f;
     protected override void OnCreate()
     {
         RequireForUpdate<ControlScheme.Player>();

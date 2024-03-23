@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -6,54 +7,20 @@ using UnityEngine.UIElements;
 [UpdateInGroup(typeof(PresentationSystemGroup))]
 public partial class InventoryUISystem : SystemBase
 {
-    public struct InventoryChanged : IComponentData { }
+    public struct Open : IComponentData { }
 
-    private bool initialized;
-    private bool inventoryOpen;
-    private bool wantOpenInventory;
-    static InventoryElement Inventory, Hotbar, RemoteInventory;
-    static CraftingWindow CraftWindow;
-
+    VisualElement anchor;
+    
     protected override void OnCreate()
     {
         RequireForUpdate<LocalPlayer>();
-        RequireForUpdate<ControlScheme.UI.Inventory>();
+        RequireForUpdate<Open>();
     }
 
     protected override void OnStartRunning()
     {
-        EntityManager.CreateEntity(typeof(InventoryChanged));
-        if (!initialized)
-        {
-            var localPlayer = SystemAPI.GetSingletonEntity<LocalPlayer>();
-            var playerInventory = SystemAPI.GetBuffer<Inventory>(localPlayer);
-            Hotbar = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q<InventoryElement>("Hotbar");
-            Hotbar.Container = localPlayer;
-            Hotbar.Subset = new int2(playerInventory.Length - 5, playerInventory.Length);
-            Hotbar.OnDragDrop = OnDragDrop;
-            Hotbar.style.display = DisplayStyle.Flex;
-
-            Inventory = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q("Inventory")
-                                  .Q<InventoryElement>("MyBag");
-            Inventory.Container = localPlayer;
-            Inventory.Subset = new int2(0, playerInventory.Length - 5);
-            Inventory.OnDragDrop = OnDragDrop;
-            Inventory.style.display = DisplayStyle.None;
-
-            RemoteInventory = GameObject.FindObjectOfType<UIDocument>().rootVisualElement
-                                        .Q<InventoryElement>("RemoteBag");
-            RemoteInventory.Container = Entity.Null;
-            RemoteInventory.Subset = int2.zero;
-            RemoteInventory.OnDragDrop = World.GetExistingSystemManaged<InventoryUISystem>().OnDragDrop;
-            RemoteInventory.style.display = DisplayStyle.None;
-
-            CraftWindow = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q<CraftingWindow>("Crafting");
-            CraftWindow.style.display = DisplayStyle.None;
-
-            initialized = true;
-        }
-        Inventory.style.display = DisplayStyle.Flex;
-        Hotbar.style.display = DisplayStyle.Flex;
+        anchor = GameObject.FindAnyObjectByType<UIDocument>().rootVisualElement.Q("InventoryRoot"); 
+        anchor.style.display = DisplayStyle.Flex;
     }
 
     public void OnDragDrop(InventoryButton dragged, InventoryButton button)
@@ -66,93 +33,65 @@ public partial class InventoryUISystem : SystemBase
 
         i1[dragged.Slot] = to;
         i2[button.Slot] = from;
-
-        EntityManager.CreateEntity(typeof(InventoryChanged));
     }
 
     protected override void OnStopRunning()
     {
-        Inventory.style.display = DisplayStyle.None;
-        Hotbar.style.display = DisplayStyle.None;
+        anchor.style.display = DisplayStyle.None;
+        var ecb = new EntityCommandBuffer(Allocator.Temp);
+        foreach (var (ui, e) in SystemAPI.Query<InventoryElement>().WithEntityAccess())
+        {
+            ui.RemoveFromHierarchy();
+            ecb.RemoveComponent<InventoryElement>(e);
+        }
+        foreach (var (ui, e) in SystemAPI.Query<CraftingWindow>().WithEntityAccess())
+        {
+            ui.RemoveFromHierarchy();
+            ecb.RemoveComponent<CraftingWindow>(e);
+        }
+        ecb.Playback(EntityManager);
     }
 
     protected override void OnUpdate()
     {
-        var needFullUpdate = !GetEntityQuery(typeof(InventoryChanged)).IsEmpty;
-
-        var player = SystemAPI.GetSingletonEntity<LocalPlayer>();
-        var elm = InventoryUISystem.RemoteInventory;
-        Entities
-            .ForEach((Entity e, in DynamicBuffer<Inventory> inv, in Interacted interact) =>
-            {
-                if (interact.Interactor != player)
-                    return;
-
-                elm.Container = e;
-                elm.style.display = DisplayStyle.Flex;
-                if(!inventoryOpen)
-                    wantOpenInventory = true;
-            }).WithoutBurst().Run();
-
-        var crft = InventoryUISystem.CraftWindow;
-        Entities
-            .ForEach((in Crafter crafter, in Interacted interact) =>
-            {
-                if (interact.Interactor != player)
-                    return;
-
-                crft.SetCrafter(crafter.Queue, EntityManager);
-                crft.style.display = DisplayStyle.Flex;
-            }).WithoutBurst().Run();
-
-        if (needFullUpdate)
+        
+        var noUIInvQuery = SystemAPI.QueryBuilder().WithAll<Inventory, Open>().WithNone<InventoryElement>().Build();
+        var entities = noUIInvQuery.ToEntityArray(Allocator.Temp);
+        foreach (var e in entities)
         {
-            var inventories = GetBufferLookup<Inventory>(true);
-            var names = GetComponentLookup<Name>(true);
-            var stacks = GetComponentLookup<Stackable>(true);
-            var ids = GetComponentLookup<Identifieable>(true);
-            GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Query<InventoryElement>()
-                      .ForEach(c => c.Update(inventories, ids, names, stacks));
-            EntityManager.DestroyEntity(GetEntityQuery(typeof(InventoryChanged)));
-            EntityManager.RemoveComponent<Selected>(GetEntityQuery(typeof(Selected)));
-            CraftWindow.UpdateRecipes(EntityManager,
-                GetComponentLookup<Identifieable>(true),
-                GetComponentLookup<Stackable>(true));
+            var window = new InventoryElement
+            {
+                Container = e,
+                OnDragDrop = World.GetExistingSystemManaged<InventoryUISystem>().OnDragDrop
+            };
+            anchor.Add(window);
+            EntityManager.AddComponentData(e, window);
+        }
+        
+        var noUICraftQuery = SystemAPI.QueryBuilder().WithAll<Crafter, Open>().WithNone<CraftingWindow>().Build();
+        entities = noUICraftQuery.ToEntityArray(Allocator.Temp);
+        foreach (var e in entities)
+        {
+            var craftables = SystemAPI.GetBuffer<Craftables>(e);
+            var crafter = new CraftingWindow
+            {
+                Queue = e,
+                Craftables = craftables
+            };
+            anchor.Add(crafter);
+            EntityManager.AddComponentData(e, crafter);
         }
 
-        if (CraftWindow.style.display == DisplayStyle.Flex)
+        var itemLookup = new ItemAspect.Lookup(ref CheckedStateRef);
+        foreach (var (inventory, ui) in SystemAPI.Query<DynamicBuffer<Inventory>, InventoryElement>())
         {
-            CraftWindow.UpdateQueue(EntityManager);
+            ui.Update(inventory, itemLookup);   
         }
 
-        var input = SystemAPI.GetSingleton<InputData>();
-        if(input.ScrollMode == ScrollMode.Inventory)
-            SelectHotbarItem(input.Scroll);
-    }
-
-    void SelectHotbarItem(float scroll)
-    {
-        if (scroll == 0)
-            return;
-
-        EntityManager.RemoveComponent<Selected>(GetEntityQuery(typeof(Selected)));
-        var buttons = Hotbar.Query<InventoryButton>().ToList();
-        if (buttons.Count == 0)
-            return;
-
-        var nextButton = 0;
-        for(int i = 0; i < buttons.Count; i++)
-            if (buttons[i].Selected)
-            {
-                nextButton = (i + (int)math.sign(scroll) + buttons.Count) % buttons.Count;
-                buttons[i].Selected = false;
-                break;
-            }
-
-        buttons[nextButton].Selected = true;
-
-        var item = SystemAPI.GetBuffer<Inventory>(SystemAPI.GetSingletonEntity<LocalPlayer>())[buttons[nextButton].Slot].Item;
-        if(item != Entity.Null)
-            EntityManager.AddComponent<Selected>(item);
+        foreach (var (_, ui) in SystemAPI.Query<DynamicBuffer<Craftables>, CraftingWindow>())
+        {
+            ui.UpdateRecipes(EntityManager, itemLookup);
+            ui.UpdateQueue(EntityManager);
+        }
     }
 }

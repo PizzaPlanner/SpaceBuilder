@@ -1,4 +1,8 @@
+using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
+using UnityEngine;
 
 public struct Item : IComponentData { }
 
@@ -6,6 +10,32 @@ public struct Stackable : IComponentData
 {
     public ushort Size;
     public ushort MaxSize;
+}
+
+public readonly partial struct ItemAspect : IAspect
+{
+    [Optional] readonly RefRO<Stackable> _stackable;
+    [Optional] readonly RefRO<Name> _name;
+    readonly RefRO<Identifieable> _id;
+    public readonly Entity Entity;
+
+    public bool IsStackable(out Stackable stack)
+    {
+        if (!_stackable.IsValid)
+        {
+            stack = new Stackable{ Size = 1, MaxSize = 1 };
+            return false;
+        }
+
+        stack = _stackable.ValueRO;
+        return true;
+    }
+
+    public Identifieable Id => _id.ValueRO;
+    public FixedString64Bytes Name => _name.IsValid ? _name.ValueRO.Value : Id.DefaultName;
+    
+    [BurstDiscard]
+    public Texture2D Image => Id.Icon;
 }
 
 // TODO: Currently not used.

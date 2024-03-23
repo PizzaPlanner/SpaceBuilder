@@ -1,12 +1,16 @@
-.dockingbutton-on {
-    -unity-background-image-tint-color: rgb(81, 251, 255);
-}
-
 * {
     color: rgb(235, 238, 233);
 }
 
-.inventory {
+.dockingbutton.docked {
+    -unity-background-image-tint-color: rgb(81, 251, 255);
+}
+
+.dockingbutton.undocked > #Icon {
+    background-image: url('project://database/Assets/3rdParty/64%20flat%20icons/png/64px/World_Compass.png?fileID=2800000&guid=dffb77e4777ab854e914e85c4670dbfe&type=3#World_Compass');
+}
+
+InventoryElement {
     padding-left: 5px;
     padding-right: 5px;
     padding-top: 5px;
@@ -21,7 +25,7 @@
     flex-wrap: wrap;
 }
 
-.inventory-button {
+InventoryButton {
     width: 48px;
     height: 48px;
     background-image: url('project://database/Assets/UI/bg_default.png?fileID=2800000&guid=c73eb54f62139d64087a3e6d1e440760&type=3#bg_default');
@@ -40,12 +44,12 @@
     margin-bottom: 1px;
 }
 
-.inventory-button:hover {
+InventoryButton:hover {
     background-color: rgb(147, 147, 147);
     -unity-background-image-tint-color: rgb(183, 214, 214);
 }
 
-.inventory-button__Active {
+InventoryButton.active {
     border-left-color: rgba(117, 231, 255, 0.33);
     border-right-color: rgba(117, 231, 255, 0.33);
     border-top-color: rgba(117, 231, 255, 0.33);
@@ -90,7 +94,7 @@
     background-image: url('project://database/Assets/UI/coorsys_system.png?fileID=2800000&guid=c2e97b68c263c2540b96550bf1f92d1a&type=3#coorsys_system');
 }
 
-.inventory-button > .name {
+.item-button > .name {
     font-size: 8px;
     bottom: 0;
     position: absolute;
@@ -107,13 +111,13 @@
     padding-bottom: 0;
 }
 
-.inventory-button > .icon {
+.item-button > .icon {
     background-image: url('project://database/Assets/UI/crosshair.png?fileID=2800000&guid=18c36555461a00541bedc3bed7a78b41&type=3#crosshair');
     flex-grow: 1;
     -unity-background-image-tint-color: rgb(115, 115, 115);
 }
 
-.inventory-button > .stack {
+.item-button > .stack {
     position: absolute;
     right: 0;
     top: 0;
@@ -176,10 +180,10 @@
     margin-right: 1px;
     margin-top: 1px;
     margin-bottom: 1px;
+    flex-direction: row;
 }
 
 .crafting-queue-item .progress-background {
-    height: 12px;
     background-color: rgba(255, 255, 255, 0.04);
     border-left-color: rgba(255, 255, 255, 0.06);
     border-right-color: rgba(255, 255, 255, 0.06);
@@ -190,15 +194,16 @@
     border-top-width: 1px;
     border-bottom-width: 1px;
     flex-direction: row;
-    justify-content: center;
-    width: 150px;
+    justify-content: flex-start;
     display: flex;
+    align-self: stretch;
+    flex-grow: 1;
 }
 
 .crafting-queue-item .progress-foreground {
     background-color: rgba(250, 255, 126, 0.62);
     flex-direction: row;
-    justify-content: center;
+    justify-content: flex-start;
     height: 100%;
     width: 25%;
 }
@@ -220,8 +225,7 @@
     margin-right: 1px;
     margin-top: 1px;
     margin-bottom: 1px;
-    min-height: 32px;
-    min-width: 100px;
+    flex-direction: column;
 }
 
 .crafting-recipe:hover {
@@ -250,55 +254,24 @@
 
 .crafting-recipe .item-list {
     flex-direction: row;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
 }
 
-.crafting-input {
-    width: 16px;
-    height: 16px;
+CraftingInputButton {
+    width: 24px;
+    height: 24px;
     background-image: url('project://database/Assets/UI/bg_default.png?fileID=2800000&guid=c73eb54f62139d64087a3e6d1e440760&type=3#bg_default');
 }
 
-.crafting-input__missing {
+CraftingInputButton.missing {
     -unity-background-image-tint-color: rgb(217, 26, 26);
 }
 
-.crafting-input > .name {
-    font-size: 8px;
-    bottom: 0;
-    position: absolute;
-    left: 50%;
-    right: 50%;
-    -unity-text-align: upper-center;
-    margin-left: 0;
-    margin-right: 0;
-    margin-top: 0;
-    margin-bottom: 0;
-    padding-left: 0;
-    padding-right: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-}
-
-.crafting-input > .icon {
-    background-image: url('project://database/Assets/UI/crosshair.png?fileID=2800000&guid=18c36555461a00541bedc3bed7a78b41&type=3#crosshair');
-    flex-grow: 1;
-    -unity-background-image-tint-color: rgb(115, 115, 115);
-}
-
-.crafting-input > .stack {
-    position: absolute;
-    right: 0;
-    top: 0;
-    -unity-text-align: upper-right;
-    font-size: 10px;
-    margin-left: 0;
-    margin-right: 0;
-    margin-top: 0;
-    margin-bottom: 0;
-    padding-left: 0;
-    padding-right: 0;
-    padding-top: 0;
-    padding-bottom: 0;
+CraftingInputButton > .name {
+    display: none;
 }
 
 .poi-marker {
@@ -540,166 +513,6 @@ ActionButton > #Hotkey {
     padding-bottom: 1px;
 }
 
-LogicEditorWindow {
-    border-left-color: rgb(0, 0, 0);
-    border-right-color: rgb(0, 0, 0);
-    border-top-color: rgb(0, 0, 0);
-    border-bottom-color: rgb(0, 0, 0);
-    border-left-width: 1px;
-    border-right-width: 1px;
-    border-top-width: 1px;
-    border-bottom-width: 1px;
-    background-color: rgba(65, 65, 65, 0.68);
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-}
-
-LogicEditorWindow > #Overlay {
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-}
-
-LogicEditorWindow > #Content {
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-}
-
-LogicEditorElement {
-    background-color: rgb(31, 60, 32);
-    border-left-color: rgb(0, 0, 0);
-    border-right-color: rgb(0, 0, 0);
-    border-top-color: rgb(0, 0, 0);
-    border-bottom-color: rgb(0, 0, 0);
-    border-left-width: 1px;
-    border-right-width: 1px;
-    border-top-width: 1px;
-    border-bottom-width: 1px;
-    align-items: stretch;
-    width: 96px;
-    padding-bottom: 8px;
-}
-
-LogicPortElement {
-    background-color: rgba(43, 43, 43, 0.55);
-    border-left-color: rgb(255, 255, 255);
-    border-right-color: rgb(255, 255, 255);
-    border-top-color: rgb(255, 255, 255);
-    border-bottom-color: rgb(255, 255, 255);
-    border-left-width: 1px;
-    border-right-width: 1px;
-    border-top-width: 1px;
-    border-bottom-width: 1px;
-    flex-shrink: 0;
-    flex-direction: row;
-    margin-left: 1px;
-    margin-right: 1px;
-    margin-top: 1px;
-    margin-bottom: 1px;
-}
-
-LogicPortElement.right {
-    flex-shrink: 0;
-    flex-direction: row;
-    right: -8px;
-    justify-content: flex-end;
-}
-
-LogicPortElement.left {
-    flex-shrink: 0;
-    flex-direction: row-reverse;
-    left: -10px;
-    justify-content: flex-end;
-}
-
-LogicPortElement > #Name {
-    margin-left: 0;
-    margin-right: 0;
-    margin-top: 0;
-    margin-bottom: 0;
-    padding-left: 2px;
-    padding-right: 2px;
-    padding-top: 0;
-    padding-bottom: 0;
-    height: 14px;
-    font-size: 11px;
-    -unity-text-align: middle-left;
-}
-
-LogicPortElement > #Value {
-    padding-left: 2px;
-    padding-right: 2px;
-    padding-top: 0;
-    padding-bottom: 0;
-    height: 14px;
-    font-size: 11px;
-    -unity-text-align: middle-left;
-    background-color: rgba(43, 43, 43, 0.55);
-    border-left-color: rgb(255, 255, 255);
-    border-right-color: rgb(255, 255, 255);
-    border-top-color: rgb(255, 255, 255);
-    border-bottom-color: rgb(255, 255, 255);
-    border-left-width: 1px;
-    border-right-width: 1px;
-    border-top-width: 1px;
-    border-bottom-width: 1px;
-    margin-left: 0;
-    margin-right: 0;
-    margin-top: 0;
-    margin-bottom: 0;
-    position: absolute;
-    right: 100px;
-}
-
-LogicPortElement.left > #Value {
-    right: auto;
-    left: 100px;
-}
-
-LogicPortElement > #Port {
-    background-image: url('project://database/Packages/com.unity.entities/Editor%20Default%20Resources/icons/selected/Entity/EntityPrefab.png?fileID=2800000&guid=51007c0c8813eeb4bbbc539d9be7f30f&type=3#EntityPrefab');
-    width: 16px;
-    height: 16px;
-    margin-top: -2px;
-    margin-bottom: -2px;
-}
-
-LogicPortElement.read > #Port {
-    -unity-background-image-tint-color: rgb(0, 218, 255);
-}
-
-LogicPortElement.write > #Port {
-    -unity-background-image-tint-color: rgb(255, 0, 132);
-}
-
-LogicPortElement.right > #Port {
-    position: relative;
-    left: 8px;
-    margin-left: -8px;
-}
-
-LogicPortElement.left > #Port {
-    position: relative;
-    right: 8px;
-    margin-right: -8px;
-}
-
-LogicPortElement > #Port:hover {
-    rotate: 45deg;
-    scale: 1.1 1.1;
-}
-
-LogicPortElement > #Port.dragging {
-    background-image: url('project://database/Assets/3rdParty/64%20flat%20icons/png/128px/Modifiers_Accuracy.png?fileID=2800000&guid=9b901b0342008d345a7c96c77616dfe5&type=3#Modifiers_Accuracy');
-}
-
 POIMarker > PlanetCircleMarker {
     display: none;
 }
@@ -709,4 +522,26 @@ POIMarker.highlighted > PlanetCircleMarker {
     position: absolute;
     left: 0;
     top: 0;
+}
+
+#Inputs.item-list {
+    background-color: rgba(0, 161, 255, 0.08);
+}
+
+#Outputs.item-list {
+    background-color: rgba(23, 255, 0, 0.1);
+}
+
+#Catalysts.item-list {
+    background-color: rgba(255, 0, 234, 0.11);
+}
+
+#Outputs > CraftingInputButton {
+    width: 32px;
+    height: 32px;
+    background-image: url('project://database/Assets/3rdParty/2000_Icons/fr_bg/bg_green.png?fileID=2800000&guid=23edd2c0a714f8448bb8d7e472920ba3&type=3#bg_green');
+}
+
+.crafting-recipe > * {
+    flex-direction: row;
 }

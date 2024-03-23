@@ -14,8 +14,8 @@ public partial class UpdateVisualsBySpeedSystem : SystemBase
 
     protected override void OnCreate()
     {
-        RequireForUpdate<CameraAnchor>();
         RequireForUpdate<ReferenceFrame>();
+        RequireForUpdate<LocalPlayer>();
     }
 
     protected override void OnStartRunning()

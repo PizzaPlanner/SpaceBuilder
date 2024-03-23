@@ -11,6 +11,7 @@ public partial struct ProcessSectorChangesJob : IJobEntity
     {
         var previous = cts.PreviousSector;
         cts.PreviousSector = ltg;
+        cts.SectorChanged = SectorUpdateType.None;
         if (previous == ltg)
             return;
         
@@ -41,6 +42,7 @@ public partial struct ProcessSectorChangesJob : IJobEntity
                 var newLtg = ltg + new LocalToGalaxy { LightSector = new int3(x, y, z) };
                 pendingSectors.LightSectors.Enqueue(newLtg);
             } 
+            cts.SectorChanged |= SectorUpdateType.Light;
         }
         if(math.any(ltg.StarSector != previous.StarSector))
         {
@@ -62,6 +64,7 @@ public partial struct ProcessSectorChangesJob : IJobEntity
                         pendingSectors.StarSectors.Enqueue(newLtg);
                 }
             } 
+            cts.SectorChanged |= SectorUpdateType.Star;
         }
         pendingSectors.entitiesPerSector.Add(ltg, e);
         pendingSectors.entitiesPerSector.Remove(previous, e);

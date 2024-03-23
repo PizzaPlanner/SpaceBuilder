@@ -3,6 +3,7 @@ using Galaxy.SectorLoading;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Jobs;
+using UnityEngine;
 
 public partial struct LoadSectorSystem : ISystem
 {
@@ -39,6 +40,7 @@ public partial struct LoadSectorSystem : ISystem
         state.RequireForUpdate<PendingSectors>();
         state.RequireForUpdate<SectorLoadSettings>();
         state.RequireForUpdate(starPrefabQuery);
+        state.RequireForUpdate(planetPrefabQuery);
     }
 
     public void OnDestroy(ref SystemState state)

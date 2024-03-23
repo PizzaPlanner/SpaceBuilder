@@ -11,6 +11,7 @@
         "Unity.Entities.Graphics",
         "Unity.Mathematics.Extensions",
         "Unity.Physics",
+        "Identifiables",
         "Identifiables.Authoring",
         "Grid",
         "Galaxy.Authoring",

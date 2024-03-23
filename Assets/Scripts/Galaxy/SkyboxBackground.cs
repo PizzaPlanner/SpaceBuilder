@@ -23,6 +23,11 @@ partial class SkyboxMoveSystem : SystemBase
     protected override void OnStartRunning()
     {
         _skybox = GameObject.FindObjectOfType<SkyboxBackground>();
+        if (_skybox == null)
+        {
+            Enabled = false;
+            return;
+        }
         _skyboxMat = _skybox.GetComponent<MeshRenderer>().material;
     }
 

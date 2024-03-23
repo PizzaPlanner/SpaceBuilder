@@ -13,14 +13,14 @@ public struct PendingTransaction : IComponentData
 
 public static class InventoryHelper
 {
-    public static bool Contains(this DynamicBuffer<Inventory> buffer, ComponentLookup<Identifieable> idBuffer, ComponentLookup<Stackable> stackBuffer, ulong itemId, ushort amount)
+    public static bool Contains(this DynamicBuffer<Inventory> buffer, ItemAspect.Lookup lookup, Identifieable itemId, ushort amount)
     {
         ushort has = 0;
         for(int i = 0; i < buffer.Length; i++)
-            if (buffer[i].Item != Entity.Null && idBuffer[buffer[i].Item].ItemId == itemId)
+            if (buffer[i].Item != Entity.Null && lookup[buffer[i].Item].Id == itemId)
             {
                 var item = buffer[i].Item;
-                has += stackBuffer.HasComponent(item) ? stackBuffer[item].Size : (ushort)1;
+                has += lookup[buffer[i].Item].IsStackable(out var stack) ? stack.Size : (ushort)1;
             }
 
         return has >= amount;

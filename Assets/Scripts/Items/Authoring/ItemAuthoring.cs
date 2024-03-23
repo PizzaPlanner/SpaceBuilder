@@ -15,15 +15,16 @@ public class ItemAuthoring : MonoBehaviour
     {
         public override void Bake(ItemAuthoring authoring)
         {
-            AddComponent(new Item{ });
+            var e = GetEntity(TransformUsageFlags.None);
+            AddComponent(e, new Item{ });
             if (authoring.MaxStackSize > 1)
-                AddComponent(new Stackable {MaxSize = (ushort)authoring.MaxStackSize, Size = authoring.Stack});
+                AddComponent(e, new Stackable {MaxSize = authoring.MaxStackSize, Size = authoring.Stack});
 
             if (authoring.Icon == null)
                 return;
 
-            AddComponentObject(new IconReference {Icon = authoring.Icon});
-            AddComponent(new Parent());
+            AddComponentObject(e, new IconReference {Icon = authoring.Icon});
+            AddComponent(e, new Parent());
         }
     }
 }

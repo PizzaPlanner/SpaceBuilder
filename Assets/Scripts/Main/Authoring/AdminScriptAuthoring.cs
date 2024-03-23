@@ -10,7 +10,7 @@ public class AdminScriptAuthoring : MonoBehaviour
     {
         public override void Bake(AdminScriptAuthoring authoring)
         {
-            AddComponent(new ExecuteAdminScript
+            AddComponent(GetEntity(TransformUsageFlags.None), new ExecuteAdminScript
             {
                 Script = authoring.Script
             });

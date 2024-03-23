@@ -18,6 +18,16 @@ PrefabInstance:
       propertyPath: Value
       value: 2000
       objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_ShapeType
+      value: 31
+      objectReference: {fileID: 0}
+    - target: {fileID: -4171385829797898097, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
+      propertyPath: m_CustomMesh
+      value: 
+      objectReference: {fileID: 4300000, guid: 8bb4b836791467740ac8c64c961701da, type: 3}
     - target: {fileID: -1185016455883590714, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: m_ShapeType
@@ -156,7 +166,7 @@ PrefabInstance:
     - target: {fileID: 8568503968068062168, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
       propertyPath: ItemId
-      value: 0
+      value: 12123489109304972660
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

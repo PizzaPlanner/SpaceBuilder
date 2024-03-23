@@ -25,13 +25,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8442293481059657044}
+  serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0.012, y: -0.345, z: -0.002}
   m_LocalScale: {x: 0.5, y: 0.8, z: 0.6}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6863253468182449275}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &8531048704679214549
 MeshFilter:
@@ -58,6 +58,8 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -356,12 +358,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cc657df93b545efbc9716b6ea082c21, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Recipes:
-  - {fileID: 3596002252489825693, guid: f54fad7ad4eaca54f8d40cf67623d3f9, type: 3}
-  - {fileID: 2248868790609929265, guid: 7b80157f7a47ad448ac19712617cd7fd, type: 3}
   Input: {fileID: -8865198869745752262}
   Output: {fileID: -8865198869745752262}
-  Catalysts: {fileID: -8865198869745752262}
+  Catalysts:
+  - {fileID: 6817603769304736323, guid: 57ad6364aafc7e049b998921cee6f65a, type: 3}
 --- !u!4 &6863253468182449275 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4420211641780734995, guid: e943c85a6f7a7854f92eef9792967afe,

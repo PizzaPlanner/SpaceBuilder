@@ -2,6 +2,7 @@
     <Style src="project://database/Assets/UI/default.uss?fileID=7433441132597879392&amp;guid=309dfca128ab79d4595813fdc55991a4&amp;type=3#default" />
     <Style src="project://database/Assets/UI/coordinates.uss?fileID=7433441132597879392&amp;guid=6a3d0a31285f421e8a2ad20fd30cf8aa&amp;type=3#coordinates" />
     <Style src="project://database/Assets/UI/coordinatesegments.uss?fileID=7433441132597879392&amp;guid=b673c3db6dd869b499a1d50dce6a48bf&amp;type=3#coordinatesegments" />
+    <Style src="project://database/Assets/Scripts/Grid/Logic/UI/logic.uss?fileID=7433441132597879392&amp;guid=b8e4b2ac15d44e79a16d473106f2ac43&amp;type=3#logic" />
     <ui:VisualElement name="POIMarkers" picking-mode="Ignore" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0;" />
     <ui:VisualElement name="Crosshair" style="position: absolute; left: 50%; top: 50%; right: 50%; bottom: 50%; align-items: center; justify-content: center;">
         <ui:VisualElement name="ActualCrosshair" picking-mode="Ignore" style="width: 16px; height: 16px; background-image: url(&apos;project://database/Assets/UI/crosshair.png?fileID=2800000&amp;guid=18c36555461a00541bedc3bed7a78b41&amp;type=3#crosshair&apos;); position: absolute;" />
@@ -30,19 +31,9 @@
         </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement name="DockInfo" style="position: absolute; left: 0; bottom: 0; align-items: center; justify-content: center;">
-        <ui:VisualElement name="System" class="dockingbutton dockingbutton-on" style="flex-direction: row; align-items: center; -unity-background-scale-mode: stretch-to-fill; justify-content: flex-start; width: 100%; margin-top: 1px; margin-bottom: 1px; background-image: url(&apos;project://database/Assets/UI/bg_default.png?fileID=2800000&amp;guid=c73eb54f62139d64087a3e6d1e440760&amp;type=3#bg_default&apos;);">
-            <ui:VisualElement style="width: 28px; height: 28px; margin-left: 2px; margin-right: 2px; margin-top: 2px; margin-bottom: 2px; background-image: url(&apos;project://database/Assets/UI/coorsys_system.png?fileID=2800000&amp;guid=c2e97b68c263c2540b96550bf1f92d1a&amp;type=3#coorsys_system&apos;);" />
-            <ui:Label text="System" display-tooltip-when-elided="true" style="margin-right: 5px;" />
-        </ui:VisualElement>
         <ui:VisualElement name="Station" class="dockingbutton" style="flex-direction: row; align-items: center; justify-content: flex-start; width: 100%; margin-top: 1px; margin-bottom: 1px; background-image: url(&apos;project://database/Assets/UI/bg_default.png?fileID=2800000&amp;guid=c73eb54f62139d64087a3e6d1e440760&amp;type=3#bg_default&apos;);">
-            <ui:VisualElement style="width: 28px; height: 28px; margin-left: 2px; margin-right: 2px; margin-top: 2px; margin-bottom: 2px; background-image: url(&apos;project://database/Assets/UI/coorsys_local.png?fileID=2800000&amp;guid=43fb2bd82828bcb4e99ccc29bbd14ac6&amp;type=3#coorsys_local&apos;);" />
+            <ui:VisualElement name="Icon" style="width: 28px; height: 28px; margin-left: 2px; margin-right: 2px; margin-top: 2px; margin-bottom: 2px; background-image: url(&apos;project://database/Assets/UI/coorsys_local.png?fileID=2800000&amp;guid=43fb2bd82828bcb4e99ccc29bbd14ac6&amp;type=3#coorsys_local&apos;);" />
             <ui:Label text="Station" display-tooltip-when-elided="true" style="margin-right: 5px;" />
-        </ui:VisualElement>
-        <ui:VisualElement name="Swap" style="position: absolute; right: 15%; background-image: url(&apos;project://database/Assets/UI/bg_slim.png?fileID=2800000&amp;guid=cc32439c45babc04593dca5896662d0a&amp;type=3#bg_slim&apos;);">
-            <ui:VisualElement style="flex-direction: row; align-items: center; -unity-slice-left: 0; -unity-slice-top: 0; -unity-slice-right: 0; -unity-slice-bottom: 0; -unity-background-scale-mode: stretch-to-fill;">
-                <ui:VisualElement style="width: 14px; height: 14px; -unity-background-scale-mode: stretch-to-fill; background-image: url(&apos;project://database/Assets/UI/swap.png?fileID=2800000&amp;guid=cd4c7e8cf29844f44878fed8eb19b629&amp;type=3#swap&apos;);" />
-                <ui:Label text="G" display-tooltip-when-elided="true" style="font-size: 10px; padding-left: 2px; padding-right: 2px; padding-top: 0; padding-bottom: 0; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; -unity-text-align: middle-left;" />
-            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement name="ActionIcons" style="position: absolute; right: 0; bottom: 0; flex-direction: row-reverse; justify-content: flex-end; background-color: rgba(30, 38, 46, 0.82); border-left-color: rgb(26, 44, 63); border-right-color: rgb(26, 44, 63); border-top-color: rgb(26, 44, 63); border-bottom-color: rgb(26, 44, 63); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; padding-left: 2px; padding-right: 2px; padding-top: 2px; padding-bottom: 2px;">
@@ -144,21 +135,8 @@
         </ui:VisualElement>
     </ui:VisualElement>
     <InventoryElement name="Hotbar" style="position: absolute; flex-direction: row; left: 50%; right: 50%; bottom: 0; justify-content: center; align-items: flex-end;" />
-    <ui:VisualElement name="Inventory" picking-mode="Ignore" style="align-items: center; justify-content: space-around; flex-direction: row; position: absolute; left: 0; top: 0; right: 0; bottom: 0;">
-        <InventoryElement name="MyBag" class="inventory" style="display: none;">
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-            <InventoryButton />
-        </InventoryElement>
-        <CraftingWindow name="Crafting" style="background-image: url(&apos;project://database/Assets/UI/bg_slim.png?fileID=2800000&amp;guid=cc32439c45babc04593dca5896662d0a&amp;type=3#bg_slim&apos;); -unity-slice-left: 20; -unity-slice-top: 20; -unity-slice-right: 20; -unity-slice-bottom: 20; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; display: none;" />
-        <InventoryElement name="RemoteBag" class="inventory" style="display: none;" />
-    </ui:VisualElement>
-    <Grid.Logic.LogicEditorWindow style="position: absolute; left: 20%; right: 20%; top: 15%; bottom: 15%; display: none;">
-        <Grid.Logic.LogicEditorElement />
-        <Grid.Logic.LogicEditorElement />
-    </Grid.Logic.LogicEditorWindow>
+    <ui:VisualElement name="InventoryRoot" picking-mode="Ignore" style="align-items: center; justify-content: space-around; flex-direction: row; position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: flex;" />
+    <Grid.Logic.LogicEditorWindow style="position: absolute; left: 20%; right: 20%; top: 15%; bottom: 15%; display: none;" />
     <ui:VisualElement name="DebugUI" picking-mode="Ignore" tabindex="-1" style="align-items: flex-start; display: none; justify-content: space-between; flex-direction: row; position: absolute; left: 0; top: 0; right: 0; bottom: 0;">
         <ui:VisualElement name="Settings" style="background-color: rgba(55, 55, 55, 0.22); padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;">
             <ui:Label text="±Speed" display-tooltip-when-elided="true" name="MoreSpeed" enable-rich-text="false" class="debug-button" />

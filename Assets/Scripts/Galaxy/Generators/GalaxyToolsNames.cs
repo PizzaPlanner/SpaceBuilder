@@ -1,5 +1,7 @@
 using System.Runtime.CompilerServices;
 using Unity.Collections;
+using Unity.Entities;
+using Unity.Transforms;
 
 public static partial class GalaxyTools
 {
@@ -106,6 +108,16 @@ public static partial class GalaxyTools
         }
 
         return it1;
+    }
+
+    public static FixedString64Bytes GetClusterName(Hash128 clusterHash)
+    {
+        return clusterHash.ToString();
+    }
+
+    public static FixedString64Bytes GetClusterName(LocalToGalaxy ltg)
+    {
+        return GetClusterName(GetLightSectorCluster(ltg));
     }
 
     static readonly FixedString32Bytes[] StarNameParts = {

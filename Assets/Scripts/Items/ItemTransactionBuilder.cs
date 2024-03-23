@@ -17,7 +17,7 @@ public struct ItemTransactionBuilder
         return new ItemTransactionBuilder { ecb = ecb, entity = txe };
     }
     
-    public ItemTransactionBuilder With(ulong itemId, uint quantity)
+    public ItemTransactionBuilder With(Identifieable itemId, uint quantity)
     {
         ecb.AppendToBuffer(entity, new ModifyItem{ Quantity = quantity, ItemId = itemId });
         return this;
@@ -60,7 +60,7 @@ public struct ModifyItem : IBufferElementData
 {
     public uint Quantity;
     public uint QuantityFilled;
-    public ulong ItemId;
+    public Identifieable ItemId;
 
     public uint QuantityLeft => Quantity - QuantityFilled;
 }

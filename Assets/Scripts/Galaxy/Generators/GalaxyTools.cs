@@ -1,4 +1,5 @@
 using Unity.Collections;
+using Unity.Entities;
 using Unity.Mathematics;
 using Random = Unity.Mathematics.Random;
 
@@ -46,6 +47,24 @@ public static partial class GalaxyTools
         data.StarGenerationSeed = GetSectorSeed(lightLtg);
 
         return data;
+    }
+
+    public static Hash128 GetLightSectorCluster(in LocalToGalaxy ltg)
+    {
+        var selfFreq = GetSectorStarFrequency(ltg);
+        var result = GetLightSectorCluster(ltg, selfFreq);
+        var hash = new Hash128(new uint4(
+            math.hash(result.xyzx),
+            math.hash(result.yzxy),
+            math.hash(result.zxyz),
+            math.hash(result.yxzx)
+            ));
+        return hash; 
+    }
+
+    static int3 GetLightSectorCluster(in LocalToGalaxy ltg, in float starFrequency)
+    {
+        return ltg.LightSector;
     }
 
     public static StarSectorData GetStarSectorData(in LocalToGalaxy ltg)

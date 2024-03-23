@@ -5,7 +5,7 @@ using UnityEngine;
 public class IdentifieableAuthoring : MonoBehaviour
 {
     [SerializeField][HideInInspector]ulong ItemId;
-    public ulong Id => ItemId;
+    public Identifieable Id => new Identifieable(ItemId);
 
     private void OnValidate()
     {
@@ -21,7 +21,9 @@ public class IdentifieableAuthoring : MonoBehaviour
     {
         public override void Bake(IdentifieableAuthoring authoring)
         {
-            AddComponent(new Identifieable {ItemId = authoring.Id});
+            var e = GetEntity(TransformUsageFlags.None);
+            AddComponent(e, authoring.Id);
+            AddComponent(e, new DefaultName{Value = authoring.gameObject.name});
         }
     }
 }
