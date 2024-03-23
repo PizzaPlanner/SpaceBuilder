@@ -13,8 +13,7 @@ using Debug = UnityEngine.Debug;
 public partial struct BuildJob : IJobEntity
 {
     public EntityCommandBuffer ecb;
-    public RoomsLookup Rooms; 
-    [ReadOnly] public NativeParallelHashMap<ulong, Entity> prefabMap;
+    public RoomsLookup Rooms;
     [ReadOnly] public ComponentLookup<PhysicsCollider> colliders;
 
     public void Execute(Entity grid, DynamicBuffer<BuildingPartInfo> parts, GridUpdateAspect update, ref MoveableShip ship, ref GridStructure structure)
@@ -31,9 +30,10 @@ public partial struct BuildJob : IJobEntity
         foreach (var part in parts)
         {
             // Get prefab from id
-            if (!prefabMap.TryGetValue(part.Id, out var prefab))
+            var prefab = part.Id.AsPrefab;
+            if (prefab == Entity.Null)
             {
-                Debug.LogWarning($"Discarded pending part with invalid prefab ID {part.Id}");
+                Debug.LogWarning($"Discarded pending part with invalid prefab ID {part.Id.ItemId}");
                 continue;
             }
             
@@ -84,6 +84,11 @@ public partial struct BuildJob : IJobEntity
             ecb.AddComponent(entity, new Parent { Value = grid });
             ecb.SetComponent(entity, part.ToTransform);
             ecb.SetComponent(entity, newGridItem);
+
+            if (!part.Name.IsEmpty)
+            {
+                ecb.AddComponent(entity, new Name{ Value = part.Name });
+            }
             
             if (part.Color != default)
             {

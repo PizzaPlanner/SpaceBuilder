@@ -42,11 +42,12 @@ namespace Grid.Blueprints
             public TRS At;
             public byte[] Color = new[] { byte.MinValue, byte.MinValue, byte.MinValue };
             public IList<ItemData> Inventory = new List<ItemData>();
+            public string Name;
         } 
         
         internal class ItemData
         {
-            public ulong Id;
+            public uint Id;
             public ushort Stack;
         }
 
@@ -94,6 +95,7 @@ namespace Grid.Blueprints
             if (!em.HasComponent<GridItem>(child.Value) || em.HasComponent<Ghost>(child.Value))
                 return;
             var gridItem = em.GetComponentData<GridItem>(child.Value);
+            var name = em.GetComponentData<Name>(child.Value);
             var identifieable = em.GetComponentData<Identifieable>(child.Value);
             var rotation = em.GetComponentData<LocalTransform>(child.Value).Rotation;
             var scale = gridItem.Scalable ? gridItem.Area.Size : 1;
@@ -110,11 +112,11 @@ namespace Grid.Blueprints
                     if (item == Entity.Null)
                         continue;
 
-                    var id = em.GetComponentData<Identifieable>(item).ItemId;
+                    var id = em.GetComponentData<Identifieable>(item);
                     var stack = em.HasComponent<Stackable>(item)
                         ? em.GetComponentData<Stackable>(item).Size
                         : (ushort)1u;
-                    inventory[i] = new BlueprintV4DataStructure.ItemData { Stack = stack, Id = id };
+                    inventory[i] = new BlueprintV4DataStructure.ItemData { Stack = stack, Id = id.ItemId };
                 }
             }
 
@@ -134,7 +136,8 @@ namespace Grid.Blueprints
                     S = new[] { scale.x, scale.y, scale.z }
                 },
                 Inventory = inventory?.ToList(),
-                Color = new[] { (byte)color.x, (byte)color.y, (byte)color.z }
+                Color = new[] { (byte)color.x, (byte)color.y, (byte)color.z },
+                Name = name.Value.IsEmpty ? null : name.Value.Value
             };
             data.Parts[identifieable.ItemId].Add(partToAdd);
 
@@ -185,13 +188,14 @@ namespace Grid.Blueprints
                 Tags = blueprint.Tags,
                 Parts = blueprint.Parts.SelectMany(key => key.Value.Select(value => new BuildingPartInfo
                 {
-                    Id = key.Key,
+                    Id = new Identifieable(key.Key),
                     Color = value.Color.All(x => x == 0) ? 
                         default : 
                         new Color(value.Color[0] / 255f, value.Color[1] / 255f, value.Color[2] / 255f),
                     Origin = value.At.T,
                     Orientation = RightAngleRotation.FromString(value.At.R),
                     Scale = new uint3(value.At.S[0], value.At.S[1], value.At.S[2]),
+                    Name = value.Name ?? default(FixedString64Bytes)
                 })),
                 LogicConnections = blueprint.LogicConnections.Select(c => new PendingLogicConnection
                 {

@@ -9,6 +9,7 @@ public class SkyboxBackground : MonoBehaviour
     public float MoveFactorPerPlanetSector;
 }
 
+[DisableAutoCreation]
 partial class SkyboxMoveSystem : SystemBase
 {
     protected override void OnCreate()

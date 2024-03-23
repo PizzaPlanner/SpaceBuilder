@@ -7,11 +7,12 @@ using UnityEngine.UIElements;
 
 namespace Grid.Logic
 {
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
     public class LogicEditorWindow : VisualElement, IComponentData
     {
         public Entity Grid;
         public static LogicEditorWindow Instance;
+        
+        public new class UxmlFactory : UxmlFactory<LogicEditorWindow, UxmlTraits> { }
         
         public LogicEditorWindow()
         {
@@ -32,12 +33,10 @@ namespace Grid.Logic
         public void AddLogicElement(LogicEditorElement editor, Entity origin)
         {
             editor.style.position = Position.Absolute;
-            _content.Add(editor);
+            Add(editor);
             _cellToElementMap[origin] = editor;
-            
         }
         
-        public new class UxmlFactory : UxmlFactory<LogicEditorWindow, UxmlTraits> { }
 
         public LogicEditorElement GetItemFor(Entity e)
         {

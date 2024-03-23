@@ -18,7 +18,6 @@ internal partial struct BuildingSystem : ISystem
         {
             ecb = ecb,
             colliders = state.GetComponentLookup<PhysicsCollider>(true),
-            prefabMap = IdentifiableMappingSystem.EntitiesById,
             Rooms = SystemAPI.GetSingletonRW<RoomsLookup>().ValueRW
         }.Schedule();
 

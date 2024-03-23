@@ -77,7 +77,7 @@ public partial class GhostPlacementSystem : SystemBase
 
         builder = SystemAPI.GetSingletonRW<GhostPlacementBuilder>();
         builder.ValueRW.RebuildGhost = false;
-        if (builder.ValueRW.Target.Grid == Entity.Null || builder.ValueRW.PrefabIdToBuild == 0)
+        if (builder.ValueRW.Target.Grid == Entity.Null || builder.ValueRW.PrefabIdToBuild == default)
             return;
 
         // Check if space is already occupied

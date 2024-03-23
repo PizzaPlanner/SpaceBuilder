@@ -7,7 +7,7 @@ using UnityEngine;
 
 public struct BuildingPartInfo : IBufferElementData
 {
-    public ulong Id
+    public Identifieable Id
     {
         get => _id;
         set
@@ -22,8 +22,9 @@ public struct BuildingPartInfo : IBufferElementData
     public RightAngleRotation Orientation;
     public Color Color;
     public bool IsGhost;
+    public FixedString64Bytes Name;
 
-    ulong _id;
+    Identifieable _id;
     GridItem _prefab;
 
     public GridItem ToGridItem

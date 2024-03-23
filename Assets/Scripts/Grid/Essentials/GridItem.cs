@@ -27,16 +27,16 @@ public struct GridItem : IComponentData
 public partial class GridItemMappingSystem : SystemBase
 {
     public struct Loaded : IComponentData { }
-    static NativeParallelHashMap<ulong, GridItem> GridItemsById;
+    static NativeParallelHashMap<Identifieable, GridItem> GridItemsById;
 
-    public static GridItem GetPrefabFromId(ulong id) => GridItemsById.TryGetValue(id, out var gridItem) ? gridItem : new GridItem
+    public static GridItem GetPrefabFromId(Identifieable id) => GridItemsById.TryGetValue(id, out var gridItem) ? gridItem : new GridItem
     {
         Area = new BoundingBox{Origin = int.MaxValue}
     };
     
     protected override void OnCreate()
     {
-        GridItemsById = new NativeParallelHashMap<ulong, GridItem>(0, Allocator.Persistent);
+        GridItemsById = new NativeParallelHashMap<Identifieable, GridItem>(0, Allocator.Persistent);
         RequireForUpdate<IdentifiableMappingSystem.Loaded>();
     }
 
@@ -52,9 +52,11 @@ public partial class GridItemMappingSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        foreach(var entry in IdentifiableMappingSystem.EntitiesById)
-            if(SystemAPI.HasComponent<GridItem>(entry.Value))
-                GridItemsById.Add(entry.Key, SystemAPI.GetComponent<GridItem>(entry.Value));
+        foreach(var (gridItem, id) in 
+                SystemAPI.Query<GridItem, Identifieable>()
+                         .WithAll<Prefab>()
+                         .WithOptions(EntityQueryOptions.IncludePrefab))
+            GridItemsById.Add(id, gridItem);
         Enabled = false;
     }
 }

@@ -16,8 +16,8 @@ public struct GhostPlacementBuilder : IComponentData
         }
     }
 
-    ulong _prefabId;
-    public ulong PrefabIdToBuild => _prefabId;
+    Identifieable _prefabId;
+    public Identifieable PrefabIdToBuild => _prefabId;
     GridItem _prefabPart;
     public GridItem PrefabPart => _prefabPart;
 
@@ -61,7 +61,7 @@ public struct GhostPlacementBuilder : IComponentData
         }
     }
 
-    public void SetPrefab(ulong prefabId)
+    public void SetPrefab(Identifieable prefabId)
     {
         _prefabId = prefabId;
         _prefabPart = GridItemMappingSystem.GetPrefabFromId(prefabId);

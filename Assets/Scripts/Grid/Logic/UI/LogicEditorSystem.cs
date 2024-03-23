@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.InteropServices.ComTypes;
 using Unity.Collections;
 using Unity.Entities;
@@ -33,33 +34,25 @@ namespace Grid.Logic
             root.Clear();
             
             // Add UI stuff for all relevant parts
-            var ecb = new EntityCommandBuffer(Allocator.Temp);
-            foreach (var (parent, ports, item, name, e) in 
-                     SystemAPI.Query<Parent, DynamicBuffer<LogicPort>, LogicItem, Name>()
+            // var ecb = new EntityCommandBuffer(Allocator.Temp);
+            foreach (var (parent, ports, item, visuals, name, e) in 
+                     SystemAPI.Query<Parent, DynamicBuffer<LogicPort>, LogicItem, LogicItemManaged, Name>()
                               .WithAll<GridItem>()
-                              .WithNone<LogicEditorElement>()
                               .WithEntityAccess())
             {
                 if(parent.Value != root.Grid)
                     continue;
                 
-                var element = new LogicEditorElement { Name = name.Value.Value, Ports = ports.AsNativeArray() };
-                ecb.AddComponent(e, element);
-                element.Position = item.SavedUIPosition;
+                var element = new LogicEditorElement
+                {
+                    Name = name.Value.Value, 
+                    Ports = ports.AsNativeArray(),
+                    Position = item.SavedUIPosition
+                };
+                visuals.VisualElement = element;
+                root.AddLogicElement(element, e);
             }
-            ecb.Playback(EntityManager);
-            
-            foreach (var (editor, parent, e) in 
-                     SystemAPI.Query<LogicEditorElement, Parent>().WithEntityAccess())
-            {
-                if(parent.Value != root.Grid)
-                    continue;
-
-                if(root.Contains(editor))
-                    continue;
-                
-                root.AddLogicElement(editor, e);
-            }
+            // ecb.Playback(EntityManager);
         }
 
         protected override void OnStopRunning()
@@ -72,12 +65,13 @@ namespace Grid.Logic
             if(SystemAPI.HasSingleton<ControlScheme.UI.TabMenu>())
                 EntityManager.DestroyEntity(SystemAPI.GetSingletonEntity<ControlScheme.UI.LogicDisplay>());
 
-            foreach (var (editor, ports, item, parent, e) in
-                     SystemAPI.Query<LogicEditorElement, DynamicBuffer<LogicPort>, RefRW<LogicItem>, Parent>().WithAll<GridItem>().WithEntityAccess())
+            foreach (var (visuals, ports, item, parent, e) in
+                     SystemAPI.Query<LogicItemManaged, DynamicBuffer<LogicPort>, RefRW<LogicItem>, Parent>().WithAll<GridItem>().WithEntityAccess())
             {
                 if(parent.Value != root.Grid)
                     continue;
 
+                var editor = visuals.VisualElement;
                 item.ValueRW.SavedUIPosition = editor.Position;
                 var portsRW = ports;
                 for (int i = 0; i < ports.Length; i++)

@@ -37,7 +37,7 @@ public struct BlueprintParserV3 : IBlueprintParser
     {
         public int Version;
         public string Name;
-        public Dictionary<ulong, List<PartData>> Parts;
+        public Dictionary<Identifieable, List<PartData>> Parts;
         public List<string> Tags;
 
         public void Deserialize(string data)
@@ -74,16 +74,16 @@ public struct BlueprintParserV3 : IBlueprintParser
                     Name = value;
                 else if (key == "Parts")
                 {
-                    Parts = new Dictionary<ulong, List<PartData>>();
+                    Parts = new Dictionary<Identifieable, List<PartData>>();
                     CurrentToken.Push((Parts, indent));
                 }
                 else if (CurrentToken.Peek().Property == Tags)
                 {
                     Tags.Add(value);
                 }
-                else if (CurrentToken.Peek().Property is Dictionary<ulong, List<PartData>> dict && key != null)
+                else if (CurrentToken.Peek().Property is Dictionary<Identifieable, List<PartData>> dict && key != null)
                 {
-                    var id = ulong.Parse(key);
+                    var id = new Identifieable(ulong.Parse(key));
                     dict[id] = new List<PartData>();
                     CurrentToken.Push((Parts[id], indent));
                 }
@@ -164,7 +164,7 @@ public struct BlueprintParserV3 : IBlueprintParser
     {
 
         var data = new DataStructure();
-        data.Parts = new Dictionary<ulong, List<PartData>>();
+        data.Parts = new Dictionary<Identifieable, List<PartData>>();
         data.Name = em.GetComponentData<Name>(grid).Value.Value;
         data.Version = 3;
         var children = em.GetBuffer<Child>(grid, true);
@@ -196,13 +196,13 @@ public struct BlueprintParserV3 : IBlueprintParser
                 }
             }
 
-            if (!data.Parts.ContainsKey(identifieable.ItemId))
-                data.Parts[identifieable.ItemId] = new List<PartData>();
+            if (!data.Parts.ContainsKey(identifieable))
+                data.Parts[identifieable] = new List<PartData>();
             var color = em.HasComponent<URPMaterialPropertyBaseColor>(child.Value)
                 ? (int4) (em.GetComponentData<URPMaterialPropertyBaseColor>(child.Value).Value * 255)
                 : int4.zero;
 
-            data.Parts[identifieable.ItemId].Add(new PartData
+            data.Parts[identifieable].Add(new PartData
             {
                 Orientation = new RightAngleRotation(rotation),
                 Position = gridItem.Area.Origin,

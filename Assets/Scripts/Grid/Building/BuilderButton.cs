@@ -2,7 +2,17 @@ using UnityEngine.UIElements;
 
 public class BuilderButton : VisualElement
 {
-    public ulong Id;
+    Identifieable _id;
+    public Identifieable Id
+    {
+        set
+        {
+            _id = value;
+            this.Q<Label>().text = value.DefaultName.Value;
+            this.Q(className:"icon").style.backgroundImage = _id.Icon;
+        }
+        get => _id;
+    }
 
     public bool Selected
     {
@@ -12,11 +22,6 @@ public class BuilderButton : VisualElement
             else RemoveFromClassList("builder-button__Active");
         }
         get => ClassListContains("builder-button__Active");
-    }
-
-    public string Name
-    {
-        set => this.Q<Label>().text = value;
     }
 
     public BuilderButton()

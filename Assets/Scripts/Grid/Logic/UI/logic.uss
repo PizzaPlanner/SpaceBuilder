@@ -1,0 +1,155 @@
+LogicEditorWindow {
+    border-left-color: rgb(0, 0, 0);
+    border-right-color: rgb(0, 0, 0);
+    border-top-color: rgb(0, 0, 0);
+    border-bottom-color: rgb(0, 0, 0);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    background-color: rgba(65, 65, 65, 0.68);
+}
+
+LogicEditorWindow > #Overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+LogicEditorWindow > #Content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+LogicEditorElement {
+    background-color: rgb(31, 60, 32);
+    border-left-color: rgb(0, 0, 0);
+    border-right-color: rgb(0, 0, 0);
+    border-top-color: rgb(0, 0, 0);
+    border-bottom-color: rgb(0, 0, 0);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    align-items: stretch;
+    width: 96px;
+    padding-bottom: 8px;
+}
+
+LogicPortElement {
+    background-color: rgba(43, 43, 43, 0.55);
+    border-left-color: rgb(255, 255, 255);
+    border-right-color: rgb(255, 255, 255);
+    border-top-color: rgb(255, 255, 255);
+    border-bottom-color: rgb(255, 255, 255);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    flex-shrink: 0;
+    flex-direction: row;
+    margin-left: 1px;
+    margin-right: 1px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+
+LogicPortElement.right {
+    flex-shrink: 0;
+    flex-direction: row;
+    right: -8px;
+    justify-content: flex-end;
+}
+
+LogicPortElement.left {
+    flex-shrink: 0;
+    flex-direction: row-reverse;
+    left: -10px;
+    justify-content: flex-end;
+}
+
+LogicPortElement > #Name {
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 0;
+    padding-bottom: 0;
+    height: 14px;
+    font-size: 11px;
+    -unity-text-align: middle-left;
+}
+
+LogicPortElement > #Value {
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 0;
+    padding-bottom: 0;
+    height: 14px;
+    font-size: 11px;
+    -unity-text-align: middle-left;
+    background-color: rgba(43, 43, 43, 0.55);
+    border-left-color: rgb(255, 255, 255);
+    border-right-color: rgb(255, 255, 255);
+    border-top-color: rgb(255, 255, 255);
+    border-bottom-color: rgb(255, 255, 255);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    position: absolute;
+    right: 100px;
+}
+
+LogicPortElement.left > #Value {
+    right: auto;
+    left: 100px;
+}
+
+LogicPortElement > #Port {
+    background-image: url('project://database/Packages/com.unity.entities/Editor%20Default%20Resources/icons/selected/Entity/EntityPrefab.png?fileID=2800000&guid=51007c0c8813eeb4bbbc539d9be7f30f&type=3#EntityPrefab');
+    width: 16px;
+    height: 16px;
+    margin-top: -2px;
+    margin-bottom: -2px;
+}
+
+LogicPortElement.read > #Port {
+    -unity-background-image-tint-color: rgb(0, 218, 255);
+}
+
+LogicPortElement.write > #Port {
+    -unity-background-image-tint-color: rgb(255, 0, 132);
+}
+
+LogicPortElement.right > #Port {
+    position: relative;
+    left: 8px;
+    margin-left: -8px;
+}
+
+LogicPortElement.left > #Port {
+    position: relative;
+    right: 8px;
+    margin-right: -8px;
+}
+
+LogicPortElement > #Port:hover {
+    rotate: 45deg;
+    scale: 1.1 1.1;
+}
+
+LogicPortElement > #Port.dragging {
+    background-image: url('project://database/Assets/3rdParty/64%20flat%20icons/png/128px/Modifiers_Accuracy.png?fileID=2800000&guid=9b901b0342008d345a7c96c77616dfe5&type=3#Modifiers_Accuracy');
+}

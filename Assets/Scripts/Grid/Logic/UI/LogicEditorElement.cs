@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 namespace Grid.Logic
 {
-    public class LogicEditorElement : VisualElement, IComponentData
+    public class LogicEditorElement : VisualElement
     {
         public float2 Position
         {
