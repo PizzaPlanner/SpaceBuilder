@@ -22,7 +22,7 @@ public class CraftingRecipeAuthoring : MonoBehaviour
     void OnValidate()
     {
         if(Output.Length == 1)
-            Icon = Output[0].Prefab.Icon;
+            Icon = Output[0].Prefab.GetComponent<IdentifieableAuthoring>().Icon;
     }
 
     class Baker : Baker<CraftingRecipeAuthoring>
@@ -30,8 +30,10 @@ public class CraftingRecipeAuthoring : MonoBehaviour
         public override void Bake(CraftingRecipeAuthoring authoring)
         {
             var self = GetEntity(TransformUsageFlags.None);
-            AddComponent(self, new CraftingRecipe {Duration = authoring.Duration});
-            AddComponentObject(self, new IconReference {Icon = authoring.Icon});
+            AddComponent(self, new CraftingRecipe
+            {
+                Duration = authoring.Duration
+            });
             var inBuffer = AddBuffer<CraftingInput>(self);
             foreach (var thing in authoring.Input)
             {
@@ -55,4 +57,6 @@ public class CraftingRecipeAuthoring : MonoBehaviour
         }
     }
 }
+
+
 #endif

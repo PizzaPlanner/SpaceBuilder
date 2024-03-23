@@ -67,6 +67,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ItemId: 16808498525019732052
+  Tags: 8
+  Icon: {fileID: 0}
 --- !u!114 &-3476038305246942473
 MonoBehaviour:
   m_ObjectHideFlags: 0

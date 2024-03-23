@@ -13,21 +13,28 @@ public partial class IdentifiableMappingSystem : SystemBase
     
         
     internal static NativeParallelHashMap<Identifieable, Entity> EntitiesById;
+    internal static NativeParallelHashMap<Identifieable, IdTag> TagsById;
     internal static Dictionary<Identifieable, Texture2D> IconById;
     internal static NativeParallelHashMap<Identifieable, FixedString64Bytes> NameById;
+    internal static NativeArray<IdentifiableLink> IdRelations;
 
     protected override void OnCreate()
     {
-        query = GetEntityQuery(typeof(Identifieable), typeof(DefaultName), typeof(Prefab));
+        query = SystemAPI.QueryBuilder()
+                         .WithAll<Prefab, PreIdentifiable>()
+                         .WithOptions(EntityQueryOptions.IncludePrefab).Build();
         RequireForUpdate(query);
         EntitiesById = new NativeParallelHashMap<Identifieable, Entity>(0, Allocator.Persistent);
         NameById = new NativeParallelHashMap<Identifieable, FixedString64Bytes>(0, Allocator.Persistent);
+        TagsById = new NativeParallelHashMap<Identifieable, IdTag>(0, Allocator.Persistent);
     }
 
     protected override void OnDestroy()
     {
         EntitiesById.Dispose();
         NameById.Dispose();
+        TagsById.Dispose();
+        IdRelations.Dispose();
     }
 
     protected override void OnStopRunning()
@@ -41,24 +48,33 @@ public partial class IdentifiableMappingSystem : SystemBase
         Debug.Log($"Found {entities.Length} ID Prefabs");
         EntitiesById.Capacity = entities.Length;
         IconById = new Dictionary<Identifieable, Texture2D>();
-        foreach (var (id, defaultName, e) in SystemAPI.Query<Identifieable, DefaultName>()
-                                         .WithOptions(EntityQueryOptions.IncludePrefab)
-                                         .WithAll<Prefab>()
-                                         .WithEntityAccess())
+        List<FixedString64Bytes> allNames =new List<FixedString64Bytes>();
+        var ecb = new EntityCommandBuffer(Allocator.Temp);
+        foreach (var (preId, e) in SystemAPI.Query<PreIdentifiable>()
+                                            .WithOptions(EntityQueryOptions.IncludePrefab)
+                                            .WithAll<Prefab>()
+                                            .WithEntityAccess())
         {
                 if (SystemAPI.HasComponent<Parent>(e) && SystemAPI.GetComponent<Parent>(e).Value != Entity.Null)
                     return;
+                
+                var id = preId.Id;
 
                 if(id.ItemId == 0)
                     Debug.LogError($"Entity {e} has invalid ID 0");
                 else if (EntitiesById.ContainsKey(id))
                     Debug.LogError($"ID {id.ItemId} used by {e} is already taken!");
+                else if(allNames.Contains(preId.Name.Value))
+                    Debug.LogError($"ID {id.ItemId} name {preId.Name.Value} is already taken!");
                 else
                 {
+                    ecb.AddComponent(e, id);
                     EntitiesById.Add(id, e);
-                    NameById.Add(id, defaultName.Value);
+                    NameById.Add(id, preId.Name.Value);
+                    TagsById.Add(id, preId.Tags);
+                    allNames.Add(preId.Name.Value);
 #if UNITY_EDITOR
-                    EntityManager.SetName(e, defaultName.Value);
+                    EntityManager.SetName(e, preId.Name.Value);
 #endif
                 }
 
@@ -66,8 +82,20 @@ public partial class IdentifiableMappingSystem : SystemBase
                     IconById[id] = SystemAPI.ManagedAPI.GetComponent<IconReference>(e).Icon;
 
         }
-        EntityManager.RemoveComponent<DefaultName>(query);
-        EntityManager.RemoveComponent<IconReference>(GetEntityQuery(typeof(IconReference), typeof(Identifieable)));
+        ecb.Playback(EntityManager);
+        EntityManager.RemoveComponent<PreIdentifiable>(query);
+
+        var links = SystemAPI.GetSingletonBuffer<DefaultIdentifiableLink>();
+        var allRelations = new NativeList<IdentifiableLink>(Allocator.Temp);
+        foreach (var link in links)
+        {
+            allRelations.Add(new IdentifiableLink{From = link.From, To = link.To, Relation = link.RelationFrom});
+            allRelations.Add(new IdentifiableLink{From = link.To, To = link.From, Relation = link.RelationTo});
+        }
+        IdRelations = allRelations.ToArray(Allocator.Persistent);
+        EntityManager.DestroyEntity(SystemAPI.GetSingletonEntity<DefaultIdentifiableLink>());
+        Debug.Log($"Loaded {IdRelations.Length} ID Links");
+        
         Enabled = false;
     }
 }

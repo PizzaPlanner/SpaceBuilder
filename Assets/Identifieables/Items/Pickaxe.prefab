@@ -10,6 +10,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1905473466442348895, guid: 5c6e9c5cd30434748a07fd27831ad33f,
         type: 3}
+      propertyPath: Icon
+      value: 
+      objectReference: {fileID: 2800000, guid: 5bd4164ddbd85e4438608d83938a994a, type: 3}
+    - target: {fileID: 1905473466442348895, guid: 5c6e9c5cd30434748a07fd27831ad33f,
+        type: 3}
       propertyPath: ItemId
       value: 11330555944675985060
       objectReference: {fileID: 0}
@@ -78,6 +83,33 @@ PrefabInstance:
       propertyPath: Icon
       value: 
       objectReference: {fileID: 2800000, guid: ddff24635bb405342804f7be6d5b0398, type: 3}
+    - target: {fileID: 7449385484489359263, guid: 5c6e9c5cd30434748a07fd27831ad33f,
+        type: 3}
+      propertyPath: Recipes.Array.data[0].Catalyst
+      value: 
+      objectReference: {fileID: 4890444819103845344, guid: d818640b19c09b649ab0643ecc25f99a,
+        type: 3}
+    - target: {fileID: 7449385484489359263, guid: 5c6e9c5cd30434748a07fd27831ad33f,
+        type: 3}
+      propertyPath: Recipes.Array.data[0].Duration
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 7449385484489359263, guid: 5c6e9c5cd30434748a07fd27831ad33f,
+        type: 3}
+      propertyPath: Recipes.Array.data[0].Input.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7449385484489359263, guid: 5c6e9c5cd30434748a07fd27831ad33f,
+        type: 3}
+      propertyPath: Recipes.Array.data[0].Input.Array.data[0].Amount
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 7449385484489359263, guid: 5c6e9c5cd30434748a07fd27831ad33f,
+        type: 3}
+      propertyPath: Recipes.Array.data[0].Input.Array.data[0].Prefab
+      value: 
+      objectReference: {fileID: 528892093010784648, guid: 253d9061a1d7ddd4caf3f5fac77efe1c,
+        type: 3}
     - target: {fileID: 8296528291941736928, guid: 5c6e9c5cd30434748a07fd27831ad33f,
         type: 3}
       propertyPath: Name

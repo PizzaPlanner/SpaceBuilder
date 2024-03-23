@@ -2,7 +2,6 @@
 using Unity.Entities;
 using UnityEngine;
 
-[BakingType]
 public class IdentifieableLoader : MonoBehaviour
 {
     [SerializeField] GameObject[] AdditionalPrefabs;
@@ -10,6 +9,8 @@ public class IdentifieableLoader : MonoBehaviour
     {
         public override void Bake(IdentifieableLoader authoring)
         {
+            var e = GetEntity(TransformUsageFlags.None);
+            AddBuffer<DefaultIdentifiableLink>(e);
             var prefabs = 0;
             foreach (var guid in UnityEditor.AssetDatabase.FindAssets("*", new[] { "Assets/Identifieables" }))
             {

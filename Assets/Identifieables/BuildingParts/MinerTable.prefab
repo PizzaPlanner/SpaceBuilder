@@ -307,6 +307,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8568503968068062168, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
+      propertyPath: Icon
+      value: 
+      objectReference: {fileID: 2800000, guid: 42dfdb739d1ea174fbd1885ce7254b80, type: 3}
+    - target: {fileID: 8568503968068062168, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
       propertyPath: ItemId
       value: 7654762231379342132
       objectReference: {fileID: 0}
@@ -361,7 +366,7 @@ MonoBehaviour:
   Input: {fileID: -8865198869745752262}
   Output: {fileID: -8865198869745752262}
   Catalysts:
-  - {fileID: 6817603769304736323, guid: 57ad6364aafc7e049b998921cee6f65a, type: 3}
+  - {fileID: 4890444819103845344, guid: d818640b19c09b649ab0643ecc25f99a, type: 3}
 --- !u!4 &6863253468182449275 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4420211641780734995, guid: e943c85a6f7a7854f92eef9792967afe,

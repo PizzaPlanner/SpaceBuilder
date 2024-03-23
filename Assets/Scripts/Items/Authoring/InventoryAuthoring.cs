@@ -9,7 +9,7 @@ public class InventoryAuthoring : MonoBehaviour
     {
         public override void Bake(InventoryAuthoring authoring)
         {
-            var buffer = AddBuffer<Inventory>();
+            var buffer = AddBuffer<Inventory>(GetEntity(TransformUsageFlags.None));
             for (int i = 0; i < authoring.Size; i++)
             {
                 buffer.Add(new Inventory());

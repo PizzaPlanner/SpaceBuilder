@@ -4,11 +4,9 @@
     "references": [
         "Unity.Entities",
         "Unity.Mathematics",
-        "Unity.Transforms",
         "Unity.Burst",
         "Unity.Collections",
-        "Unity.Entities.Graphics",
-        "Unity.Physics"
+        "Unity.Transforms"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

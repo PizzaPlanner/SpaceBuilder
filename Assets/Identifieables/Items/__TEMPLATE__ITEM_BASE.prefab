@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1567129564002499769}
   - component: {fileID: 4037564657443737580}
   - component: {fileID: 1156827602194712045}
+  - component: {fileID: -1360665191357562067}
   m_Layer: 0
   m_Name: __TEMPLATE__ITEM_BASE
   m_TagString: Untagged
@@ -46,8 +47,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MaxStackSize: 0
-  Stack: 1
-  Icon: {fileID: 0}
 --- !u!114 &1156827602194712045
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -61,3 +60,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ItemId: 2960375024859582868
+  Tags: 1
+  Icon: {fileID: 0}
+--- !u!114 &-1360665191357562067
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4188579125311382446}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fada7cecf719463c887b0d948aa78e21, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Recipes:
+  - Amount: 0
+    Duration: 0
+    Catalyst: {fileID: 0}
+    Input: []

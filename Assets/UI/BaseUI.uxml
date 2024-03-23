@@ -3,6 +3,7 @@
     <Style src="project://database/Assets/UI/coordinates.uss?fileID=7433441132597879392&amp;guid=6a3d0a31285f421e8a2ad20fd30cf8aa&amp;type=3#coordinates" />
     <Style src="project://database/Assets/UI/coordinatesegments.uss?fileID=7433441132597879392&amp;guid=b673c3db6dd869b499a1d50dce6a48bf&amp;type=3#coordinatesegments" />
     <Style src="project://database/Assets/Scripts/Grid/Logic/UI/logic.uss?fileID=7433441132597879392&amp;guid=b8e4b2ac15d44e79a16d473106f2ac43&amp;type=3#logic" />
+    <Style src="project://database/Assets/Scripts/Identifiables/UI/wiki.uss?fileID=7433441132597879392&amp;guid=28cb604ecb218d94eab2da0b72190f07&amp;type=3#wiki" />
     <ui:VisualElement name="POIMarkers" picking-mode="Ignore" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0;" />
     <ui:VisualElement name="Crosshair" style="position: absolute; left: 50%; top: 50%; right: 50%; bottom: 50%; align-items: center; justify-content: center;">
         <ui:VisualElement name="ActualCrosshair" picking-mode="Ignore" style="width: 16px; height: 16px; background-image: url(&apos;project://database/Assets/UI/crosshair.png?fileID=2800000&amp;guid=18c36555461a00541bedc3bed7a78b41&amp;type=3#crosshair&apos;); position: absolute;" />
@@ -164,4 +165,5 @@
         </ui:VisualElement>
         <AdminConsole name="AdminConsole" style="position: absolute; display: none; right: 50%; left: 25%; top: 0; min-height: 150px; width: 50%;" />
     </ui:VisualElement>
+    <Identifiables.UI.Wiki style="display: none; position: absolute; right: 0; left: 0; bottom: 0; top: 0;" />
 </ui:UXML>

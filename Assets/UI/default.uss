@@ -183,23 +183,6 @@ InventoryButton.active {
     flex-direction: row;
 }
 
-.crafting-queue-item .progress-background {
-    background-color: rgba(255, 255, 255, 0.04);
-    border-left-color: rgba(255, 255, 255, 0.06);
-    border-right-color: rgba(255, 255, 255, 0.06);
-    border-top-color: rgba(255, 255, 255, 0.06);
-    border-bottom-color: rgba(255, 255, 255, 0.06);
-    border-left-width: 1px;
-    border-right-width: 1px;
-    border-top-width: 1px;
-    border-bottom-width: 1px;
-    flex-direction: row;
-    justify-content: flex-start;
-    display: flex;
-    align-self: stretch;
-    flex-grow: 1;
-}
-
 .crafting-queue-item .progress-foreground {
     background-color: rgba(250, 255, 126, 0.62);
     flex-direction: row;
@@ -544,4 +527,21 @@ POIMarker.highlighted > PlanetCircleMarker {
 
 .crafting-recipe > * {
     flex-direction: row;
+}
+
+.crafting-queue-item .progress-background {
+    background-color: rgba(255, 255, 255, 0.04);
+    border-left-color: rgba(255, 255, 255, 0.06);
+    border-right-color: rgba(255, 255, 255, 0.06);
+    border-top-color: rgba(255, 255, 255, 0.06);
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    flex-direction: row;
+    justify-content: flex-start;
+    display: flex;
+    align-self: stretch;
+    flex-grow: 1;
 }
