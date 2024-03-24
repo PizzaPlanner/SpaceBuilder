@@ -15,7 +15,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="ConstructionBorder" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-left-width: 10px; border-right-width: 10px; border-top-width: 10px; border-bottom-width: 10px; border-left-color: rgba(0, 255, 99, 0.58); border-right-color: rgba(0, 255, 99, 0.58); border-top-color: rgba(0, 255, 99, 0.58); border-bottom-color: rgba(0, 255, 99, 0.58); display: none; align-items: center;" />
         <ui:VisualElement view-data-key="InMenu" name="InMenu" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: none;">
-            <BlueprintLibraryWindow name="BlueprintLibraryWindow" style="right: 0; position: absolute; top: 25%;" />
+            <BlueprintLibraryWindow name="BlueprintLibraryWindow" style="right: 0; position: absolute; top: 25%; bottom: 25%;" />
             <ui:VisualElement name="TargetInfo" style="position: absolute; left: 50%; right: 50%; top: 50%; align-items: center; bottom: 50%; justify-content: center; flex-direction: column;">
                 <ui:VisualElement name="VisualElement" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute;">
                     <Grid.UI.GridInfoWindow style="display: flex;" />

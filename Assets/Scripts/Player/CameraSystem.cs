@@ -69,7 +69,8 @@ partial class CameraSystem : SystemBase
         var camSettings = SystemAPI.GetSingletonRW<CameraSettings>();
 
         var input = SystemAPI.GetSingleton<InputData>();
-        camSettings.ValueRW.ScrollRatio = math.clamp(camSettings.ValueRW.ScrollRatio + input.Scroll * 0.1f, 0, 1);
+        if(input.ScrollMode == ScrollMode.Camera)
+            camSettings.ValueRW.ScrollRatio = math.clamp(camSettings.ValueRW.ScrollRatio + input.Scroll * 0.1f, 0, 1);
             
         var lookDelta = input.Rotation * new float3(1, camSettings.ValueRW.InvertedY ? -1 : 1, 1);
 
@@ -109,12 +110,9 @@ partial class CameraSystem : SystemBase
         totalRotation = quaternion.Euler(euler);
         
         var refFrame = SystemAPI.GetSingleton<ReferenceFrame>();
-        if (refFrame.DurationSinceLastChange == 0 && refFrame.Origin != Entity.Null)
-        {
-            var newFrameRot = SystemAPI.GetComponent<LocalTransform>(refFrame.Origin);
-            totalRotation = math.mul(totalRotation, newFrameRot.Rotation);
-        }
-        
+        if(refFrame.DurationSinceLastChange == 0)
+            totalRotation = quaternion.identity;
+
         camSettings.ValueRW.Orientation = totalRotation;
         
     }

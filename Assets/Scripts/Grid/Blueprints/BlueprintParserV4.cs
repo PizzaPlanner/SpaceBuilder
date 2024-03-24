@@ -95,10 +95,10 @@ namespace Grid.Blueprints
             if (!em.HasComponent<GridItem>(child.Value) || em.HasComponent<Ghost>(child.Value))
                 return;
             var gridItem = em.GetComponentData<GridItem>(child.Value);
-            var name = em.GetComponentData<Name>(child.Value);
             var identifieable = em.GetComponentData<Identifieable>(child.Value);
             var rotation = em.GetComponentData<LocalTransform>(child.Value).Rotation;
             var scale = gridItem.Scalable ? gridItem.Area.Size : 1;
+            var name = em.HasComponent<Name>(child.Value) ? em.GetComponentData<Name>(child.Value) : default;
 
             // Inventory
             BlueprintV4DataStructure.ItemData[] inventory = null;

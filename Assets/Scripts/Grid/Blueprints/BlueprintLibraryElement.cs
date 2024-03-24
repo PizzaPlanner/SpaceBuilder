@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using Unity.Collections;
 using UnityEngine.UIElements;
 
 public class BlueprintLibraryElement : VisualElement
@@ -35,17 +37,31 @@ public class BlueprintLibraryWindow : VisualElement
 {
     public BlueprintLibraryWindow()
     {
-        Add(new VisualElement{ name = "Content" });
+        Add(new Label("Blueprints"));
+        Add(new ScrollView{ name = "Content" });
     }
 
-    public IEnumerable<SpawnablePrefab> Prefabs
+    public NativeParallelHashMap<FixedString64Bytes, SpawnablePrefab> Prefabs
     {
         set
         {
-            var contentContainer = this.Q("Content");
-            contentContainer.Clear();
-            foreach (var v in value)
-                contentContainer.Add(new BlueprintLibraryElement { Prefab = v });
+            foreach (var key in value.GetKeyArray(Allocator.Temp))
+            {
+                var elemParent = this.Q<ScrollView>("Content"); 
+                var current = (VisualElement)elemParent;
+                var path = key.Value.Split("/");
+                for (int i = 0; i < path.Length - 1; i++)
+                {
+                    var next = current.Children().OfType<Foldout>().FirstOrDefault(x => x.name == path[i]);
+                    if (next == default)
+                    {
+                        next = new Foldout{ value = i > 0, name = path[i], text = path[i]};
+                        current.Add(next);
+                    }
+                    current = next;
+                }
+                current.Add(new BlueprintLibraryElement { Prefab = value[key] });
+            }
         }
     }
     

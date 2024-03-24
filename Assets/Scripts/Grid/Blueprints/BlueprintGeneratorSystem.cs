@@ -112,7 +112,7 @@ public partial class BlueprintGeneratorSystem : SystemBase
     void RefreshUI()
     {
         var bpWindow = GameObject.FindObjectOfType<UIDocument>().rootVisualElement.Q<BlueprintLibraryWindow>();
-        bpWindow.Prefabs = spawnables.GetValueArray(Allocator.Temp);
+        bpWindow.Prefabs = spawnables;
     }
 
     protected override void OnDestroy()

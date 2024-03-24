@@ -1,5 +1,6 @@
 using Unity.Entities;
 using Unity.Rendering;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Grid.Building
@@ -11,8 +12,8 @@ namespace Grid.Building
 
         void Execute(Entity e, ref MaterialMeshInfo materialInfo, in VisualizeRemoval removal)
         {
-            if(removal.OriginalMaterialCopied)
-                materialInfo.MaterialID = removal.OriginalMaterialId;
+            if(removal.OriginalMaterialId != default)
+                materialInfo.Material = removal.OriginalMaterialId;
             ecb.RemoveComponent<VisualizeRemoval>(e);
         }
     }
@@ -24,11 +25,10 @@ namespace Grid.Building
         public BatchMaterialID RemovalMaterial;
         void Execute(Entity e, ref MaterialMeshInfo mmi, ref VisualizeRemoval removal)
         {
-            if(removal.OriginalMaterialCopied)
+            if(removal.OriginalMaterialId != default)
                 return;
-
-            removal.OriginalMaterialId = mmi.MaterialID;
-            removal.OriginalMaterialCopied = true;
+            
+            removal.OriginalMaterialId = mmi.Material;
             mmi.MaterialID = RemovalMaterial;
         }
     }

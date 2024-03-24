@@ -332,8 +332,6 @@ BlueprintLibraryWindow {
 }
 
 BlueprintLibraryWindow > #Content {
-    flex-direction: column;
-    flex-wrap: wrap;
     align-items: flex-start;
 }
 

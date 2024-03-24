@@ -51,6 +51,12 @@ partial class PlayerInputSystem : SystemBase
             Input.GetAxis("RotateZAxis"));
         input.WantRun = Input.GetKey(KeyCode.LeftShift);
         
+        if (Input.mouseScrollDelta.y != 0)
+        {
+            input.Scroll = math.sign(Input.mouseScrollDelta.y);
+            input.ScrollMode = ScrollMode.Camera;
+        }
+        
         if(Input.GetKeyDown(KeyCode.B))
             if (SystemAPI.TryGetSingletonEntity<ControlScheme.Building>(out var b))
                 EntityManager.DestroyEntity(b);
