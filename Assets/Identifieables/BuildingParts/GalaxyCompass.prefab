@@ -350,6 +350,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8568503968068062168, guid: e943c85a6f7a7854f92eef9792967afe,
         type: 3}
+      propertyPath: Icon
+      value: 
+      objectReference: {fileID: 2800000, guid: dffb77e4777ab854e914e85c4670dbfe, type: 3}
+    - target: {fileID: 8568503968068062168, guid: e943c85a6f7a7854f92eef9792967afe,
+        type: 3}
       propertyPath: ItemId
       value: 1711725776169262884
       objectReference: {fileID: 0}
@@ -527,7 +532,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b275e5f92732148048d7b77e264ac30e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ShapeType: 0
+  m_ShapeType: 2
   m_PrimitiveCenter:
     x: 0.018957522
     y: -0.000000044703484
@@ -558,7 +563,7 @@ MonoBehaviour:
     m_BevelRadius: 0.05
     m_MinimumAngle: 2.5000002
   m_CustomMesh: {fileID: 0}
-  m_ForceUnique: 0
+  m_ForceUnique: 1
   m_Material:
     m_SupportsTemplate: 1
     m_Template: {fileID: 0}

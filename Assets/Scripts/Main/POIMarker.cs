@@ -54,7 +54,7 @@ public class POIMarker : VisualElement
         var content = new VisualElement();
         Add(content);
         content.Add(new VisualElement { name = "Icon" });
-        content.Add(new Label());
+        content.Add(new Label("Hello World"));
     }
 
     public void Update(LocalToGalaxy deltaLtg, LocalToWorld ltw, double3 distanceDelta, MarkerSettings settings)
@@ -145,6 +145,7 @@ public partial class POIMarkerSystem : SystemBase
                     poiMarker.Add(new PlanetCircleMarker { Data = planet });
             }
             uiRoot.Add(poiMarker);
+            // TODO: Bug IN-70374
             ecb.AddComponent(e, new MarkedPOI { Marker = poiMarker });
         }
         foreach(var (trackedPoi, e) in SystemAPI.Query<MarkedPOI>().WithNone<ShouldShowAsPOI>().WithEntityAccess())

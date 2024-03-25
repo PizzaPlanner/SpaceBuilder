@@ -12,8 +12,7 @@ public class GridStructureAuthoring : MonoBehaviour
         {
             var e = GetEntity(TransformUsageFlags.Dynamic);
             AddComponent<GridStructure>(e);
-            AddComponent<GridUpdate>(e);
-            SetComponentEnabled<GridUpdate>(e, false);
+            AddBuffer<GridUpdate>(e);
             AddBuffer<BuildingPartInfo>(e);
             AddBuffer<LinkedEntityGroup>(e).Add(e);
             AddBuffer<Child>(e);

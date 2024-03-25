@@ -16,12 +16,11 @@ public partial struct BuildJob : IJobEntity
     public RoomsLookup Rooms;
     [ReadOnly] public ComponentLookup<PhysicsCollider> colliders;
 
-    public void Execute(Entity grid, DynamicBuffer<BuildingPartInfo> parts, GridUpdateAspect update, ref MoveableShip ship, ref GridStructure structure)
+    public void Execute(Entity grid, DynamicBuffer<BuildingPartInfo> parts, DynamicBuffer<GridUpdate> updates, ref MoveableShip ship, ref GridStructure structure)
     {
         if (parts.Length == 0)
             return;
         
-        var updates = 0;
         var affectedArea = new IntAABB
         {
             Min = int.MaxValue,
@@ -103,7 +102,6 @@ public partial struct BuildJob : IJobEntity
             }
             else
             {
-                updates++;
                 affectedArea.Min = math.min(area.Min, affectedArea.Min);
                 affectedArea.Max = math.max(area.Max, affectedArea.Max);
                 
@@ -119,17 +117,13 @@ public partial struct BuildJob : IJobEntity
                 structure.BoundsMin = math.min(affectedArea.Min, structure.BoundsMin);
                 structure.BoundsMax = math.max(affectedArea.Max, structure.BoundsMax);
                 ship.Mass += newGridItem.Mass;
+                updates.Add(new GridUpdate
+                {
+                    Area = affectedArea,
+                    Type = GridUpdate.UpdateType.Add
+                });
             }
         }
         parts.Clear();
-
-        if (updates > 0)
-        {
-            update.Update = new GridUpdate
-            {
-                Area = affectedArea,
-                Type = GridUpdate.UpdateType.Add
-            };
-        }
     }
 }

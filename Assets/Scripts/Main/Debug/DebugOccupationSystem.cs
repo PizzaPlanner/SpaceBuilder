@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Collections.NotBurstCompatible;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -53,15 +54,15 @@ public partial class DebugOccupationSystem : SystemBase
 
     void ShowOccupations()
     {
-        // var roomsLookup = SystemAPI.GetSingleton<RoomsLookup>();
-        // NativeList<float4x4> matrices = new NativeList<float4x4>(Allocator.Temp);
-        // foreach(var (ltw, e) in SystemAPI.Query<LocalToWorld>().WithAll<GridStructure>().WithEntityAccess())
-        // {
-        //     foreach(var wall in roomsLookup.Walls.GetValuesForKey(e))
-        //         matrices.Add(float4x4.TRS(GridStructure.PositionFromCell(ltw, wall), ltw.Rotation, 1));
-        // }
-        //
-        // Draw(matrices, occupationMat);
+        var roomsLookup = SystemAPI.GetSingleton<RoomsLookup>();
+        NativeList<Matrix4x4> matrices = new NativeList<Matrix4x4>(Allocator.Temp);
+        foreach(var (ltw, e) in SystemAPI.Query<LocalToWorld>().WithAll<GridStructure>().WithEntityAccess())
+        {
+            foreach(var wall in roomsLookup.Walls.GetValuesForKey(e))
+                matrices.Add(Matrix4x4.TRS(GridStructure.CellToWorld(ltw, wall), ltw.Rotation, Vector3.one));
+        }
+        
+        Draw(matrices, occupationMat);
         
         // matrices.Clear();
         // Entities.ForEach((in CellMap cells, in GridStructure grid, in LocalToWorld ltw) =>
@@ -71,7 +72,7 @@ public partial class DebugOccupationSystem : SystemBase
         // }).Run();
         //
         // Draw(matrices, ghostMat);
-        //
+        
         // matrices.Clear();
         // Entities.ForEach((in Ghost ghost, in GridItem item) =>
         // {
@@ -91,18 +92,16 @@ public partial class DebugOccupationSystem : SystemBase
     void ShowRooms()
     {
         var roomsLookup = SystemAPI.GetSingleton<RoomsLookup>();
-        NativeList<float4x4> matricesUnexposed = new NativeList<float4x4>(Allocator.Temp);
-        NativeList<float4x4> matricesExposed = new NativeList<float4x4>(Allocator.Temp);
+        NativeList<Matrix4x4> matricesUnexposed = new NativeList<Matrix4x4>(Allocator.Temp);
         foreach(var (ltw, e) in SystemAPI.Query<LocalToWorld>().WithAll<GridStructure>().WithEntityAccess())
         {
             foreach(var (_, room) in roomsLookup.GridRooms.GetValuesForKey(e))
-                matricesUnexposed.Add(float4x4.TRS(
-                    GridStructure.CellToWorld(ltw, room.BoundingBox.Min), 
+                matricesUnexposed.Add(Matrix4x4.TRS(
+                    GridStructure.CellToWorld(ltw, (room.BoundingBox.Max - room.BoundingBox.Min)/2), 
                     ltw.Rotation, 
-                    room.BoundingBox.Max - room.BoundingBox.Min));
+                    (float3)room.BoundingBox.Max - room.BoundingBox.Min));
         }
         
-        Draw(matricesExposed, occupationMat);
         Draw(matricesUnexposed, ghostMat);
     }
 
@@ -119,7 +118,7 @@ public partial class DebugOccupationSystem : SystemBase
     
     void ShowAABBs()
     {
-        NativeList<float4x4> matrices = new NativeList<float4x4>(Allocator.Temp);
+        NativeList<Matrix4x4> matrices = new NativeList<Matrix4x4>(Allocator.Temp);
         GridStructure inGrid = default;
         float4x4 inGridItem = default;
         var playerPos = SystemAPI.GetComponent<LocalToWorld>(SystemAPI.GetSingletonEntity<LocalPlayer>()).Position;
@@ -129,7 +128,7 @@ public partial class DebugOccupationSystem : SystemBase
             if (grid.WorldAABB.Contains(playerPos))
                 inGrid = grid;
             else
-                matrices.Add(float4x4.TRS(grid.WorldAABB.Min + (grid.WorldAABB.Max - grid.WorldAABB.Min) / 2f, 
+                matrices.Add(Matrix4x4.TRS(grid.WorldAABB.Min + (grid.WorldAABB.Max - grid.WorldAABB.Min) / 2f, 
                     quaternion.identity, 
                     grid.WorldAABB.Size / GridStructure.CELL_SIZE));
         }
@@ -160,12 +159,12 @@ public partial class DebugOccupationSystem : SystemBase
         }
     }
 
-    void Draw(NativeList<float4x4> matrices, Material mat)
+    void Draw(NativeList<Matrix4x4> matrices, Material mat)
     {
         if (matrices.Length == 0)
             return;
-
-        var mats = matrices.ToArrayNBC().Select(x => new Matrix4x4(x.c0, x.c1, x.c2, x.c3)).ToArray();
+        
+        var mats = matrices.ToArrayNBC();
         while (mats.Length > 1000)
         {
             Graphics.DrawMeshInstanced(mesh, 0, mat, mats, 1000);

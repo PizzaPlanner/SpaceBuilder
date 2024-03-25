@@ -34,23 +34,7 @@ public partial class DockingVisualsSystem : SystemBase
         
         var ltg = SystemAPI.GetComponent<LocalToGalaxy>(refFrame);
         var cluster = GalaxyTools.GetLightSectorCluster(ltg);
-        if(cluster != _lastCluster)
-            Debug.Log($"Entered new Cluster {GalaxyTools.GetClusterName(cluster)}");
-        if (math.any(ltg.StarSector != _lastLtg.StarSector))
-        {
-            var lightSector = GalaxyTools.GetLightSectorData(ltg);
-            if (lightSector.CalculateStarSectors.Contains(ltg.StarSector))
-            {
-                var starData = GalaxyTools.GetStarSectorData(ltg); 
-                if(starData.Type != StarSectorType.Empty)
-                    Debug.Log($"Entered Solar System {starData.Name} ({starData.Type})");
-            }
-            else
-            {
-                Debug.Log($"In LS {ltg.LightSector}");
-            }
-        }
-            
+
         _lastLtg = ltg;
         _lastCluster = cluster;
         _lastRefFrame = refFrame;

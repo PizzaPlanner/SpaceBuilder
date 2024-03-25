@@ -6,8 +6,11 @@ using Unity.Transforms;
 public partial struct GridRoomRecalculationJob : IJobEntity
 {
     public RoomsLookup roomLookup;
-    void Execute(Entity e, in GridUpdate update, in GridStructure grid)
+    void Execute(Entity e, DynamicBuffer<GridUpdate> updates, in GridStructure grid)
     {
+        if(updates.IsEmpty)
+            return;
+
         var bbox = grid.LocalAABB;
         var walls = roomLookup.Walls.GetValuesForKey(e);
         var toCheck = new NativeQueue<int3>(Allocator.Temp);

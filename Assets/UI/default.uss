@@ -258,14 +258,14 @@ CraftingInputButton > .name {
 }
 
 .poi-marker {
-    justify-content: center;
+    justify-content: flex-start;
     align-items: flex-start;
 }
 
 .poi-marker Label {
     font-size: 10px;
     -unity-font-style: normal;
-    -unity-text-align: lower-left;
+    -unity-text-align: upper-left;
     padding-left: 2px;
     padding-right: 2px;
     padding-top: 2px;
@@ -274,7 +274,7 @@ CraftingInputButton > .name {
     margin-right: 0;
     margin-top: 0;
     margin-bottom: 0;
-    justify-content: flex-end;
+    justify-content: flex-start;
     border-left-color: rgb(0, 0, 0);
     border-right-color: rgb(0, 0, 0);
     border-top-color: rgb(0, 0, 0);
@@ -286,10 +286,18 @@ CraftingInputButton > .name {
     background-color: rgba(0, 0, 0, 0.67);
     align-items: flex-start;
     display: none;
+    overflow: visible;
+    align-self: auto;
+    max-width: 0;
+    transition-property: max-width;
+    transition-duration: 0.5s;
 }
 
 .poi-marker.highlighted Label {
     display: flex;
+    max-width: none;
+    transition-property: max-width;
+    transition-duration: 0.5s;
 }
 
 .poi-marker #Icon {
@@ -310,6 +318,9 @@ CraftingInputButton > .name {
     left: -12px;
     top: -12px;
     flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
+    align-self: flex-start;
 }
 
 .hotkey-label {

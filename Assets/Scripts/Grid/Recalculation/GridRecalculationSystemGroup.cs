@@ -13,6 +13,7 @@ public partial class GridRecalculationSystemGroup : ComponentSystemGroup
     protected override void OnUpdate()
     {
         base.OnUpdate();
-        EntityManager.SetComponentEnabled<GridUpdate>(GetEntityQuery(typeof(GridUpdate)), false);
+        foreach(var buffer in SystemAPI.Query<DynamicBuffer<GridUpdate>>())
+            buffer.Clear();
     }
 }
