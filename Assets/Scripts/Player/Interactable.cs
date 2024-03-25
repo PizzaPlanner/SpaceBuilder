@@ -33,10 +33,12 @@ public partial class InteractionSystem : SystemBase
     {
         EntityManager.RemoveComponent<Interacted>(GetEntityQuery(typeof(Interacted)));
         var myTarget = SystemAPI.GetComponent<Target>(SystemAPI.GetSingletonEntity<LocalPlayer>());
-        interactableIndicator.style.display = myTarget.CanInteract ? DisplayStyle.Flex : DisplayStyle.None;
-        if (myTarget.CanInteract)
-            interactableIndicator.Q<Label>().text = "Interact";
-        if (myTarget.CanInteract && SystemAPI.GetSingleton<InputData>().WantInteraction)
+        var canInteract = myTarget.CanInteract && !SystemAPI.HasSingleton<ControlScheme.Building>();
+        interactableIndicator.style.display = canInteract ? DisplayStyle.Flex : DisplayStyle.None;
+        if(!canInteract)
+            return;
+        interactableIndicator.Q<Label>().text = "Interact";
+        if (SystemAPI.GetSingleton<InputData>().WantInteraction)
         {
             EntityManager.AddComponentData(myTarget.Value, new Interacted
             {

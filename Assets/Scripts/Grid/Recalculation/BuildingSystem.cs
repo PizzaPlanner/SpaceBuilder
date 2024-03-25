@@ -17,11 +17,11 @@ internal partial struct BuildingSystem : ISystem
         new BuildJob
         {
             ecb = ecb,
-            colliders = state.GetComponentLookup<PhysicsCollider>(true),
+            colliders = SystemAPI.GetComponentLookup<PhysicsCollider>(true),
             Rooms = SystemAPI.GetSingletonRW<RoomsLookup>().ValueRW
         }.Schedule();
 
-        new UnbuildJob()
+        new UnbuildJob
         {
             ecb = ecb,
             Rooms = SystemAPI.GetSingletonRW<RoomsLookup>().ValueRW

@@ -85,7 +85,16 @@ public partial class PlayerTargetSystem : SystemBase
         target.PreviousHit = target.Hit;
         target.Value = hit.Entity;
         if (target.Value != Entity.Null)
+        {
             target.Hit = hit.Position;
+            if (SystemAPI.HasBuffer<PhysicsColliderKeyEntityPair>(target.Value))
+            {
+                var pckePair = SystemAPI.GetBuffer<PhysicsColliderKeyEntityPair>(target.Value);
+                foreach(var entry in pckePair)
+                    if(entry.Key == hit.ColliderKey)
+                        target.Value = entry.Entity;
+            }
+        }
         
         target.CanInteract = target.Value != Entity.Null &&
                                 SystemAPI.HasComponent<Interactable>(target.Value) &&
